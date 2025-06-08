@@ -1,0 +1,11 @@
+C:\IntelTask\backend\IntelTask.Domain\bin\Debug\net9.0\IntelTask.Domain.deps.json
+C:\IntelTask\backend\IntelTask.Domain\bin\Debug\net9.0\IntelTask.Domain.dll
+C:\IntelTask\backend\IntelTask.Domain\bin\Debug\net9.0\IntelTask.Domain.pdb
+C:\IntelTask\backend\IntelTask.Domain\obj\Debug\net9.0\IntelTask.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\IntelTask\backend\IntelTask.Domain\obj\Debug\net9.0\IntelTask.Domain.AssemblyInfoInputs.cache
+C:\IntelTask\backend\IntelTask.Domain\obj\Debug\net9.0\IntelTask.Domain.AssemblyInfo.cs
+C:\IntelTask\backend\IntelTask.Domain\obj\Debug\net9.0\IntelTask.Domain.csproj.CoreCompileInputs.cache
+C:\IntelTask\backend\IntelTask.Domain\obj\Debug\net9.0\IntelTask.Domain.dll
+C:\IntelTask\backend\IntelTask.Domain\obj\Debug\net9.0\refint\IntelTask.Domain.dll
+C:\IntelTask\backend\IntelTask.Domain\obj\Debug\net9.0\IntelTask.Domain.pdb
+C:\IntelTask\backend\IntelTask.Domain\obj\Debug\net9.0\ref\IntelTask.Domain.dll

@@ -1,0 +1,6 @@
+@IntelTask.API_HostAddress = http://localhost:5185
+
+GET {{IntelTask.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

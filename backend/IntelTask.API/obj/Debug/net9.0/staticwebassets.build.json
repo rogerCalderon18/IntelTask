@@ -1,0 +1,12 @@
+{
+  "Version": 1,
+  "Hash": "voDH10FZRpVba3Pp70zVW1JomHfMEv7gYa+ousMfTQQ=",
+  "Source": "IntelTask.API",
+  "BasePath": "_content/IntelTask.API",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": [],
+  "Endpoints": []
+}

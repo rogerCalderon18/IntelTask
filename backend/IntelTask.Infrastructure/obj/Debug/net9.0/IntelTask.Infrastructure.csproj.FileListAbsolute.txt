@@ -1,0 +1,17 @@
+C:\IntelTask\backend\IntelTask.Infrastructure\bin\Debug\net9.0\IntelTask.Infrastructure.deps.json
+C:\IntelTask\backend\IntelTask.Infrastructure\bin\Debug\net9.0\IntelTask.Infrastructure.runtimeconfig.json
+C:\IntelTask\backend\IntelTask.Infrastructure\bin\Debug\net9.0\IntelTask.Infrastructure.dll
+C:\IntelTask\backend\IntelTask.Infrastructure\bin\Debug\net9.0\IntelTask.Infrastructure.pdb
+C:\IntelTask\backend\IntelTask.Infrastructure\bin\Debug\net9.0\IntelTask.Domain.dll
+C:\IntelTask\backend\IntelTask.Infrastructure\bin\Debug\net9.0\IntelTask.Domain.pdb
+C:\IntelTask\backend\IntelTask.Infrastructure\obj\Debug\net9.0\IntelTask.Infrastructure.csproj.AssemblyReference.cache
+C:\IntelTask\backend\IntelTask.Infrastructure\obj\Debug\net9.0\IntelTask.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+C:\IntelTask\backend\IntelTask.Infrastructure\obj\Debug\net9.0\IntelTask.Infrastructure.AssemblyInfoInputs.cache
+C:\IntelTask\backend\IntelTask.Infrastructure\obj\Debug\net9.0\IntelTask.Infrastructure.AssemblyInfo.cs
+C:\IntelTask\backend\IntelTask.Infrastructure\obj\Debug\net9.0\IntelTask.Infrastructure.csproj.CoreCompileInputs.cache
+C:\IntelTask\backend\IntelTask.Infrastructure\obj\Debug\net9.0\IntelTas.617C397C.Up2Date
+C:\IntelTask\backend\IntelTask.Infrastructure\obj\Debug\net9.0\IntelTask.Infrastructure.dll
+C:\IntelTask\backend\IntelTask.Infrastructure\obj\Debug\net9.0\refint\IntelTask.Infrastructure.dll
+C:\IntelTask\backend\IntelTask.Infrastructure\obj\Debug\net9.0\IntelTask.Infrastructure.pdb
+C:\IntelTask\backend\IntelTask.Infrastructure\obj\Debug\net9.0\IntelTask.Infrastructure.genruntimeconfig.cache
+C:\IntelTask\backend\IntelTask.Infrastructure\obj\Debug\net9.0\ref\IntelTask.Infrastructure.dll
