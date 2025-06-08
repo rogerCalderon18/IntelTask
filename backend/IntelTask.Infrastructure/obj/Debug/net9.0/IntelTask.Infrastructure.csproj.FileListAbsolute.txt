@@ -15,3 +15,4 @@ C:\IntelTask\backend\IntelTask.Infrastructure\obj\Debug\net9.0\refint\IntelTask.
 C:\IntelTask\backend\IntelTask.Infrastructure\obj\Debug\net9.0\IntelTask.Infrastructure.pdb
 C:\IntelTask\backend\IntelTask.Infrastructure\obj\Debug\net9.0\IntelTask.Infrastructure.genruntimeconfig.cache
 C:\IntelTask\backend\IntelTask.Infrastructure\obj\Debug\net9.0\ref\IntelTask.Infrastructure.dll
+C:\IntelTask\backend\IntelTask.Infrastructure\obj\Debug\net9.0\IntelTask.Infrastructure.sourcelink.json

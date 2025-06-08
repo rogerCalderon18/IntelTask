@@ -9,3 +9,4 @@ C:\IntelTask\backend\IntelTask.Domain\obj\Debug\net9.0\IntelTask.Domain.dll
 C:\IntelTask\backend\IntelTask.Domain\obj\Debug\net9.0\refint\IntelTask.Domain.dll
 C:\IntelTask\backend\IntelTask.Domain\obj\Debug\net9.0\IntelTask.Domain.pdb
 C:\IntelTask\backend\IntelTask.Domain\obj\Debug\net9.0\ref\IntelTask.Domain.dll
+C:\IntelTask\backend\IntelTask.Domain\obj\Debug\net9.0\IntelTask.Domain.sourcelink.json

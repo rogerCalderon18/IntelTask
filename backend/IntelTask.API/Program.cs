@@ -12,6 +12,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<IntelTaskDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("BdConnection")));
 builder.Services.AddScoped<IEstadosRepository, EstadosRepository>();
+builder.Services.AddScoped<IAccionesRepository, AccionesRepository>();
 builder.Services.AddControllers();
 
 var app = builder.Build();

@@ -19,7 +19,7 @@ namespace IntelTask.Infrastructure.Repositories
             return await _context.T_Acciones.ToListAsync();
         }
 
-        public async Task<EAcciones?> GetAccionByIdAsync(byte id)
+        public async Task<EAcciones?> GetAccionByIdAsync(int id)
         {
             return await _context.T_Acciones.FindAsync(id);
         }

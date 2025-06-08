@@ -89,3 +89,4 @@ C:\IntelTask\backend\IntelTask.API\obj\Debug\net9.0\IntelTask.API.pdb
 C:\IntelTask\backend\IntelTask.API\obj\Debug\net9.0\IntelTask.API.genruntimeconfig.cache
 C:\IntelTask\backend\IntelTask.API\obj\Debug\net9.0\ref\IntelTask.API.dll
 C:\IntelTask\backend\IntelTask.API\bin\Debug\net9.0\appsettings.Production.json
+C:\IntelTask\backend\IntelTask.API\obj\Debug\net9.0\IntelTask.API.sourcelink.json
