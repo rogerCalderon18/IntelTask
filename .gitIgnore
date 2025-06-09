@@ -1,0 +1,112 @@
+# Archivos y carpetas de Visual Studio
+.vs/
+.vscode/
+bin/
+obj/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+
+# Resultados de pruebas
+TestResults/
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*.VisualState.xml
+coverage.*
+*.coverage
+*.coveragexml
+
+# Configuración local y secretos
+appsettings.Development.json
+appsettings.Local.json
+*.Development.json
+*.Local.json
+secrets.json
+local.settings.json
+
+# Archivos de base de datos
+*.mdf
+*.ldf
+*.ndf
+*.dbmdl
+*.jfm
+
+# Logs y archivos temporales
+[Ll]ogs/
+*.log
+log.txt
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.sass-cache/
+*.tmp
+*~
+*.swp
+*.swo
+temp/
+
+# Archivos generados por herramientas
+.idea/
+.ionide/
+.rider/
+.vscode/
+*.GhostDoc.xml
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+_NCrunch_*
+*.ncrunchsolution
+*.ncrunchproject
+
+# Dependencias
+node_modules/
+bower_components/
+wwwroot/lib/
+packages/
+*.nupkg
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Archivos específicos generados en la compilación
+apphost.exe
+*.dll
+*.pdb
+*.cache
+*.json
+*.csproj.*
+*.AssemblyInfo.cs
+*.AssemblyInfoInputs.cache
+*.AssemblyReference.cache
+*.CoreCompilerInputs.cache
+*.sourcelink.json
+*.ref
+*.refint
+
+# Rutas específicas
+backend/IntelTask.API/obj/
+backend/IntelTask.API/bin/
+backend/IntelTask.Domain/obj/
+backend/IntelTask.Domain/bin/
+backend/IntelTask.Infrastructure/obj/
+backend/IntelTask.Infrastructure/bin/
+
+# Para ignorar todos los archivos de salida de compilación en cualquier proyecto
+**/bin/
+**/obj/
