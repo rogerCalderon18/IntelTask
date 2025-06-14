@@ -14,23 +14,23 @@ namespace IntelTask.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<IEnumerable<EOficinas>> GetAllOficinasAsync()
+        public async Task<IEnumerable<EOficinas>> F_PUB_ObtenerTodasLasOficinas()
         {
             return await _context.T_Oficinas.ToListAsync();
         }
 
-        public async Task<EOficinas?> GetOficinaByIdAsync(int id)
+        public async Task<EOficinas?> F_PUB_ObtenerOficinaPorId(int id)
         {
             return await _context.T_Oficinas.FindAsync(id);
         }
 
-        public async Task AddOficinaAsync(EOficinas oficina)
+        public async Task M_PUB_AgregarOficina(EOficinas oficina)
         {
             await _context.T_Oficinas.AddAsync(oficina);
             await _context.SaveChangesAsync();
         }
 
-        public async Task UpdateOficinaAsync(EOficinas oficina)
+        public async Task M_PUB_ActualizarOficina(EOficinas oficina)
         {
             var existingOficina = await _context.T_Oficinas.FindAsync(oficina.CN_Codigo_oficina);
             if (existingOficina != null)

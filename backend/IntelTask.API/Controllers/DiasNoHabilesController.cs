@@ -17,16 +17,16 @@ public class DiasNoHabilesController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<EDiasNoHabiles>>> GetDiasNoHabiles()
+    public async Task<ActionResult<IEnumerable<EDiasNoHabiles>>> F_PUB_ObtenerDiasNoHabiles()
     {
-        var diasNoHabiles = await _diasNoHabilesRepository.GetAllDiasNoHabilesAsync();
+        var diasNoHabiles = await _diasNoHabilesRepository.F_PUB_ObtenerTodosLosDiasNoHabiles();
         return Ok(diasNoHabiles);
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<EDiasNoHabiles>> GetDiaNoHabil(int id)
+    public async Task<ActionResult<EDiasNoHabiles>> F_PUB_ObtenerDiaNoHabil(int id)
     {
-        var diaNoHabil = await _diasNoHabilesRepository.GetDiaNoHabilByIdAsync(id);
+        var diaNoHabil = await _diasNoHabilesRepository.F_PUB_ObtenerDiaNoHabilPorId(id);
         if (diaNoHabil == null)
         {
             return NotFound();
@@ -35,32 +35,32 @@ public class DiasNoHabilesController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<EDiasNoHabiles>> CreateDiaNoHabil(EDiasNoHabiles diaNoHabil)
+    public async Task<ActionResult<EDiasNoHabiles>> M_PUB_CrearDiaNoHabil(EDiasNoHabiles diaNoHabil)
     {
         if (diaNoHabil == null)
         {
-            return BadRequest("Complejidad no puede ser null.");
+            return BadRequest("Día no hábil no puede ser null.");
         }
 
-        await _diasNoHabilesRepository.AddDiaNoHabilAsync(diaNoHabil);
-        return CreatedAtAction(nameof(GetDiaNoHabil), new { id = diaNoHabil.CN_Id_dias_no_habiles }, diaNoHabil);
+        await _diasNoHabilesRepository.M_PUB_AgregarDiaNoHabil(diaNoHabil);
+        return CreatedAtAction(nameof(F_PUB_ObtenerDiaNoHabil), new { id = diaNoHabil.CN_Id_dias_no_habiles }, diaNoHabil);
     }
    
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateDiaNoHabil(int id, EDiasNoHabiles diaNoHabil)
+    public async Task<IActionResult> M_PUB_ActualizarDiaNoHabil(int id, EDiasNoHabiles diaNoHabil)
     {
         if (id != diaNoHabil.CN_Id_dias_no_habiles)
         {
-            return BadRequest("El ID de la complejidad no coincide.");
+            return BadRequest("El ID del día no hábil no coincide.");
         }
 
-        var existingDiaNoHabil = await _diasNoHabilesRepository.GetDiaNoHabilByIdAsync(id);
+        var existingDiaNoHabil = await _diasNoHabilesRepository.F_PUB_ObtenerDiaNoHabilPorId(id);
         if (existingDiaNoHabil == null)
         {
             return NotFound();
         }
 
-        await _diasNoHabilesRepository.UpdateDiaNoHabilAsync(diaNoHabil);
+        await _diasNoHabilesRepository.M_PUB_ActualizarDiaNoHabil(diaNoHabil);
         return NoContent();
     }
 }

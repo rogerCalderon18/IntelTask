@@ -14,23 +14,23 @@ namespace IntelTask.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<IEnumerable<EDiasNoHabiles>> GetAllDiasNoHabilesAsync()
+        public async Task<IEnumerable<EDiasNoHabiles>> F_PUB_ObtenerTodosLosDiasNoHabiles()
         {
             return await _context.T_Dias_No_Habiles.ToListAsync();
         }
 
-        public async Task<EDiasNoHabiles?> GetDiaNoHabilByIdAsync(int id)
+        public async Task<EDiasNoHabiles?> F_PUB_ObtenerDiaNoHabilPorId(int id)
         {
             return await _context.T_Dias_No_Habiles.FindAsync(id);
         }
 
-        public async Task AddDiaNoHabilAsync(EDiasNoHabiles diaNoHabil)
+        public async Task M_PUB_AgregarDiaNoHabil(EDiasNoHabiles diaNoHabil)
         {
             await _context.T_Dias_No_Habiles.AddAsync(diaNoHabil);
             await _context.SaveChangesAsync();
         }
 
-        public async Task UpdateDiaNoHabilAsync(EDiasNoHabiles diaNoHabil)
+        public async Task M_PUB_ActualizarDiaNoHabil(EDiasNoHabiles diaNoHabil)
         {
             var existingDiasNoHabil = await _context.T_Dias_No_Habiles.FindAsync(diaNoHabil.CN_Id_dias_no_habiles);
             if (existingDiasNoHabil != null)

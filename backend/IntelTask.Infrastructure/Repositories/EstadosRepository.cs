@@ -14,23 +14,23 @@ namespace IntelTask.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<IEnumerable<EEstados>> GetAllEstadosAsync()
+        public async Task<IEnumerable<EEstados>> F_PUB_ObtenerTodosLosEstados()
         {
             return await _context.T_Estados.ToListAsync();
         }
 
-        public async Task<EEstados?> GetEstadoByIdAsync(byte id)
+        public async Task<EEstados?> F_PUB_ObtenerEstadoPorId(byte id)
         {
             return await _context.T_Estados.FindAsync(id);
         }
 
-        public async Task AddEstadoAsync(EEstados estado)
+        public async Task M_PUB_AgregarEstado(EEstados estado)
         {
             await _context.T_Estados.AddAsync(estado);
             await _context.SaveChangesAsync();
         }
 
-        public async Task UpdateEstadoAsync(EEstados estado)
+        public async Task M_PUB_ActualizarEstado(EEstados estado)
         {
             var existingEstado = await _context.T_Estados.FindAsync(estado.CN_Id_estado);
             if (existingEstado != null)

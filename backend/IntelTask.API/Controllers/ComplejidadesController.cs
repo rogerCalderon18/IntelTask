@@ -17,50 +17,48 @@ public class ComplejidadesController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<EComplejidades>>> GetComplejidades()
+    public async Task<ActionResult<IEnumerable<EComplejidades>>> F_PUB_ObtenerComplejidades()
     {
-        var complejidades = await _complejidadesRepository.GetAllComplejidadesAsync();
+        var complejidades = await _complejidadesRepository.F_PUB_ObtenerTodasLasComplejidades();
         return Ok(complejidades);
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<EComplejidades>> GetComplejidad(byte id)
+    public async Task<ActionResult<EComplejidades>> F_PUB_ObtenerComplejidad(byte id)
     {
-        var complejidad = await _complejidadesRepository.GetComplejidadByIdAsync(id);
+        var complejidad = await _complejidadesRepository.F_PUB_ObtenerComplejidadPorId(id);
         if (complejidad == null)
         {
             return NotFound();
         }
         return Ok(complejidad);
-    }
-
-    [HttpPost]
-    public async Task<ActionResult<EComplejidades>> CreateComplejidad(EComplejidades complejidad)
+    }    [HttpPost]
+    public async Task<ActionResult<EComplejidades>> M_PUB_CrearComplejidad(EComplejidades complejidad)
     {
         if (complejidad == null)
         {
             return BadRequest("Complejidad no puede ser null.");
         }
 
-        await _complejidadesRepository.AddComplejidadAsync(complejidad);
-        return CreatedAtAction(nameof(GetComplejidad), new { id = complejidad.CN_Id_complejidad }, complejidad);
+        await _complejidadesRepository.M_PUB_AgregarComplejidad(complejidad);
+        return CreatedAtAction(nameof(F_PUB_ObtenerComplejidad), new { id = complejidad.CN_Id_complejidad }, complejidad);
     }
    
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateComplejidad(byte id, EComplejidades complejidad)
+    public async Task<IActionResult> M_PUB_ActualizarComplejidad(byte id, EComplejidades complejidad)
     {
         if (id != complejidad.CN_Id_complejidad)
         {
             return BadRequest("El ID de la complejidad no coincide.");
         }
 
-        var existingComplejidad = await _complejidadesRepository.GetComplejidadByIdAsync(id);
+        var existingComplejidad = await _complejidadesRepository.F_PUB_ObtenerComplejidadPorId(id);
         if (existingComplejidad == null)
         {
             return NotFound();
         }
 
-        await _complejidadesRepository.UpdateComplejidadAsync(complejidad);
+        await _complejidadesRepository.M_PUB_ActualizarComplejidad(complejidad);
         return NoContent();
     }
 }

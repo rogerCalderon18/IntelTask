@@ -17,16 +17,16 @@ public class OficinasController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<EOficinas>>> GetOficinas()
+    public async Task<ActionResult<IEnumerable<EOficinas>>> F_PUB_ObtenerOficinas()
     {
-        var oficinas = await _oficinasRepository.GetAllOficinasAsync();
+        var oficinas = await _oficinasRepository.F_PUB_ObtenerTodasLasOficinas();
         return Ok(oficinas);
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<EOficinas>> GetOficina(int id)
+    public async Task<ActionResult<EOficinas>> F_PUB_ObtenerOficina(int id)
     {
-        var oficina = await _oficinasRepository.GetOficinaByIdAsync(id);
+        var oficina = await _oficinasRepository.F_PUB_ObtenerOficinaPorId(id);
         if (oficina == null)
         {
             return NotFound();
@@ -35,32 +35,31 @@ public class OficinasController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<EOficinas>> CreateOficina(EOficinas oficina)
+    public async Task<ActionResult<EOficinas>> M_PUB_CrearOficina(EOficinas oficina)
     {
         if (oficina == null)
         {
             return BadRequest("Oficina no puede ser null.");
         }
 
-        await _oficinasRepository.AddOficinaAsync(oficina);
-        return CreatedAtAction(nameof(GetOficina), new { id = oficina.CN_Codigo_oficina }, oficina);
+        await _oficinasRepository.M_PUB_AgregarOficina(oficina);
+        return CreatedAtAction(nameof(F_PUB_ObtenerOficina), new { id = oficina.CN_Codigo_oficina }, oficina);
     }
    
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateOficina(int id, EOficinas oficina)
+    public async Task<IActionResult> M_PUB_ActualizarOficina(int id, EOficinas oficina)
     {
         if (id != oficina.CN_Codigo_oficina)
         {
             return BadRequest("El ID de la oficina no coincide.");
         }
 
-        var existingOficina = await _oficinasRepository.GetOficinaByIdAsync(id);
+        var existingOficina = await _oficinasRepository.F_PUB_ObtenerOficinaPorId(id);
         if (existingOficina == null)
         {
             return NotFound();
         }
-
-        await _oficinasRepository.UpdateOficinaAsync(oficina);
+        await _oficinasRepository.M_PUB_ActualizarOficina(oficina);
         return NoContent();
     }
 }

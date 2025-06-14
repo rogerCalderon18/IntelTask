@@ -4,9 +4,9 @@ namespace IntelTask.Domain.Interfaces
 {
     public interface IRolesRepository
     {
-        Task<IEnumerable<ERoles>> GetAllRolesAsync();
-        Task<ERoles?> GetRolByIdAsync(int id);
-        Task AddRolAsync(ERoles rol);
-        Task UpdateRolAsync(ERoles rol);
+        Task<IEnumerable<ERoles>> F_PUB_ObtenerTodosLosRoles();
+        Task<ERoles?> F_PUB_ObtenerRolPorId(int id);
+        Task M_PUB_AgregarRol(ERoles rol);
+        Task M_PUB_ActualizarRol(ERoles rol);
     }
 }

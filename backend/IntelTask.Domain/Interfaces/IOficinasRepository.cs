@@ -4,10 +4,10 @@ namespace IntelTask.Domain.Interfaces
 {
     public interface IOficinasRepository
     {
-        Task<IEnumerable<EOficinas>> GetAllOficinasAsync();
-        Task<EOficinas?> GetOficinaByIdAsync(int id);
-        Task AddOficinaAsync(EOficinas oficina);
-        Task UpdateOficinaAsync(EOficinas oficina);
+        Task<IEnumerable<EOficinas>> F_PUB_ObtenerTodasLasOficinas();
+        Task<EOficinas?> F_PUB_ObtenerOficinaPorId(int id);
+        Task M_PUB_AgregarOficina(EOficinas oficina);
+        Task M_PUB_ActualizarOficina(EOficinas oficina);
     }
 
 }

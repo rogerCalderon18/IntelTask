@@ -14,23 +14,23 @@ namespace IntelTask.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<IEnumerable<EPantallas>> GetAllPantallasAsync()
+        public async Task<IEnumerable<EPantallas>> F_PUB_ObtenerTodasLasPantallas()
         {
             return await _context.T_Pantallas.ToListAsync();
         }
 
-        public async Task<EPantallas?> GetPantallaByIdAsync(int id)
+        public async Task<EPantallas?> F_PUB_ObtenerPantallaPorId(int id)
         {
             return await _context.T_Pantallas.FindAsync(id);
         }
 
-        public async Task AddPantallaAsync(EPantallas pantalla)
+        public async Task M_PUB_AgregarPantalla(EPantallas pantalla)
         {
             await _context.T_Pantallas.AddAsync(pantalla);
             await _context.SaveChangesAsync();
         }
 
-        public async Task UpdatePantallaAsync(EPantallas pantalla)
+        public async Task M_PUB_ActualizarPantalla(EPantallas pantalla)
         {
             var existingPantalla = await _context.T_Pantallas.FindAsync(pantalla.CN_Id_pantalla);
             if (existingPantalla != null)

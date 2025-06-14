@@ -20,6 +20,9 @@ builder.Services.AddScoped<IPrioridadesRepository, PrioridadesRepository>();
 builder.Services.AddScoped<IComplejidadesRepository, ComplejidadesRepository>();
 builder.Services.AddScoped<IOficinasRepository, OficinasRepository>();
 builder.Services.AddScoped<IDiasNoHabilesRepository, DiasNoHabilesRepository>();
+builder.Services.AddScoped<IUsuariosRepository, UsuariosRepository>();
+builder.Services.AddScoped<ITareasRepository, TareasRepository>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 
 builder.Services.AddControllers();

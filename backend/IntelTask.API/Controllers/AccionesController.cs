@@ -17,16 +17,16 @@ public class AccionesController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<EAcciones>>> GetAcciones()
+    public async Task<ActionResult<IEnumerable<EAcciones>>> F_PUB_ObtenerAcciones()
     {
-        var acciones = await _accionesRepository.GetAllAccionesAsync();
+        var acciones = await _accionesRepository.F_PUB_ObtenerTodasLasAcciones();
         return Ok(acciones);
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<EAcciones>> GetAccion(int id)
+    public async Task<ActionResult<EAcciones>> F_PUB_ObtenerAccion(int id)
     {
-        var accion = await _accionesRepository.GetAccionByIdAsync(id);
+        var accion = await _accionesRepository.F_PUB_ObtenerAccionPorId(id);
         if (accion == null)
         {
             return NotFound();
@@ -35,32 +35,71 @@ public class AccionesController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<EAcciones>> CreateAccion(EAcciones accion)
+    public async Task<ActionResult> PUB_CrearAccion(EAcciones accion)
     {
         if (accion == null)
         {
             return BadRequest("Accion no puede ser null.");
         }
 
-        await _accionesRepository.AddAccionAsync(accion);
-        return CreatedAtAction(nameof(GetAccion), new { id = accion.CN_Id_accion }, accion);
+        try
+        {
+            await _accionesRepository.M_PUB_AgregarAccion(accion);
+            return CreatedAtAction(nameof(F_PUB_ObtenerAccion), new { id = accion.CN_Id_accion }, accion);
+        }
+        catch (Exception ex)
+        {
+            // Verificar el tipo de error por el mensaje
+            if (ex.Message.StartsWith("DUPLICATE:"))
+            {
+                // Error de duplicado
+                return Conflict(ex.Message); // Conflicto, ya existe
+            }
+            else
+            {
+                // Otro tipo de error
+                return StatusCode(500, "Ocurrió un error inesperado: " + ex.Message);
+            }
+        }
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateAccion(int id, EAcciones accion)
+    public async Task<IActionResult> M_PUB_ActualizarAccion(int id, EAcciones accion)
     {
+        if (accion == null)
+        {
+            return BadRequest("Accion no puede ser null.");
+        }
+
         if (id != accion.CN_Id_accion)
         {
             return BadRequest("El ID de la acción no coincide.");
         }
 
-        var existingAccion = await _accionesRepository.GetAccionByIdAsync(id);
+        var existingAccion = await _accionesRepository.F_PUB_ObtenerAccionPorId(id);
         if (existingAccion == null)
         {
             return NotFound();
         }
 
-        await _accionesRepository.UpdateAccionAsync(accion);
-        return NoContent();
+        try
+        {
+            await _accionesRepository.M_PUB_ActualizarAccion(accion);
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            // Verificar el tipo de error por el mensaje
+            if (ex.Message.StartsWith("DUPLICATE:"))
+            {
+                // Error de duplicado
+                return Conflict(ex.Message); // Conflicto, ya existe
+            }
+            else
+            {
+                // Otro tipo de error
+                return StatusCode(500, "Ocurrió un error inesperado: " + ex.Message);
+            }
+        }
     }
 }

@@ -4,9 +4,9 @@ namespace IntelTask.Domain.Interfaces
 {
     public interface IPantallasRepository
     {
-        Task<IEnumerable<EPantallas>> GetAllPantallasAsync();
-        Task<EPantallas?> GetPantallaByIdAsync(int id);
-        Task AddPantallaAsync(EPantallas pantalla);
-        Task UpdatePantallaAsync(EPantallas pantalla);
+        Task<IEnumerable<EPantallas>> F_PUB_ObtenerTodasLasPantallas();
+        Task<EPantallas?> F_PUB_ObtenerPantallaPorId(int id);
+        Task M_PUB_AgregarPantalla(EPantallas pantalla);
+        Task M_PUB_ActualizarPantalla(EPantallas pantalla);
     }
 }

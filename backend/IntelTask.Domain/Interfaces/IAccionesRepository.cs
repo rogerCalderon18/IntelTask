@@ -4,9 +4,9 @@ namespace IntelTask.Domain.Interfaces
 {
     public interface IAccionesRepository
     {
-        Task<IEnumerable<EAcciones>> GetAllAccionesAsync();
-        Task<EAcciones?> GetAccionByIdAsync(int id);
-        Task AddAccionAsync(EAcciones accion);
-        Task UpdateAccionAsync(EAcciones accion);
+        Task<IEnumerable<EAcciones>> F_PUB_ObtenerTodasLasAcciones();
+        Task<EAcciones?> F_PUB_ObtenerAccionPorId(int id);
+        Task M_PUB_AgregarAccion(EAcciones accion);
+        Task M_PUB_ActualizarAccion(EAcciones accion);
     }
 }

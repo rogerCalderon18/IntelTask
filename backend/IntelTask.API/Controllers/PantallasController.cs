@@ -17,16 +17,16 @@ public class PantallasController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<EPantallas>>> GetPantallas()
+    public async Task<ActionResult<IEnumerable<EPantallas>>> F_PUB_ObtenerPantallas()
     {
-        var acciones = await _pantallasRepository.GetAllPantallasAsync();
-        return Ok(acciones);
+        var pantallas = await _pantallasRepository.F_PUB_ObtenerTodasLasPantallas();
+        return Ok(pantallas);
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<EPantallas>> GetPantalla(int id)
+    public async Task<ActionResult<EPantallas>> F_PUB_ObtenerPantalla(int id)
     {
-        var pantalla = await _pantallasRepository.GetPantallaByIdAsync(id);
+        var pantalla = await _pantallasRepository.F_PUB_ObtenerPantallaPorId(id);
         if (pantalla == null)
         {
             return NotFound();
@@ -35,32 +35,31 @@ public class PantallasController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<EPantallas>> CreatePantalla(EPantallas pantalla)
+    public async Task<ActionResult<EPantallas>> M_PUB_CrearPantalla(EPantallas pantalla)
     {
         if (pantalla == null)
         {
             return BadRequest("Pantalla no puede ser null.");
         }
 
-        await _pantallasRepository.AddPantallaAsync(pantalla);
-        return CreatedAtAction(nameof(GetPantalla), new { id = pantalla.CN_Id_pantalla }, pantalla);
+        await _pantallasRepository.M_PUB_AgregarPantalla(pantalla);
+        return CreatedAtAction(nameof(F_PUB_ObtenerPantalla), new { id = pantalla.CN_Id_pantalla }, pantalla);
     }
    
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdatePantalla(int id, EPantallas pantalla)
+    public async Task<IActionResult> M_PUB_ActualizarPantalla(int id, EPantallas pantalla)
     {
         if (id != pantalla.CN_Id_pantalla)
         {
             return BadRequest("El ID de la pantalla no coincide.");
         }
 
-        var existingPantalla = await _pantallasRepository.GetPantallaByIdAsync(id);
+        var existingPantalla = await _pantallasRepository.F_PUB_ObtenerPantallaPorId(id);
         if (existingPantalla == null)
         {
             return NotFound();
         }
-
-        await _pantallasRepository.UpdatePantallaAsync(pantalla);
+        await _pantallasRepository.M_PUB_ActualizarPantalla(pantalla);
         return NoContent();
     }
 }
