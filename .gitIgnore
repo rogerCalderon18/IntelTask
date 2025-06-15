@@ -110,3 +110,4 @@ backend/IntelTask.Infrastructure/bin/
 # Para ignorar todos los archivos de salida de compilación en cualquier proyecto
 **/bin/
 **/obj/
+.fake

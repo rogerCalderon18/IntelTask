@@ -50,6 +50,7 @@ namespace IntelTask.Infrastructure.Repositories
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Error al agregar tarea: {ex.Message}");
                 throw new Exception("DB_ERROR: Error al crear la tarea en la base de datos.", ex);
             }
         }

@@ -2,6 +2,7 @@ namespace IntelTask.API.Controllers;
 
 using IntelTask.Domain.Interfaces;
 using IntelTask.Domain.Entities;
+using IntelTask.Domain.DTOs;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
@@ -76,7 +77,8 @@ public class TareasController : ControllerBase
             {
                 return BadRequest(ex.Message);
             }
-            return StatusCode(500, "Error al crear la tarea: " + ex.Message);
+            Console.WriteLine("Error al crear la tarea: " + ex.Message);
+            return StatusCode(500, "Error al crear la tarea aqui: " + ex.Message);
         }
     }
 
@@ -103,30 +105,5 @@ public class TareasController : ControllerBase
         {
             return StatusCode(500, "Error al actualizar la tarea: " + ex.Message);
         }
-    }
-
-    public class TareaRequest
-    {
-        public int? CN_Tarea_origen { get; set; }
-        public string CT_Titulo_tarea { get; set; } = string.Empty;
-        public string CT_Descripcion_tarea { get; set; } = string.Empty;
-        public string? CT_Descripcion_espera { get; set; }
-        public byte CN_Id_complejidad { get; set; }
-        public byte CN_Id_estado { get; set; }
-        public byte CN_Id_prioridad { get; set; }
-        public string? CN_Numero_GIS { get; set; }
-        public DateTime CF_Fecha_asignacion { get; set; } = DateTime.Now;
-        public DateTime CF_Fecha_limite { get; set; }
-        public DateTime? CF_Fecha_finalizacion { get; set; }
-        public int CN_Usuario_creador { get; set; }
-        public int? CN_Usuario_asignado { get; set; }
-    }
-
-    // Método para obtener el usuario actual (implementación temporal)
-    private int ObtenerUsuarioActual()
-    {
-        // En un sistema real, obtendría el ID del usuario autenticado
-        // Por ejemplo, a través de claims en el token JWT
-        return 1; // ID del usuario por defecto
     }
 }
