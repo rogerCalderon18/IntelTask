@@ -14,7 +14,7 @@ import {
 } from "@heroui/react";
 import { FaPaperclip } from "react-icons/fa";
 import { catalogosService } from "../../services/catalogosService";
-import {useSession} from "next-auth/react";
+import { useSession } from "next-auth/react";
 
 const TareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea }) => {
     const { data: session } = useSession();
@@ -28,14 +28,12 @@ const TareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea }) => {
     });
     const [loadingCatalogos, setLoadingCatalogos] = useState(true);
 
-    // Cargar catálogos cuando se abre el modal
     useEffect(() => {
         if (isOpen) {
             cargarCatalogos();
         }
     }, [isOpen]);
 
-    // Actualizar tarea local cuando cambia la prop tarea
     useEffect(() => {
         setTareaLocal(tarea || {});
     }, [tarea]);
@@ -58,20 +56,18 @@ const TareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea }) => {
 
         try {
             const formData = new FormData(e.currentTarget);
-
-            // Mapear los datos del formulario a la estructura esperada por el backend
+            const responsableValue = formData.get('responsable');
             const tareaData = {
                 cT_Titulo_tarea: formData.get('titulo'),
                 cT_Descripcion_tarea: formData.get('descripcion'),
                 cN_Id_complejidad: parseInt(formData.get('complejidad')),
                 cN_Id_prioridad: parseInt(formData.get('prioridad')),
-                cN_Id_estado: tarea ? parseInt(formData.get('estado')) : 1, // Estado inicial para nuevas tareas
+                cN_Id_estado: tarea ? parseInt(formData.get('estado')) : 1,
                 cF_Fecha_limite: formData.get('fechaLimite'),
                 cN_Numero_GIS: formData.get('numeroGIS'),
-                cN_Usuario_creador: session?.user?.id, // Usuario actual (esto debería venir del contexto de autenticación)
-                cN_Usuario_asignado: tareaLocal.cN_Usuario_asignado || parseInt(formData.get('responsable')),
-                cT_Descripcion_espera: formData.get('descripcionEspera') || null,
-                cN_Tarea_origen: null // Para subtareas
+                cN_Usuario_creador: session?.user?.id,                
+                cN_Usuario_asignado: responsableValue ? parseInt(responsableValue) : null,
+                cN_Tarea_origen: null
             };
 
             console.log('Datos a enviar:', tareaData);
@@ -202,10 +198,10 @@ const TareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea }) => {
                                             </SelectItem>
                                         ))}
                                     </Select>
-
+                                    
                                     <Select
                                         name="responsable"
-                                        label="Responsable"
+                                        label="Responsable (Opcional)"
                                         labelPlacement="outside"
                                         placeholder="Selecciona un usuario"
                                         defaultSelectedKeys={tarea?.cN_Usuario_asignado ? [tarea.cN_Usuario_asignado.toString()] : []}
@@ -219,7 +215,6 @@ const TareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea }) => {
                                             }
                                         }}
                                         variant="bordered"
-                                        errorMessage="El responsable es obligatorio"
                                         isDisabled={isSubmitting}
                                     >
                                         {catalogos.usuarios.map((usuario) => (
@@ -231,39 +226,7 @@ const TareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea }) => {
                                             </SelectItem>
                                         ))}
                                     </Select>
-
-                                    <Select
-                                        isRequired
-                                        name="estado"
-                                        label="Estado"
-                                        labelPlacement="outside"
-                                        placeholder="Selecciona estado"
-                                        defaultSelectedKeys={tarea?.cN_Id_estado ? [tarea.cN_Id_estado.toString()] : []}
-                                        variant="bordered"
-                                        errorMessage="El estado es obligatorio"
-                                        isDisabled={isSubmitting}
-                                    >
-                                        {catalogos.estados.map((estado) => (
-                                            <SelectItem
-                                                key={estado.cN_Id_estado}
-                                                value={estado.cN_Id_estado.toString()}
-                                            >
-                                                {estado.cT_Estado}
-                                            </SelectItem>
-                                        ))}
-                                    </Select>
-
-                                    <Textarea
-                                        name="descripcionEspera"
-                                        label="Descripción de espera (Opcional)"
-                                        labelPlacement="outside"
-                                        placeholder="Descripción de espera..."
-                                        defaultValue={tarea?.cT_Descripcion_espera || ""}
-                                        minRows={2}
-                                        variant="bordered"
-                                        className="col-span-2"
-                                        isDisabled={isSubmitting}
-                                    />
+  
 
                                     <div className="col-span-2">
                                         <label className="text-sm text-gray-800">Adjuntos:</label>

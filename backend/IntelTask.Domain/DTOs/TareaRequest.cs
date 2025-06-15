@@ -12,10 +12,8 @@ namespace IntelTask.Domain.DTOs
         public byte CN_Id_estado { get; set; }
         public DateTime CF_Fecha_limite { get; set; }
         public int CN_Usuario_creador { get; set; }
-        
-        // Campos opcionales
+          // Campos opcionales
         public int? CN_Tarea_origen { get; set; }
-        public string? CT_Descripcion_espera { get; set; }
         public string? CN_Numero_GIS { get; set; }
         public int? CN_Usuario_asignado { get; set; }
     }

@@ -53,24 +53,29 @@ export const tareasService = {
       throw error;
     }
   },
-
   // Actualizar una tarea
   async actualizarTarea(id, tareaData) {
     try {
+      console.log(`Actualizando tarea ${id}:`, JSON.stringify(tareaData, null, 2));
+      
       const response = await fetch(`${API_URL}/api/Tareas/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
         body: JSON.stringify(tareaData),
       });
 
       if (!response.ok) {
         const errorData = await response.text();
+        console.error('Error response:', response.status, errorData);
         throw new Error(errorData || 'Error al actualizar la tarea');
       }
 
-      return response.status === 204 ? null : await response.json();
+      const data = await response.json();
+      console.log('Tarea actualizada exitosamente:', data);
+      return data;
     } catch (error) {
       console.error('Error al actualizar tarea:', error);
       throw error;

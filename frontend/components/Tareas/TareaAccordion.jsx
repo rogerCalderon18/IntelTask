@@ -3,7 +3,7 @@ import { Accordion, AccordionItem } from "@heroui/react";
 import TareaContent from "./TareaContent";
 import getColorClass from "../utils/getColorClass";
 
-const TareaAccordion = ({ tareas }) => {
+const TareaAccordion = ({ tareas, onEdit }) => {
   return (
     <Accordion variant="splitted">
       {tareas.map((tarea) => (
@@ -24,6 +24,8 @@ const TareaAccordion = ({ tareas }) => {
             descripcion={tarea.descripcion}
             fechaEntrega={tarea.fechaEntrega}
             subtareas={tarea.subtareas}
+            tarea={tarea}
+            onEdit={onEdit}
           />
         </AccordionItem>
       ))}

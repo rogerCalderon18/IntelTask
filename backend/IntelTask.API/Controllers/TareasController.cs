@@ -4,6 +4,7 @@ using IntelTask.Domain.Interfaces;
 using IntelTask.Domain.Entities;
 using IntelTask.Domain.DTOs;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -50,9 +51,7 @@ public class TareasController : ControllerBase
             CN_Id_complejidad = tareaRequest.CN_Id_complejidad,
             CN_Id_prioridad = tareaRequest.CN_Id_prioridad,
             CN_Id_estado = tareaRequest.CN_Id_estado,
-            CF_Fecha_limite = tareaRequest.CF_Fecha_limite,
-            CN_Tarea_origen = tareaRequest.CN_Tarea_origen,
-            CT_Descripcion_espera = tareaRequest.CT_Descripcion_espera,
+            CF_Fecha_limite = tareaRequest.CF_Fecha_limite,            CN_Tarea_origen = tareaRequest.CN_Tarea_origen,
             CN_Numero_GIS = tareaRequest.CN_Numero_GIS,
             CN_Usuario_asignado = tareaRequest.CN_Usuario_asignado,
             // Establecer fecha de asignación actual
@@ -72,7 +71,6 @@ public class TareasController : ControllerBase
         }
         catch (Exception ex)
         {
-            // Determinar si es un error de relación o un error de base de datos
             if (ex.Message.Contains("RELACION_ERROR"))
             {
                 return BadRequest(ex.Message);
@@ -80,30 +78,38 @@ public class TareasController : ControllerBase
             Console.WriteLine("Error al crear la tarea: " + ex.Message);
             return StatusCode(500, "Error al crear la tarea aqui: " + ex.Message);
         }
-    }
-
-    [HttpPut("{id}")]
-    public async Task<IActionResult> M_PUB_ActualizarTarea(int id, ETareas tarea)
+    }    [HttpPut("{id}")]
+    public async Task<IActionResult> M_PUB_ActualizarTarea(int id, [FromBody] TareaUpdateRequest request)
     {
-        if (id != tarea.CN_Id_tarea)
-        {
-            return BadRequest("El ID de la tarea no coincide.");
-        }
-
-        var existingTarea = await _tareasRepository.F_PUB_ObtenerTareaPorId(id);
-        if (existingTarea == null)
-        {
-            return NotFound();
-        }
-
         try
         {
-            await _tareasRepository.M_PUB_ActualizarTarea(tarea);
-            return NoContent();
+            Console.WriteLine($"Actualizando tarea con ID: {id}");
+            Console.WriteLine($"Datos recibidos: {JsonSerializer.Serialize(request)}");
+
+            if (request == null)
+            {
+                return BadRequest("Los datos de actualización son requeridos");
+            }
+
+            var tareaActualizada = await _tareasRepository.M_PUB_ActualizarTarea(id, request);
+            
+            return Ok(tareaActualizada);
         }
         catch (Exception ex)
         {
-            return StatusCode(500, "Error al actualizar la tarea: " + ex.Message);
+            Console.WriteLine($"Error al actualizar tarea: {ex.Message}");
+            Console.WriteLine($"Stack trace: {ex.StackTrace}");
+            
+            if (ex.Message.Contains("TAREA_NO_ENCONTRADA"))
+            {
+                return NotFound("Tarea no encontrada");
+            }
+            
+            if (ex.Message.Contains("RELACION_ERROR"))
+            {
+                return BadRequest(ex.Message);
+            }            
+            return StatusCode(500, $"Error interno del servidor: {ex.Message}");
         }
     }
 }

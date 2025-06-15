@@ -1,5 +1,6 @@
 using IntelTask.Domain.Entities;
 using IntelTask.Domain.Interfaces;
+using IntelTask.Domain.DTOs;
 using IntelTask.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 
@@ -55,29 +56,54 @@ namespace IntelTask.Infrastructure.Repositories
             }
         }
 
-        public async Task M_PUB_ActualizarTarea(ETareas tarea)
+        public async Task<ETareas> M_PUB_ActualizarTarea(int id, TareaUpdateRequest request)
         {
-            var existingTarea = await _context.T_Tareas.FindAsync(tarea.CN_Id_tarea);
-            if (existingTarea != null)
+            try
             {
-                try
+                var tareaExistente = await _context.T_Tareas
+                    .Include(t => t.Complejidad)
+                    .Include(t => t.Estado)
+                    .Include(t => t.Prioridad)
+                    .Include(t => t.UsuarioCreador)
+                    .Include(t => t.UsuarioAsignado)
+                    .Include(t => t.TareaOrigen)
+                    .FirstOrDefaultAsync(t => t.CN_Id_tarea == id);
+
+                if (tareaExistente == null)
                 {
-                    // Verificar si existen las relaciones
-                    await ValidarRelaciones(tarea);
-                    
-                    // Actualizar solo las propiedades que no son navegación
-                    _context.Entry(existingTarea).State = EntityState.Detached;
-                    _context.Entry(tarea).State = EntityState.Modified;
-                    
-                    await _context.SaveChangesAsync();
+                    throw new Exception("TAREA_NO_ENCONTRADA: La tarea especificada no existe.");
                 }
-                catch (Exception ex)
+
+                // Validar relaciones antes de actualizar
+                await ValidarRelacionesParaActualizacion(request);
+
+                // Actualizar solo los campos permitidos
+                tareaExistente.CT_Titulo_tarea = request.CT_Titulo_tarea;
+                tareaExistente.CT_Descripcion_tarea = request.CT_Descripcion_tarea;
+                tareaExistente.CN_Id_complejidad = request.CN_Id_complejidad;
+                tareaExistente.CN_Id_prioridad = request.CN_Id_prioridad;
+                tareaExistente.CN_Id_estado = request.CN_Id_estado;
+                tareaExistente.CF_Fecha_limite = request.CF_Fecha_limite;
+                tareaExistente.CN_Numero_GIS = request.CN_Numero_GIS;                tareaExistente.CN_Usuario_asignado = request.CN_Usuario_asignado;
+
+                // Si el estado es completado y no tiene fecha de finalización, establecerla
+                if (request.CN_Id_estado == 1 && tareaExistente.CF_Fecha_finalizacion == null)
                 {
-                    throw new Exception("DB_ERROR: Error al actualizar la tarea en la base de datos.", ex);
+                    tareaExistente.CF_Fecha_finalizacion = DateTime.Now;
                 }
+
+                _context.Entry(tareaExistente).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+
+                // Devolver la tarea actualizada con todas las relaciones cargadas
+                return await F_PUB_ObtenerTareaPorId(id) ?? tareaExistente;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"DB_ERROR: Error al actualizar la tarea: {ex.Message}", ex);
             }
         }
-        
+
         private async Task ValidarRelaciones(ETareas tarea)
         {
             // Validar que exista la complejidad
@@ -116,6 +142,33 @@ namespace IntelTask.Infrastructure.Repositories
                 !await _context.T_Tareas.AnyAsync(t => t.CN_Id_tarea == tarea.CN_Tarea_origen))
             {
                 throw new Exception("RELACION_ERROR: La tarea origen especificada no existe.");
+            }
+        }
+
+        private async Task ValidarRelacionesParaActualizacion(TareaUpdateRequest request)
+        {
+            // Validar que exista la complejidad
+            if (!await _context.T_Complejidades.AnyAsync(c => c.CN_Id_complejidad == request.CN_Id_complejidad))
+            {
+                throw new Exception("RELACION_ERROR: La complejidad especificada no existe.");
+            }
+            
+            // Validar que exista el estado
+            if (!await _context.T_Estados.AnyAsync(e => e.CN_Id_estado == request.CN_Id_estado))
+            {
+                throw new Exception("RELACION_ERROR: El estado especificado no existe.");
+            }
+            
+            // Validar que exista la prioridad
+            if (!await _context.T_Prioridades.AnyAsync(p => p.CN_Id_prioridad == request.CN_Id_prioridad))
+            {
+                throw new Exception("RELACION_ERROR: La prioridad especificada no existe.");
+            }
+              // Validar que exista el usuario asignado solo si se especifica
+            if (request.CN_Usuario_asignado.HasValue && 
+                !await _context.T_Usuarios.AnyAsync(u => u.CN_Id_usuario == request.CN_Usuario_asignado))
+            {
+                throw new Exception("RELACION_ERROR: El usuario asignado especificado no existe.");
             }
         }
     }

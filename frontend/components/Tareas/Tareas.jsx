@@ -4,6 +4,7 @@ import { Tabs, Tab, Select, Button, SelectItem, useDisclosure, Spinner } from "@
 import { FiPlus } from "react-icons/fi";
 import TareaAccordion from "./TareaAccordion";
 import TareaModal from "./TareaModal";
+import EditarTareaModal from "./EditarTareaModal";
 import EmptyState from "./EmptyState";
 import { tareasService } from "../../services/tareasService";
 import { catalogosService } from "../../services/catalogosService";
@@ -15,7 +16,9 @@ const Tareas = () => {
     const [selectedTarea, setSelectedTarea] = useState(null);
     const [estados, setEstados] = useState([]);
     const [filtroEstado, setFiltroEstado] = useState(null);
+    const [isEditing, setIsEditing] = useState(false);
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
+    const { isOpen: isEditOpen, onOpen: onEditOpen, onOpenChange: onEditOpenChange } = useDisclosure();
 
     // Definir tabs dinámicamente basado en los estados
     const [tabs, setTabs] = useState([
@@ -81,28 +84,34 @@ const Tareas = () => {
         } finally {
             setLoading(false);
         }
+    };    const handleOpenModal = (tarea = null) => {
+        setSelectedTarea(tarea);
+        setIsEditing(false);
+        onOpen();
     };
 
-    const handleOpenModal = (tarea = null) => {
+    const handleOpenEditModal = (tarea) => {
         setSelectedTarea(tarea);
-        onOpen();
+        setIsEditing(true);
+        onEditOpen();
     };
 
     const handleCloseModal = () => {
         setSelectedTarea(null);
+        setIsEditing(false);
+    };
+
+    const handleCloseEditModal = () => {
+        setSelectedTarea(null);
+        setIsEditing(false);
     };
 
     const handleSubmit = async (tareaData) => {
         try {
             setError(null);
             
-            if (selectedTarea) {
-                // Actualizar tarea existente
-                await tareasService.actualizarTarea(selectedTarea.cN_Id_tarea, tareaData);
-            } else {
-                // Crear nueva tarea
-                await tareasService.crearTarea(tareaData);
-            }
+            // Crear nueva tarea (solo desde el modal de crear)
+            await tareasService.crearTarea(tareaData);
             
             // Recargar la lista de tareas
             await cargarDatos();
@@ -113,6 +122,25 @@ const Tareas = () => {
         } catch (error) {
             console.error('Error al guardar tarea:', error);
             setError('Error al guardar la tarea: ' + error.message);
+        }
+    };
+
+    const handleEditSubmit = async (tareaData) => {
+        try {
+            setError(null);
+            
+            // Actualizar tarea existente
+            await tareasService.actualizarTarea(selectedTarea.cN_Id_tarea, tareaData);
+            
+            // Recargar la lista de tareas
+            await cargarDatos();
+            
+            // Cerrar modal
+            setSelectedTarea(null);
+            onEditOpenChange(false);
+        } catch (error) {
+            console.error('Error al actualizar tarea:', error);
+            setError('Error al actualizar la tarea: ' + error.message);
         }
     };
 
@@ -195,9 +223,8 @@ const Tareas = () => {
                                     <EmptyState 
                                         tabId={tab.id} 
                                         onAddTask={() => handleOpenModal()} 
-                                    />
-                                ) : (
-                                    <TareaAccordion tareas={tareasFiltradas} onEdit={handleOpenModal} />
+                                    />                                ) : (
+                                    <TareaAccordion tareas={tareasFiltradas} onEdit={handleOpenEditModal} />
                                 )}
                             </Tab>
                         );
@@ -210,6 +237,14 @@ const Tareas = () => {
                 onOpenChange={onOpenChange}
                 onClose={handleCloseModal}
                 onSubmit={handleSubmit}
+                tarea={null} // Solo para crear nuevas tareas
+            />
+
+            <EditarTareaModal
+                isOpen={isEditOpen}
+                onOpenChange={onEditOpenChange}
+                onClose={handleCloseEditModal}
+                onSubmit={handleEditSubmit}
                 tarea={selectedTarea}
             />
         </Container>
