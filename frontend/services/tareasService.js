@@ -104,9 +104,53 @@ export const tareasService = {
       
     } catch (error) {
       return {
-        success: false,
-        error: error.name === 'TypeError' ? 'Error de conexión' : 'Error inesperado'
+        success: false,        error: error.name === 'TypeError' ? 'Error de conexión' : 'Error inesperado'
       };
+    }
+  },
+
+  // Obtener subtareas de una tarea específica
+  async obtenerSubtareas(tareaId) {
+    try {
+      const todasLasTareas = await this.obtenerTareas();
+      const subtareas = todasLasTareas.filter(tarea => tarea.cN_Tarea_origen === tareaId);
+      return subtareas;
+    } catch (error) {
+      console.error('Error al obtener subtareas:', error);
+      throw error;
+    }
+  },
+
+  // Crear una nueva subtarea
+  async crearSubtarea(subtareaData) {
+    try {
+      // Usar el mismo método de crear tarea, pero con cN_Tarea_origen
+      return await this.crearTarea(subtareaData);
+    } catch (error) {
+      console.error('Error al crear subtarea:', error);
+      throw error;
+    }
+  },
+
+  // Actualizar una subtarea
+  async actualizarSubtarea(id, subtareaData) {
+    try {
+      // Usar el mismo método de actualizar tarea
+      return await this.actualizarTarea(id, subtareaData);
+    } catch (error) {
+      console.error('Error al actualizar subtarea:', error);
+      throw error;
+    }
+  },
+
+  // Eliminar una subtarea
+  async eliminarSubtarea(id) {
+    try {
+      // Usar el mismo método de eliminar tarea
+      return await this.eliminarTarea(id);
+    } catch (error) {
+      console.error('Error al eliminar subtarea:', error);
+      throw error;
     }
   }
 };

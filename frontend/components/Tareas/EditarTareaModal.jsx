@@ -14,7 +14,7 @@ import {
 import { catalogosService } from "../../services/catalogosService";
 import GestorAdjuntos from "./GestorAdjuntos";
 
-const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea }) => {
+const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tareaOrigenId = null }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [catalogos, setCatalogos] = useState({
         estados: [],
@@ -55,8 +55,8 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea }) =>
                 cN_Id_prioridad: parseInt(formData.get('prioridad')),
                 cN_Id_estado: parseInt(formData.get('estado')),
                 cF_Fecha_limite: formData.get('fechaLimite'),
-                cN_Numero_GIS: formData.get('numeroGIS'),
-                cN_Usuario_asignado: responsableValue ? parseInt(responsableValue) : null
+                cN_Numero_GIS: formData.get('numeroGIS'),                cN_Usuario_asignado: responsableValue ? parseInt(responsableValue) : null,
+                CN_Tarea_origen: tareaOrigenId // Incluir el ID de la tarea origen si es una subtarea
             };
 
             console.log('Datos a actualizar:', tareaData);
@@ -97,13 +97,29 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea }) =>
             <ModalContent>
                 {(onClose) => (
                     <>
-                        <Form onSubmit={handleSubmit} className="w-full">
-                            <ModalBody className="px-6 pt-6 w-full">
+                        <Form onSubmit={handleSubmit} className="w-full">                            <ModalBody className="px-6 pt-6 w-full">
                                 <h2 className="text-xl font-bold mb-4">
-                                    Editar tarea - {tarea?.cN_Id_tarea ? String(tarea.cN_Id_tarea).padStart(2, '0') : '00'}
+                                    {tareaOrigenId ? 'Editar subtarea' : 'Editar tarea'} - {tarea?.cN_Id_tarea ? String(tarea.cN_Id_tarea).padStart(2, '0') : '00'}
                                 </h2>
 
                                 <div className="grid grid-cols-2 gap-4 w-full">
+                                    {/* Campo de Tarea Origen para subtareas */}
+                                    {tareaOrigenId && (
+                                        <div className="col-span-2">
+                                            <label className="text-sm text-gray-700 mb-1 block">Tarea Origen:</label>
+                                            <Input
+                                                name="tareaOrigen"
+                                                value={`Tarea #${String(tareaOrigenId).padStart(2, '0')}`}
+                                                variant="bordered"
+                                                isDisabled={true}
+                                                className="w-full bg-gray-50"
+                                                startContent={
+                                                    <span className="text-gray-500 text-sm">📋</span>
+                                                }
+                                            />
+                                        </div>
+                                    )}
+
                                     <div className="col-span-2">
                                         <label className="text-sm text-gray-700 mb-1 block">Título:</label>
                                         <Input

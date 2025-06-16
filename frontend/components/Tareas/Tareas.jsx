@@ -286,10 +286,8 @@ const Tareas = () => {
             const tareaEstadoId = tarea.estado || tarea.cN_Id_estado;
             return tareaEstadoId === estadoId;
         });
-    };
-
-    return (
-        <Container className="max-w-4xl mx-auto mt-10">
+    };    return (
+        <Container className="max-w-4xl mx-auto mt-10 h-[calc(100vh-120px)] flex flex-col">
             {loading ? (
                 <div className="flex justify-center items-center h-64">
                     <Spinner
@@ -300,70 +298,73 @@ const Tareas = () => {
                     />
                 </div>
             ) : (
-                <Tabs
-                    aria-label="Categorías de tareas"
-                    className="mb-4"
-                    variant="underlined"
-                    items={tabs}
-                    color="primary"
-                    classNames={{
-                        tabList: "gap-6 w-full relative rounded-none p-0 border-b border-divider",
-                        cursor: "w-full bg-[#22d3ee]",
-                        tab: "max-w-fit px-0 h-12",
-                        tabContent: "group-data-[selected=true]:text-[#06b6d4]",
-                    }}
-                >
-                    {(tab) => {
-                        let tareasFiltradas = tab.filter(tareas);
+                <div className="flex flex-col h-full">
+                    <div className="flex-shrink-0 mb-4">
+                        <Tabs
+                            aria-label="Categorías de tareas"
+                            variant="underlined"
+                            items={tabs}
+                            color="primary"
+                            classNames={{
+                                tabList: "gap-6 w-full relative rounded-none p-0 border-b border-divider",
+                                cursor: "w-full bg-[#22d3ee]",
+                                tab: "max-w-fit px-0 h-12",
+                                tabContent: "group-data-[selected=true]:text-[#06b6d4]",
+                            }}
+                        >
+                            {(tab) => {
+                                let tareasFiltradas = tab.filter(tareas);
+                                tareasFiltradas = filtrarTareasPorEstado(tareasFiltradas, filtroEstado);
 
-                        // Aplicar filtro adicional por estado ID
-                        tareasFiltradas = filtrarTareasPorEstado(tareasFiltradas, filtroEstado);
-
-                        return (
-                            <Tab key={tab.id} title={tab.label}>
-                                <div className="flex justify-between items-center mb-4 ml-2">
-                                    <Select
-                                        placeholder="Filtrar por estado"
-                                        className="w-1/4"
-                                        onSelectionChange={(keys) => {
-                                            const selectedKey = Array.from(keys)[0];
-                                            console.log('Estado ID seleccionado:', selectedKey);
-                                            setFiltroEstado(selectedKey || null);
-                                        }}
-                                        selectedKeys={filtroEstado ? [filtroEstado.toString()] : []}
-                                    >
-                                        {estados.map((estado) => (
-                                            <SelectItem
-                                                key={estado.cN_Id_estado}
-                                                value={estado.cN_Id_estado.toString()}
+                                return (
+                                    <Tab key={tab.id} title={tab.label}>
+                                        <div className="flex justify-between items-center mb-4 ml-2 bg-white sticky top-0 z-10 py-2">
+                                            <Select
+                                                placeholder="Filtrar por estado"
+                                                className="w-1/4"
+                                                onSelectionChange={(keys) => {
+                                                    const selectedKey = Array.from(keys)[0];
+                                                    console.log('Estado ID seleccionado:', selectedKey);
+                                                    setFiltroEstado(selectedKey || null);
+                                                }}
+                                                selectedKeys={filtroEstado ? [filtroEstado.toString()] : []}
                                             >
-                                                {estado.cT_Nombre_estado || estado.cT_Estado || 'Estado'}
-                                            </SelectItem>
-                                        ))}
-                                    </Select>
+                                                {estados.map((estado) => (
+                                                    <SelectItem
+                                                        key={estado.cN_Id_estado}
+                                                        value={estado.cN_Id_estado.toString()}
+                                                    >
+                                                        {estado.cT_Nombre_estado || estado.cT_Estado || 'Estado'}
+                                                    </SelectItem>
+                                                ))}
+                                            </Select>
 
-                                    <Button
-                                        color="primary"
-                                        endContent={<FiPlus className="w-4 h-4" />}
-                                        className="flex items-center mr-2"
-                                        onPress={() => handleOpenModal()}
-                                    >
-                                        Agregar
-                                    </Button>
-                                </div>
+                                            <Button
+                                                color="primary"
+                                                endContent={<FiPlus className="w-4 h-4" />}
+                                                className="flex items-center mr-2"
+                                                onPress={() => handleOpenModal()}
+                                            >
+                                                Agregar
+                                            </Button>
+                                        </div>
 
-                                {tareasFiltradas.length === 0 ? (
-                                    <EmptyState
-                                        tabId={tab.id}
-                                        onAddTask={() => handleOpenModal()}
-                                    />
-                                ) : (
-                                    <TareaAccordion tareas={tareasFiltradas} onEdit={handleOpenEditModal} onDelete={handleEliminarTarea} />
-                                )}
-                            </Tab>
-                        );
-                    }}
-                </Tabs>
+                                        <div className="flex-1 overflow-y-auto max-h-[calc(100vh-300px)] pr-2 py-10">
+                                            {tareasFiltradas.length === 0 ? (
+                                                <EmptyState
+                                                    tabId={tab.id}
+                                                    onAddTask={() => handleOpenModal()}
+                                                />
+                                            ) : (
+                                                <TareaAccordion tareas={tareasFiltradas} onEdit={handleOpenEditModal} onDelete={handleEliminarTarea} />
+                                            )}
+                                        </div>
+                                    </Tab>
+                                );
+                            }}
+                        </Tabs>
+                    </div>
+                </div>
             )}
 
             <TareaModal

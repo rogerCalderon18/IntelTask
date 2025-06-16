@@ -19,12 +19,10 @@ const TablaDinamica = ({ columns, data, acciones = [], setAccion = null, onOpen,
             }
         }
         onOpen();
-    };
-
-    const estadosColors = {
+    };    const estadosColors = useMemo(() => ({
         "Activo": "success",
         "Inactivo": "danger"
-    };
+    }), []);
 
     const filteredData = useMemo(() => {
 
@@ -189,9 +187,8 @@ const TablaDinamica = ({ columns, data, acciones = [], setAccion = null, onOpen,
                         )}
                     </div>
                 </div>
-            </div>
-        );
-    }, [filterValue, visibleColumns, columns, ocultarAgregar, abrirDrawer]);
+            </div>        );
+    }, [filterValue, visibleColumns, columns, ocultarAgregar, abrirDrawer, filterOptions, selectedFilters]);
 
     const bottomContent = useMemo(() => {
         return (

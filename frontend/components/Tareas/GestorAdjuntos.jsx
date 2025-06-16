@@ -8,13 +8,11 @@ const GestorAdjuntos = ({ idTarea, adjuntos: adjuntosIniciales = [], onAdjuntosC
     const { data: session } = useSession();
     const [adjuntos, setAdjuntos] = useState(adjuntosIniciales);
     const [cargando, setCargando] = useState(false);
-    const [subiendo, setSubiendo] = useState(false);
-
-    useEffect(() => {
+    const [subiendo, setSubiendo] = useState(false);    useEffect(() => {
         if (idTarea) {
             cargarAdjuntos();
         }
-    }, [idTarea]);
+    }, [idTarea]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const cargarAdjuntos = async () => {
         if (!idTarea) return;

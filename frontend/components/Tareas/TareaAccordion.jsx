@@ -10,15 +10,13 @@ const TareaAccordion = ({ tareas, onEdit, onDelete }) => {
         <AccordionItem
           key={tarea.id}
           aria-label={tarea.titulo}
+          indicator={<></>}
           title={
-            <div className="flex items-center gap-2 w-full justify-between">
-              <div className="flex items-center gap-2">
-                <span className={`w-3 h-3 rounded-full ${getColorClass(tarea.prioridad)}`}></span>
-                <span>{tarea.titulo}</span>
-              </div>
+            <div className="flex items-center gap-2">
+              <span className={`w-3 h-3 rounded-full ${getColorClass(tarea.prioridad)}`}></span>
+              <span>{tarea.titulo}</span>
             </div>
           }
-          className="[&>h2[aria-expanded='true']]:border [&>h2[aria-expanded='true']]:border-purple-300 [&>h2[aria-expanded='true']]:border-b-0 [&>h2[aria-expanded='true']]:rounded-t-md"
         >
           <TareaContent
             descripcion={tarea.descripcion}
