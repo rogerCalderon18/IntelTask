@@ -3,6 +3,8 @@ import { HeroUIProvider } from "@heroui/react";
 import { SessionProvider } from "next-auth/react";
 import Layout from "@/components/Layout/Layout";
 import { useRouter } from "next/router";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function App({ Component, pageProps }) {
   const router = useRouter();
@@ -13,6 +15,13 @@ export default function App({ Component, pageProps }) {
   return (
     <SessionProvider session={pageProps.session}>
       <HeroUIProvider>
+        <ToastContainer
+          position="top-right"
+          autoClose={5000}
+          hideProgressBar={false}
+          closeOnClick
+          pauseOnHover
+        />
         {noLayoutPages.includes(router.pathname) ? (
           <Component {...pageProps} />
         ) : (

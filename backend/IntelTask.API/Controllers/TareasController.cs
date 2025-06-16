@@ -51,7 +51,8 @@ public class TareasController : ControllerBase
             CN_Id_complejidad = tareaRequest.CN_Id_complejidad,
             CN_Id_prioridad = tareaRequest.CN_Id_prioridad,
             CN_Id_estado = tareaRequest.CN_Id_estado,
-            CF_Fecha_limite = tareaRequest.CF_Fecha_limite,            CN_Tarea_origen = tareaRequest.CN_Tarea_origen,
+            CF_Fecha_limite = tareaRequest.CF_Fecha_limite,
+            CN_Tarea_origen = tareaRequest.CN_Tarea_origen,
             CN_Numero_GIS = tareaRequest.CN_Numero_GIS,
             CN_Usuario_asignado = tareaRequest.CN_Usuario_asignado,
             // Establecer fecha de asignación actual
@@ -107,8 +108,36 @@ public class TareasController : ControllerBase
             
             if (ex.Message.Contains("RELACION_ERROR"))
             {
+                return BadRequest(ex.Message);            }            
+            return StatusCode(500, $"Error interno del servidor: {ex.Message}");
+        }
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> M_PUB_EliminarTarea(int id)
+    {
+        try
+        {
+            Console.WriteLine($"Eliminando tarea con ID: {id}");
+
+            await _tareasRepository.M_PUB_EliminarTarea(id);
+            
+            return Ok(new { message = "Tarea eliminada exitosamente" });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al eliminar tarea: {ex.Message}");
+            
+            if (ex.Message.Contains("TAREA_NO_ENCONTRADA"))
+            {
+                return NotFound("Tarea no encontrada");
+            }
+            
+            if (ex.Message.Contains("SUBTAREAS_EXISTENTES"))
+            {
                 return BadRequest(ex.Message);
-            }            
+            }
+            
             return StatusCode(500, $"Error interno del servidor: {ex.Message}");
         }
     }

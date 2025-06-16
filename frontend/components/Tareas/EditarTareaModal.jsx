@@ -13,6 +13,7 @@ import {
     Spinner
 } from "@heroui/react";
 import { catalogosService } from "../../services/catalogosService";
+import { FaPaperclip } from "react-icons/fa";
 
 const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -24,7 +25,6 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea }) =>
     });
     const [loadingCatalogos, setLoadingCatalogos] = useState(true);
 
-    // Cargar catálogos cuando se abre el modal
     useEffect(() => {
         if (isOpen) {
             cargarCatalogos();
@@ -38,31 +38,6 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea }) =>
             setCatalogos(catalogosData);
         } catch (error) {
             console.error('Error al cargar catálogos:', error);
-            // Usar datos por defecto en caso de error
-            setCatalogos({
-                estados: [
-                    { cN_Id_estado: 1, cT_Nombre_estado: 'Completada' },
-                    { cN_Id_estado: 2, cT_Nombre_estado: 'En progreso' },
-                    { cN_Id_estado: 3, cT_Nombre_estado: 'Pendiente' }
-                ],
-                prioridades: [
-                    { cN_Id_prioridad: 1, cT_Nombre_prioridad: 'Baja' },
-                    { cN_Id_prioridad: 2, cT_Nombre_prioridad: 'Moderada' },
-                    { cN_Id_prioridad: 3, cT_Nombre_prioridad: 'Media' },
-                    { cN_Id_prioridad: 4, cT_Nombre_prioridad: 'Alta' },
-                    { cN_Id_prioridad: 5, cT_Nombre_prioridad: 'Crítica' }
-                ],
-                complejidades: [
-                    { cN_Id_complejidad: 1, cT_Nombre_complejidad: 'Baja' },
-                    { cN_Id_complejidad: 2, cT_Nombre_complejidad: 'Media' },
-                    { cN_Id_complejidad: 3, cT_Nombre_complejidad: 'Alta' }
-                ],
-                usuarios: [
-                    { cN_Id_usuario: 702990350, cT_Nombre_usuario: 'Usuario 1' },
-                    { cN_Id_usuario: 702990351, cT_Nombre_usuario: 'Usuario 2' },
-                    { cN_Id_usuario: 702990352, cT_Nombre_usuario: 'Usuario 3' }
-                ]
-            });
         } finally {
             setLoadingCatalogos(false);
         }
@@ -71,18 +46,19 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea }) =>
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
-          try {
-            const formData = new FormData(e.currentTarget);        // Mapear los datos del formulario a la estructura esperada por el backend
-        const responsableValue = formData.get('responsable');
-        const tareaData = {
-            CT_Titulo_tarea: formData.get('titulo'),
-            CT_Descripcion_tarea: formData.get('descripcion'),
-            CN_Id_complejidad: parseInt(formData.get('complejidad')),
-            CN_Id_prioridad: parseInt(formData.get('prioridad')),
-            CN_Id_estado: parseInt(formData.get('estado')),
-            CF_Fecha_limite: formData.get('fechaLimite'),
-            CN_Numero_GIS: formData.get('numeroGIS'),            CN_Usuario_asignado: responsableValue ? parseInt(responsableValue) : null
-        };
+        try {
+            const formData = new FormData(e.currentTarget);
+            const responsableValue = formData.get('responsable');
+            const tareaData = {
+                cT_Titulo_tarea: formData.get('titulo'),
+                cT_Descripcion_tarea: formData.get('descripcion'),
+                cN_Id_complejidad: parseInt(formData.get('complejidad')),
+                cN_Id_prioridad: parseInt(formData.get('prioridad')),
+                cN_Id_estado: parseInt(formData.get('estado')),
+                cF_Fecha_limite: formData.get('fechaLimite'),
+                cN_Numero_GIS: formData.get('numeroGIS'),
+                cN_Usuario_asignado: responsableValue ? parseInt(responsableValue) : null
+            };
 
             console.log('Datos a actualizar:', tareaData);
             await onSubmit(tareaData);
@@ -98,10 +74,10 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea }) =>
             <Modal isOpen={isOpen} onClose={onClose} onOpenChange={onOpenChange} size="2xl">
                 <ModalContent>
                     <ModalBody className="flex justify-center items-center p-8">
-                        <Spinner 
-                            size="lg" 
-                            color="primary" 
-                            label="Cargando formulario..." 
+                        <Spinner
+                            size="lg"
+                            color="primary"
+                            label="Cargando formulario..."
                             labelColor="primary"
                         />
                     </ModalBody>
@@ -142,17 +118,20 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea }) =>
                                         />
                                     </div>
 
-                                    <div className="col-span-2">
-                                        <label className="text-sm text-gray-700 mb-1 block">Descripción:</label>
-                                        <Textarea
-                                            isRequired
+
+                                    <div className="col-span-2 flex flex-col gap-1">
+                                        <label className="text-sm font-medium text-foreground">
+                                            Descripción de la tarea <span className="text-danger">*</span>
+                                        </label>
+                                        <textarea
                                             name="descripcion"
                                             placeholder="Descripción de la tarea..."
                                             defaultValue={tarea?.cT_Descripcion_tarea || ""}
-                                            minRows={4}
-                                            variant="bordered"
-                                            isDisabled={isSubmitting}
-                                            className="w-full"
+                                            rows={3}
+                                            className="w-full px-3 py-2 rounded-medium border-2 border-default-200 hover:border-default-300 focus:border-black transition-all duration-150 ease-in-out focus:outline-none resize-none text-sm overflow-hidden"
+                                            disabled={isSubmitting}
+                                            required
+                                            style={{ minHeight: '80px', maxHeight: '120px' }}
                                         />
                                     </div>
 
@@ -190,8 +169,8 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea }) =>
                                             isDisabled={isSubmitting}
                                         >
                                             {catalogos.prioridades.map((prioridad) => (
-                                                <SelectItem 
-                                                    key={prioridad.cN_Id_prioridad} 
+                                                <SelectItem
+                                                    key={prioridad.cN_Id_prioridad}
                                                     value={prioridad.cN_Id_prioridad.toString()}
                                                 >
                                                     {prioridad.cT_Nombre_prioridad}
@@ -211,11 +190,11 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea }) =>
                                             isDisabled={isSubmitting}
                                         >
                                             {catalogos.complejidades.map((complejidad) => (
-                                                <SelectItem 
-                                                    key={complejidad.cN_Id_complejidad} 
+                                                <SelectItem
+                                                    key={complejidad.cN_Id_complejidad}
                                                     value={complejidad.cN_Id_complejidad.toString()}
                                                 >
-                                                    {complejidad.cT_Nombre_complejidad}
+                                                    {complejidad.cT_Nombre}
                                                 </SelectItem>
                                             ))}
                                         </Select>
@@ -229,8 +208,8 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea }) =>
                                             isDisabled={isSubmitting}
                                         >
                                             {catalogos.usuarios.map((usuario) => (
-                                                <SelectItem 
-                                                    key={usuario.cN_Id_usuario} 
+                                                <SelectItem
+                                                    key={usuario.cN_Id_usuario}
                                                     value={usuario.cN_Id_usuario.toString()}
                                                 >
                                                     {usuario.cT_Nombre_usuario}
@@ -250,8 +229,8 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea }) =>
                                             isDisabled={isSubmitting}
                                         >
                                             {catalogos.estados.map((estado) => (
-                                                <SelectItem 
-                                                    key={estado.cN_Id_estado} 
+                                                <SelectItem
+                                                    key={estado.cN_Id_estado}
                                                     value={estado.cN_Id_estado.toString()}
                                                 >
                                                     {estado.cT_Estado}
@@ -275,7 +254,7 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea }) =>
                                                 className="bg-sky-100 text-sky-700 rounded-lg px-3 py-1 ml-auto"
                                                 isDisabled={isSubmitting}
                                             >
-                                                <span className="mr-2">📎</span>
+                                                <FaPaperclip className="mr-2" />
                                                 Adjuntar
                                             </Button>
                                         </div>
@@ -285,19 +264,18 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea }) =>
 
                             <ModalFooter className="px-6 pb-6 items-center justify-end w-full">
                                 <div className="flex items-center">
-                                    <Button 
+                                    <Button
                                         type="button"
-                                        color="danger" 
-                                        variant="flat"
-                                        className="rounded-md px-6 mr-2" 
+                                        color="danger"
+                                        className="rounded-md px-6 mr-2"
                                         onPress={onClose}
                                         isDisabled={isSubmitting}
                                     >
                                         Cerrar
                                     </Button>
-                                    <Button 
-                                        type="submit" 
-                                        color="primary" 
+                                    <Button
+                                        type="submit"
+                                        color="primary"
                                         className="text-white rounded-md px-6"
                                         isLoading={isSubmitting}
                                         spinner={<Spinner size="sm" color="current" />}

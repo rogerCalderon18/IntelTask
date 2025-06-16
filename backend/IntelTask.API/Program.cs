@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using IntelTask.Domain.Interfaces;
 using IntelTask.Infrastructure.Context;
 using IntelTask.Infrastructure.Repositories;
+using IntelTask.Domain.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +25,9 @@ builder.Services.AddScoped<IUsuariosRepository, UsuariosRepository>();
 builder.Services.AddScoped<ITareasRepository, TareasRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
+// Configurar EmailSettings
+builder.Services.Configure<EmailSettings>(
+    builder.Configuration.GetSection("EmailSettings"));
 
 builder.Services.AddControllers();
 

@@ -57,7 +57,7 @@ export const tareasService = {
   async actualizarTarea(id, tareaData) {
     try {
       console.log(`Actualizando tarea ${id}:`, JSON.stringify(tareaData, null, 2));
-      
+
       const response = await fetch(`${API_URL}/api/Tareas/${id}`, {
         method: 'PUT',
         headers: {
@@ -71,14 +71,42 @@ export const tareasService = {
         const errorData = await response.text();
         console.error('Error response:', response.status, errorData);
         throw new Error(errorData || 'Error al actualizar la tarea');
-      }
-
+      } 
+      
       const data = await response.json();
       console.log('Tarea actualizada exitosamente:', data);
       return data;
     } catch (error) {
       console.error('Error al actualizar tarea:', error);
       throw error;
+    }
+  },
+
+  // Eliminar una tarea
+  async eliminarTarea(id) {
+    try {
+      const response = await fetch(`${API_URL}/api/Tareas/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        return {
+          success: false,
+          error: errorText || 'Error al eliminar la tarea'
+        };
+      }
+
+      return { success: true };
+      
+    } catch (error) {
+      return {
+        success: false,
+        error: error.name === 'TypeError' ? 'Error de conexión' : 'Error inesperado'
+      };
     }
   }
 };

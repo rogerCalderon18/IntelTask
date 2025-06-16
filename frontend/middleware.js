@@ -10,5 +10,5 @@ export default withAuth(
 
 // Configuración de las rutas que deben ser protegidas
 export const config = {
-  matcher: ["/"],
+  matcher: ["/", "/tareas"],
 };

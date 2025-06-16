@@ -126,7 +126,7 @@ const Sidebar = ({ toggleCollapse, setToggleCollapse }) => {
   return (
     <div
       className={classNames(
-        "h-screen pt-16 pb-4 bg-white flex flex-col justify-between transition-all duration-300 shadow-lg",
+        "h-screen pt-16 pb-4 bg-white flex flex-col justify-between transition-all duration-300 shadow-lg z-50",
         {
           "w-60 px-4": !toggleCollapse,
           "w-20 px-2": toggleCollapse,

@@ -166,9 +166,38 @@ namespace IntelTask.Infrastructure.Repositories
             }
               // Validar que exista el usuario asignado solo si se especifica
             if (request.CN_Usuario_asignado.HasValue && 
-                !await _context.T_Usuarios.AnyAsync(u => u.CN_Id_usuario == request.CN_Usuario_asignado))
-            {
+                !await _context.T_Usuarios.AnyAsync(u => u.CN_Id_usuario == request.CN_Usuario_asignado))            {
                 throw new Exception("RELACION_ERROR: El usuario asignado especificado no existe.");
+            }
+        }
+
+        public async Task M_PUB_EliminarTarea(int id)
+        {
+            try
+            {
+                var tareaExistente = await _context.T_Tareas
+                    .FirstOrDefaultAsync(t => t.CN_Id_tarea == id);
+
+                if (tareaExistente == null)
+                {
+                    throw new Exception("TAREA_NO_ENCONTRADA: La tarea especificada no existe.");
+                }
+
+                // Validar que no tenga subtareas asociadas
+                var tieneSubtareas = await _context.T_Tareas
+                    .AnyAsync(t => t.CN_Tarea_origen == id);
+
+                if (tieneSubtareas)
+                {
+                    throw new Exception("SUBTAREAS_EXISTENTES: No se puede eliminar una tarea que tiene subtareas asociadas. Elimine primero las subtareas.");
+                }
+
+                _context.T_Tareas.Remove(tareaExistente);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"DB_ERROR: Error al eliminar la tarea: {ex.Message}", ex);
             }
         }
     }

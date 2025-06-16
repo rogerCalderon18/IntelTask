@@ -1,12 +1,18 @@
 import React from "react";
-import { FiPlusCircle, FiMoreHorizontal, FiEdit } from "react-icons/fi";
+import { FiPlusCircle, FiMoreHorizontal, FiEdit, FiTrash2 } from "react-icons/fi";
 import SubTareaItem from "./SubTareaItem";
 
-const TareaContent = ({ descripcion, fechaEntrega, subtareas, tarea, onEdit }) => {
+const TareaContent = ({ descripcion, fechaEntrega, subtareas, tarea, onEdit, onDelete }) => {
   
   const handleEditClick = () => {
     if (onEdit && tarea) {
       onEdit(tarea);
+    }
+  };
+
+  const handleDeleteClick = () => {
+    if (onDelete && tarea) {
+      onDelete(tarea);
     }
   };
 
@@ -30,6 +36,11 @@ const TareaContent = ({ descripcion, fechaEntrega, subtareas, tarea, onEdit }) =
             className="text-gray-600 cursor-pointer hover:text-blue-500 transition-colors" 
             onClick={handleEditClick}
             title="Editar tarea"
+          />
+          <FiTrash2 
+            className="text-gray-600 cursor-pointer hover:text-red-500 transition-colors" 
+            onClick={handleDeleteClick}
+            title="Eliminar tarea"
           />
         </div>
         <span className="text-xs text-gray-500">Fecha de entrega: {fechaEntrega}</span>

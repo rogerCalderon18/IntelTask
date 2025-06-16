@@ -65,7 +65,7 @@ const TareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea }) => {
                 cN_Id_estado: tarea ? parseInt(formData.get('estado')) : 1,
                 cF_Fecha_limite: formData.get('fechaLimite'),
                 cN_Numero_GIS: formData.get('numeroGIS'),
-                cN_Usuario_creador: session?.user?.id,                
+                cN_Usuario_creador: session?.user?.id,
                 cN_Usuario_asignado: responsableValue ? parseInt(responsableValue) : null,
                 cN_Tarea_origen: null
             };
@@ -121,19 +121,21 @@ const TareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea }) => {
                                         isDisabled={isSubmitting}
                                     />
 
-                                    <Textarea
-                                        isRequired
-                                        name="descripcion"
-                                        label="Descripción de la tarea"
-                                        labelPlacement="outside"
-                                        placeholder="Descripción de la tarea..."
-                                        defaultValue={tarea?.cT_Descripcion_tarea || ""}
-                                        minRows={3}
-                                        variant="bordered"
-                                        errorMessage="La descripción es obligatoria"
-                                        className="col-span-2"
-                                        isDisabled={isSubmitting}
-                                    />
+                                    <div className="col-span-2 flex flex-col gap-1">
+                                        <label className="text-sm font-medium text-foreground">
+                                            Descripción de la tarea <span className="text-danger">*</span>
+                                        </label>
+                                        <textarea
+                                            name="descripcion"
+                                            placeholder="Descripción de la tarea..."
+                                            defaultValue={tarea?.cT_Descripcion_tarea || ""}
+                                            rows={3}
+                                            className="w-full px-3 py-2 rounded-medium border-2 border-default-200 hover:border-default-300 focus:border-black transition-all duration-150 ease-in-out focus:outline-none resize-none text-sm overflow-hidden"
+                                            disabled={isSubmitting}
+                                            required
+                                            style={{ minHeight: '80px', maxHeight: '120px' }}
+                                        />
+                                    </div>
 
                                     <Input
                                         name="numeroGIS"
@@ -198,7 +200,7 @@ const TareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea }) => {
                                             </SelectItem>
                                         ))}
                                     </Select>
-                                    
+
                                     <Select
                                         name="responsable"
                                         label="Responsable (Opcional)"
@@ -226,7 +228,6 @@ const TareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea }) => {
                                             </SelectItem>
                                         ))}
                                     </Select>
-  
 
                                     <div className="col-span-2">
                                         <label className="text-sm text-gray-800">Adjuntos:</label>
