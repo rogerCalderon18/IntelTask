@@ -12,7 +12,6 @@ import {
     Form,
     Spinner
 } from "@heroui/react";
-import { FaPaperclip } from "react-icons/fa";
 import { catalogosService } from "../../services/catalogosService";
 import { useSession } from "next-auth/react";
 
@@ -226,29 +225,7 @@ const TareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea }) => {
                                             >
                                                 {usuario.cT_Nombre_usuario}
                                             </SelectItem>
-                                        ))}
-                                    </Select>
-
-                                    <div className="col-span-2">
-                                        <label className="text-sm text-gray-800">Adjuntos:</label>
-                                        <div className="flex items-center gap-3 mt-1">
-                                            <span className="text-sm text-gray-500">
-                                                {tarea?.adjuntos?.length > 0
-                                                    ? `${tarea.adjuntos.length} adjunto(s)`
-                                                    : "No hay adjuntos..."}
-                                            </span>
-                                            <Button
-                                                type="button"
-                                                variant="flat"
-                                                size="sm"
-                                                className="bg-sky-100 text-sky-700 rounded-lg px-3 py-1 ml-auto"
-                                                isDisabled={isSubmitting}
-                                            >
-                                                <FaPaperclip className="mr-2" />
-                                                Adjuntar
-                                            </Button>
-                                        </div>
-                                    </div>
+                                        ))}                                    </Select>
                                 </div>
                             </ModalBody>
 

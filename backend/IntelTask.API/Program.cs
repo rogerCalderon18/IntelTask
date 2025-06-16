@@ -35,7 +35,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:3000", "https://localhost:3000")
+        policy.WithOrigins("http://localhost:3000", "https://localhost:3000", "http://localhost:5185", "https://localhost:5185")
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -53,7 +53,14 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// Agregar middleware para archivos estáticos si es necesario
+app.UseStaticFiles();
+
 app.UseCors("AllowFrontend");
+
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapControllers();
 
 app.Run();

@@ -17,9 +17,10 @@ namespace IntelTask.Infrastructure.Context
           public DbSet<EPrioridades> T_Prioridades { get; set; }
           public DbSet<EComplejidades> T_Complejidades { get; set; }
           public DbSet<EOficinas> T_Oficinas { get; set; }
-          public DbSet<EDiasNoHabiles> T_Dias_No_Habiles { get; set; }
-          public DbSet<EUsuarios> T_Usuarios { get; set; }
+          public DbSet<EDiasNoHabiles> T_Dias_No_Habiles { get; set; }          public DbSet<EUsuarios> T_Usuarios { get; set; }
           public DbSet<ETareas> T_Tareas { get; set; }
+          public DbSet<EAdjuntos> T_Adjuntos { get; set; }
+          public DbSet<EAdjuntosXTareas> T_Adjuntos_X_Tareas { get; set; }
 
 
           protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -50,9 +51,14 @@ namespace IntelTask.Infrastructure.Context
 
                modelBuilder.Entity<EUsuarios>().ToTable("T_Usuarios")
                     .HasKey(e => e.CN_Id_usuario);
-                    
-               modelBuilder.Entity<ETareas>().ToTable("T_Tareas")
+                      modelBuilder.Entity<ETareas>().ToTable("T_Tareas")
                     .HasKey(e => e.CN_Id_tarea);
+                    
+               modelBuilder.Entity<EAdjuntos>().ToTable("T_Adjuntos")
+                    .HasKey(e => e.CN_Id_adjuntos);
+                    
+               modelBuilder.Entity<EAdjuntosXTareas>().ToTable("T_Adjuntos_X_Tareas")
+                    .HasKey(e => new { e.CN_Id_adjuntos, e.CN_Id_tarea });
           }
      }
 }

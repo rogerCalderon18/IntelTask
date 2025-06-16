@@ -56,9 +56,10 @@ public class TareasController : ControllerBase
             CN_Numero_GIS = tareaRequest.CN_Numero_GIS,
             CN_Usuario_asignado = tareaRequest.CN_Usuario_asignado,
             // Establecer fecha de asignación actual
-            CF_Fecha_asignacion = DateTime.Now,
+            CF_Fecha_asignacion = new DateTime(1900, 1, 1),
             // Obtener el usuario actual del sistema
             CN_Usuario_creador = tareaRequest.CN_Usuario_creador,
+            CF_Fecha_finalizacion = new DateTime(1900, 1, 1) 
         };
 
         try

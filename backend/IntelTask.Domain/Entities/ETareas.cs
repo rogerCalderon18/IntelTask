@@ -18,7 +18,7 @@ namespace IntelTask.Domain.Entities
         public string? CN_Numero_GIS { get; set; }
         public DateTime CF_Fecha_asignacion { get; set; }
         public DateTime CF_Fecha_limite { get; set; }
-        public DateTime? CF_Fecha_finalizacion { get; set; }
+        public DateTime? CF_Fecha_finalizacion { get; set; } 
         public int CN_Usuario_creador { get; set; }
         public int? CN_Usuario_asignado { get; set; }
 

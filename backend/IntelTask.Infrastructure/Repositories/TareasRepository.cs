@@ -84,7 +84,8 @@ namespace IntelTask.Infrastructure.Repositories
                 tareaExistente.CN_Id_prioridad = request.CN_Id_prioridad;
                 tareaExistente.CN_Id_estado = request.CN_Id_estado;
                 tareaExistente.CF_Fecha_limite = request.CF_Fecha_limite;
-                tareaExistente.CN_Numero_GIS = request.CN_Numero_GIS;                tareaExistente.CN_Usuario_asignado = request.CN_Usuario_asignado;
+                tareaExistente.CN_Numero_GIS = request.CN_Numero_GIS;
+                tareaExistente.CN_Usuario_asignado = request.CN_Usuario_asignado;
 
                 // Si el estado es completado y no tiene fecha de finalización, establecerla
                 if (request.CN_Id_estado == 1 && tareaExistente.CF_Fecha_finalizacion == null)

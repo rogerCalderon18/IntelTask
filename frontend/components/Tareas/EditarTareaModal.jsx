@@ -8,12 +8,11 @@ import {
     SelectItem,
     Button,
     ModalContent,
-    Textarea,
     Form,
     Spinner
 } from "@heroui/react";
 import { catalogosService } from "../../services/catalogosService";
-import { FaPaperclip } from "react-icons/fa";
+import GestorAdjuntos from "./GestorAdjuntos";
 
 const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -238,26 +237,11 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea }) =>
                                             ))}
                                         </Select>
                                     </div>
-
                                     <div className="col-span-2">
-                                        <label className="text-sm text-gray-800">Adjuntos:</label>
-                                        <div className="flex items-center gap-3 mt-1">
-                                            <span className="text-sm text-gray-500">
-                                                {tarea?.adjuntos?.length > 0
-                                                    ? `${tarea.adjuntos.length} adjunto(s)`
-                                                    : "No hay adjuntos..."}
-                                            </span>
-                                            <Button
-                                                type="button"
-                                                variant="flat"
-                                                size="sm"
-                                                className="bg-sky-100 text-sky-700 rounded-lg px-3 py-1 ml-auto"
-                                                isDisabled={isSubmitting}
-                                            >
-                                                <FaPaperclip className="mr-2" />
-                                                Adjuntar
-                                            </Button>
-                                        </div>
+                                        <GestorAdjuntos
+                                            idTarea={tarea?.cN_Id_tarea}
+                                            onAdjuntosChange={(adjuntos) => console.log('Adjuntos actualizados:', adjuntos)}
+                                        />
                                     </div>
                                 </div>
                             </ModalBody>
