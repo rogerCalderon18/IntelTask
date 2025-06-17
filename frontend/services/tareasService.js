@@ -15,6 +15,20 @@ export const tareasService = {
     }
   },
 
+  // Obtener tareas por usuario
+  async obtenerTareasPorUsuario(usuarioId) {
+    try {
+      const response = await fetch(`${API_URL}/api/Tareas/usuario/${usuarioId}`);
+      if (!response.ok) {
+        throw new Error('Error al obtener las tareas del usuario');
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error al obtener tareas del usuario:', error);
+      throw error;
+    }
+  },
+
   // Crear una nueva tarea
   async crearTarea(tareaData) {
     try {

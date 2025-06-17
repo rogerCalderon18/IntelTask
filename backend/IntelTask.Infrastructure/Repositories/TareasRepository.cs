@@ -27,6 +27,19 @@ namespace IntelTask.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<ETareas>> F_PUB_ObtenerTareasPorUsuario(int usuarioId)
+        {
+            return await _context.T_Tareas
+                .Include(t => t.Complejidad)
+                .Include(t => t.Estado)
+                .Include(t => t.Prioridad)
+                .Include(t => t.UsuarioCreador)
+                .Include(t => t.UsuarioAsignado)
+                .Include(t => t.TareaOrigen)
+                .Where(t => t.CN_Usuario_creador == usuarioId || t.CN_Usuario_asignado == usuarioId)
+                .ToListAsync();
+        }
+
         public async Task<ETareas?> F_PUB_ObtenerTareaPorId(int id)
         {
             return await _context.T_Tareas

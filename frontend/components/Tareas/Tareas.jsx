@@ -11,8 +11,10 @@ import { catalogosService } from "../../services/catalogosService";
 import { notificacionService } from "../../services/notificacionService";
 import { toast } from "react-toastify";
 import useConfirmation from '@/hooks/useConfirmation';
+import { useSession } from 'next-auth/react';
 
 const Tareas = () => {
+    const { data: session, status} = useSession();
     const [tareas, setTareas] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedTarea, setSelectedTarea] = useState(null);
@@ -46,19 +48,28 @@ const Tareas = () => {
             label: "Incumplimiento",
             filter: (tareas) => tareas.filter((tarea) => (tarea.estado || tarea.cN_Id_estado) === 4),
         },
-    ]);
+    ]);    // Cargar datos al montar el componente
 
-    // Cargar datos al montar el componente
     useEffect(() => {
-        cargarDatos();
-    }, []);
+        if (session?.user?.id && status === 'authenticated') {
+            cargarDatos();
+        }
+    }, [session]);
 
     const cargarDatos = async () => {
         try {
+            console.log('🔄 Cargando tareas y estados...');
             setLoading(true);
+            console.log('🔄 Cargando tareas y estados...');
+
+            // Verificar que hay sesión activa
+            if (!session?.user?.id || status !== 'authenticated') {
+                console.warn('No hay sesión de usuario activa');
+                return;
+            }
 
             const [tareasData, estadosData] = await Promise.all([
-                tareasService.obtenerTareas(),
+                tareasService.obtenerTareasPorUsuario(session.user.id),
                 catalogosService.obtenerEstados()
             ]);
 
@@ -73,7 +84,7 @@ const Tareas = () => {
                 subtareas: tarea.subtareas || []
             }));
 
-            console.log('Tareas normalizadas:', tareasNormalizadas);
+            console.log('Tareas del usuario normalizadas:', tareasNormalizadas);
             console.log('Estados obtenidos:', estadosData);
 
             setTareas(tareasNormalizadas);
@@ -101,7 +112,9 @@ const Tareas = () => {
     const handleCloseModal = () => {
         setSelectedTarea(null);
         setIsEditing(false);
-    };    const handleCloseEditModal = () => {
+    };    
+    
+    const handleCloseEditModal = () => {
         setSelectedTarea(null);
         setOriginalUsuarioAsignado(null); // Limpiar el usuario original
         setIsEditing(false);
@@ -286,7 +299,9 @@ const Tareas = () => {
             const tareaEstadoId = tarea.estado || tarea.cN_Id_estado;
             return tareaEstadoId === estadoId;
         });
-    };    return (
+    };    
+    
+    return (
         <Container className="max-w-4xl mx-auto mt-10 h-[calc(100vh-120px)] flex flex-col">
             {loading ? (
                 <div className="flex justify-center items-center h-64">

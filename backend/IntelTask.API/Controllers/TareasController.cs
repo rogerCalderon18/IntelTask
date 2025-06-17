@@ -24,6 +24,13 @@ public class TareasController : ControllerBase
         return Ok(tareas);
     }
 
+    [HttpGet("usuario/{usuarioId}")]
+    public async Task<ActionResult<IEnumerable<ETareas>>> F_PUB_ObtenerTareasPorUsuario(int usuarioId)
+    {
+        var tareas = await _tareasRepository.F_PUB_ObtenerTareasPorUsuario(usuarioId);
+        return Ok(tareas);
+    }
+
     [HttpGet("{id}")]
     public async Task<ActionResult<ETareas>> F_PUB_ObtenerTarea(int id)
     {
