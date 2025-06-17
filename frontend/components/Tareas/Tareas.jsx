@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Container from "../Layout/Container";
 import { Tabs, Tab, Select, Button, SelectItem, useDisclosure, Spinner } from "@heroui/react";
 import { FiPlus } from "react-icons/fi";
@@ -14,24 +14,43 @@ import useConfirmation from '@/hooks/useConfirmation';
 import { useSession } from 'next-auth/react';
 
 const Tareas = () => {
-    const { data: session, status} = useSession();
+    const { data: session, status } = useSession();
     const [tareas, setTareas] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedTarea, setSelectedTarea] = useState(null);
     const [originalUsuarioAsignado, setOriginalUsuarioAsignado] = useState(null); // Guardar el usuario original
     const [estados, setEstados] = useState([]);
     const [filtroEstado, setFiltroEstado] = useState(null);
+    const [tabActivo, setTabActivo] = useState("misTareas"); // Nuevo estado para el tab activo
     const [isEditing, setIsEditing] = useState(false);
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
     const { isOpen: isEditOpen, onOpen: onEditOpen, onOpenChange: onEditOpenChange } = useDisclosure();
-    const { showConfirmation } = useConfirmation();
+    const { showConfirmation } = useConfirmation();    // Cargar datos al montar el componente
+    useEffect(() => {
+        if (session?.user?.id && status === 'authenticated') {
+            cargarDatos();
+        }
+    }, [session, status]);
 
-    // Definir tabs dinámicamente basado en los estados
-    const [tabs, setTabs] = useState([
+    // Definir tabs dinámicamente basado en la sesión
+    const tabs = useMemo(() => [
         {
             id: "misTareas",
             label: "Mis Tareas",
-            filter: (tareas) => tareas.filter((tarea) => (tarea.estado || tarea.cN_Id_estado) === 1),
+            filter: (tareas) => {
+                const usuarioId = parseInt(session?.user?.id);
+                if (!usuarioId) {
+                    return;
+                }
+
+                const tareasFiltradas = tareas.filter((tarea) => {
+                    const esCreador = tarea.cN_Usuario_creador === usuarioId;
+                    const esAsignado = tarea.cN_Usuario_asignado === usuarioId;
+                    const cumpleCondicion = esCreador || esAsignado;
+                    return cumpleCondicion;
+                });
+                return tareasFiltradas;
+            },
         },
         {
             id: "seguimiento",
@@ -48,13 +67,7 @@ const Tareas = () => {
             label: "Incumplimiento",
             filter: (tareas) => tareas.filter((tarea) => (tarea.estado || tarea.cN_Id_estado) === 4),
         },
-    ]);    // Cargar datos al montar el componente
-
-    useEffect(() => {
-        if (session?.user?.id && status === 'authenticated') {
-            cargarDatos();
-        }
-    }, [session]);
+    ], [session?.user?.id]);
 
     const cargarDatos = async () => {
         try {
@@ -102,7 +115,7 @@ const Tareas = () => {
         setSelectedTarea(tarea);
         setIsEditing(false);
         onOpen();
-    };    const handleOpenEditModal = (tarea) => {
+    }; const handleOpenEditModal = (tarea) => {
         setSelectedTarea(tarea);
         setOriginalUsuarioAsignado(tarea.cN_Usuario_asignado); // Guardar el usuario original
         setIsEditing(true);
@@ -112,11 +125,11 @@ const Tareas = () => {
     const handleCloseModal = () => {
         setSelectedTarea(null);
         setIsEditing(false);
-    };    
-    
+    };
+
     const handleCloseEditModal = () => {
         setSelectedTarea(null);
-        setOriginalUsuarioAsignado(null); // Limpiar el usuario original
+        setOriginalUsuarioAsignado(null);
         setIsEditing(false);
         onEditOpenChange(false);
     };
@@ -199,8 +212,8 @@ const Tareas = () => {
                 autoClose: 5000,
             });
         }
-    };   
-    
+    };
+
     const handleEditSubmit = async (tareaData) => {
         try {
             const usuarioAnterior = originalUsuarioAsignado; // Usar el usuario original guardado
@@ -230,7 +243,7 @@ const Tareas = () => {
                 }
             } else {
                 console.log('ℹ️ No se envía notificación - no hay usuario asignado');
-            }            await cargarDatos();
+            } await cargarDatos();
             setSelectedTarea(null);
             setOriginalUsuarioAsignado(null); // Limpiar el usuario original
             onEditOpenChange(false);
@@ -290,17 +303,26 @@ const Tareas = () => {
         });
     };
 
-    const filtrarTareasPorEstado = (tareas, filtroEstado) => {
-        if (!filtroEstado) return tareas;
-
-        const estadoId = parseInt(filtroEstado);
-
-        return tareas.filter(tarea => {
+    const filtrarTareasPorEstado = (tareas, estadoId) => {
+        if (!estadoId) return tareas;
+        console.log('🔍 Filtrando tareas por estado:', estadoId, tareas);
+        return tareas.filter((tarea) => {
             const tareaEstadoId = tarea.estado || tarea.cN_Id_estado;
             return tareaEstadoId === estadoId;
         });
-    };    
-    
+    };
+
+    // Función para obtener los estados disponibles según el tab activo
+    const getEstadosDisponibles = () => {
+        if (tabActivo === "misTareas") {
+            // En "Mis Tareas" solo mostrar Registrado (1) y Asignado (2)
+            return estados.filter(estado =>
+                estado.cN_Id_estado === 1 || estado.cN_Id_estado === 2
+            );
+        }
+        return estados;
+    };
+
     return (
         <Container className="max-w-4xl mx-auto mt-10 h-[calc(100vh-120px)] flex flex-col">
             {loading ? (
@@ -320,6 +342,11 @@ const Tareas = () => {
                             variant="underlined"
                             items={tabs}
                             color="primary"
+                            selectedKey={tabActivo}
+                            onSelectionChange={(key) => {
+                                setTabActivo(key);
+                                setFiltroEstado(null);
+                            }}
                             classNames={{
                                 tabList: "gap-6 w-full relative rounded-none p-0 border-b border-divider",
                                 cursor: "w-full bg-[#22d3ee]",
@@ -342,9 +369,8 @@ const Tareas = () => {
                                                     console.log('Estado ID seleccionado:', selectedKey);
                                                     setFiltroEstado(selectedKey || null);
                                                 }}
-                                                selectedKeys={filtroEstado ? [filtroEstado.toString()] : []}
-                                            >
-                                                {estados.map((estado) => (
+                                                selectedKeys={filtroEstado ? [filtroEstado.toString()] : []}                                            >
+                                                {getEstadosDisponibles().map((estado) => (
                                                     <SelectItem
                                                         key={estado.cN_Id_estado}
                                                         value={estado.cN_Id_estado.toString()}
