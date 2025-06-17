@@ -63,7 +63,8 @@ const TareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tareaOrige
                 cN_Id_prioridad: parseInt(formData.get('prioridad')),
                 cN_Id_estado: tarea ? parseInt(formData.get('estado')) : 1,
                 cF_Fecha_limite: formData.get('fechaLimite'),
-                cN_Numero_GIS: formData.get('numeroGIS'),                cN_Usuario_creador: session?.user?.id,
+                cN_Numero_GIS: formData.get('numeroGIS'),
+                cN_Usuario_creador: session?.user?.id,
                 cN_Usuario_asignado: responsableValue ? parseInt(responsableValue) : null,
                 cN_Tarea_origen: tareaOrigenId // Incluir el ID de la tarea origen si es una subtarea
             };
@@ -99,13 +100,13 @@ const TareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tareaOrige
             <ModalContent>
                 {(onClose) => (
                     <>
-                        <Form onSubmit={handleSubmit} className="w-full">                            <ModalBody className="px-6 pt-6 w-full">
+                        <Form onSubmit={handleSubmit} className="w-full">                            
+                            <ModalBody className="px-6 pt-6 w-full">
                                 <h2 className="text-xl font-bold mb-4">
                                     {tareaOrigenId ? (tarea ? "Editar subtarea" : "Nueva subtarea") : (tarea ? "Editar tarea" : "Nueva tarea")}
                                 </h2>
 
                                 <div className="grid grid-cols-2 gap-4 w-full">
-                                    {/* Campo de Tarea Origen para subtareas */}
                                     {tareaOrigenId && (
                                         <div className="col-span-2">
                                             <Input

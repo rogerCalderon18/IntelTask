@@ -48,7 +48,7 @@ public class TareasController : ControllerBase
             CT_Descripcion_tarea = tareaRequest.CT_Descripcion_tarea,
             CN_Id_complejidad = tareaRequest.CN_Id_complejidad,
             CN_Id_prioridad = tareaRequest.CN_Id_prioridad,
-            CN_Id_estado = tareaRequest.CN_Id_estado,
+            CN_Id_estado = tareaRequest.CN_Usuario_asignado.HasValue ? (byte) 2: (byte) 1,
             CF_Fecha_limite = tareaRequest.CF_Fecha_limite,
             CN_Tarea_origen = tareaRequest.CN_Tarea_origen,
             CN_Numero_GIS = tareaRequest.CN_Numero_GIS,
