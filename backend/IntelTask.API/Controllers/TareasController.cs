@@ -41,9 +41,7 @@ public class TareasController : ControllerBase
         if (tareaRequest == null)
         {
             return BadRequest("Datos de tarea no pueden ser null.");
-        }
-
-        // Crear la entidad de tarea a partir de la solicitud
+        }        // Crear la entidad de tarea a partir de la solicitud
         var tarea = new ETareas
         {
             CT_Titulo_tarea = tareaRequest.CT_Titulo_tarea,
@@ -55,8 +53,8 @@ public class TareasController : ControllerBase
             CN_Tarea_origen = tareaRequest.CN_Tarea_origen,
             CN_Numero_GIS = tareaRequest.CN_Numero_GIS,
             CN_Usuario_asignado = tareaRequest.CN_Usuario_asignado,
-            // Establecer fecha de asignación actual
-            CF_Fecha_asignacion = new DateTime(1900, 1, 1),
+            // Establecer fecha de asignación si hay usuario asignado
+            CF_Fecha_asignacion = tareaRequest.CN_Usuario_asignado.HasValue ? DateTime.Now : new DateTime(1900, 1, 1),
             // Obtener el usuario actual del sistema
             CN_Usuario_creador = tareaRequest.CN_Usuario_creador,
             CF_Fecha_finalizacion = new DateTime(1900, 1, 1) 
@@ -80,7 +78,9 @@ public class TareasController : ControllerBase
             Console.WriteLine("Error al crear la tarea: " + ex.Message);
             return StatusCode(500, "Error al crear la tarea aqui: " + ex.Message);
         }
-    }    [HttpPut("{id}")]
+    }
+
+    [HttpPut("{id}")]
     public async Task<IActionResult> M_PUB_ActualizarTarea(int id, [FromBody] TareaUpdateRequest request)
     {
         try

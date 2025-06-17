@@ -8,15 +8,15 @@ const GestorAdjuntos = ({ idTarea, adjuntos: adjuntosIniciales = [], onAdjuntosC
     const { data: session } = useSession();
     const [adjuntos, setAdjuntos] = useState(adjuntosIniciales);
     const [cargando, setCargando] = useState(false);
-    const [subiendo, setSubiendo] = useState(false);    useEffect(() => {
+    const [subiendo, setSubiendo] = useState(false); useEffect(() => {
         if (idTarea) {
             cargarAdjuntos();
         }
-    }, [idTarea]); // eslint-disable-line react-hooks/exhaustive-deps
-
+    }, [idTarea]);
+    
     const cargarAdjuntos = async () => {
         if (!idTarea) return;
-        
+
         try {
             setCargando(true);
             const adjuntosData = await adjuntosService.obtenerPorTarea(idTarea);
@@ -27,7 +27,9 @@ const GestorAdjuntos = ({ idTarea, adjuntos: adjuntosIniciales = [], onAdjuntosC
         } finally {
             setCargando(false);
         }
-    };    const handleFileSelect = async (event) => {
+    };
+
+    const handleFileSelect = async (event) => {
         const archivo = event.target.files[0];
         if (!archivo || !session?.user?.id || !idTarea) {
             if (!idTarea) {
@@ -40,11 +42,11 @@ const GestorAdjuntos = ({ idTarea, adjuntos: adjuntosIniciales = [], onAdjuntosC
         try {
             setSubiendo(true);
             const resultado = await adjuntosService.subirArchivo(
-                archivo, 
-                session.user.id, 
+                archivo,
+                session.user.id,
                 idTarea
             );
-            
+
             // Recargar adjuntos
             await cargarAdjuntos();
         } catch (error) {
@@ -66,7 +68,9 @@ const GestorAdjuntos = ({ idTarea, adjuntos: adjuntosIniciales = [], onAdjuntosC
             console.error('Error al eliminar archivo:', error);
             alert('Error al eliminar el archivo');
         }
-    };    const handleDescargar = (id) => {
+    };
+
+    const handleDescargar = (id) => {
         const url = adjuntosService.obtenerUrlDescarga(id);
         window.open(url, '_blank');
     };

@@ -1,9 +1,9 @@
 import React from "react";
 import { Spinner, Chip } from "@heroui/react";
-import { FiEdit, FiTrash2, FiClock, FiUser } from "react-icons/fi";
+import { FiEdit, FiTrash2, FiClock, FiUser, FiEye } from "react-icons/fi";
 import getColorClass from "../utils/getColorClass";
 
-const ListaSubtareas = ({ subtareas, loading, onEdit, onDelete }) => {
+const ListaSubtareas = ({ subtareas, loading, onEdit, onDelete, onDetalle }) => {
     if (loading) {
         return (
             <div className="flex justify-center items-center py-4">
@@ -96,8 +96,14 @@ const ListaSubtareas = ({ subtareas, loading, onEdit, onDelete }) => {
                                 )}
                             </div>
                         </div>
-                        
-                        <div className="flex items-center gap-1 ml-2">
+                          <div className="flex items-center gap-1 ml-2">
+                            <button
+                                onClick={() => onDetalle && onDetalle(subtarea)}
+                                className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                title="Ver detalle"
+                            >
+                                <FiEye className="w-4 h-4" />
+                            </button>
                             <button
                                 onClick={() => onEdit(subtarea)}
                                 className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"

@@ -1,4 +1,5 @@
 import { toast } from 'react-toastify';
+import { Button } from "@heroui/react";
 
 const useConfirmation = () => {
     const showConfirmation = ({
@@ -34,8 +35,8 @@ const useConfirmation = () => {
                         </svg>
                     );
             }
-        };
-
+        };        
+        
         const getIconBg = () => {
             switch (type) {
                 case 'danger': return 'bg-red-100';
@@ -44,49 +45,43 @@ const useConfirmation = () => {
             }
         };
 
-        const getConfirmButtonStyle = () => {
-            switch (type) {
-                case 'danger': return 'bg-red-600 hover:bg-red-700';
-                case 'warning': return 'bg-yellow-600 hover:bg-yellow-700';
-                default: return 'bg-blue-600 hover:bg-blue-700';
-            }
-        };
-
         toast(
             ({ closeToast }) => (
                 <div className="p-4 bg-white rounded-lg shadow-lg w-full max-w-md space-y-6">
-                    {/* Encabezado */}
+
                     <div className="flex items-start gap-4">
                         <div className={`w-12 h-12 rounded-full flex items-center justify-center ${getIconBg()}`}>
                             {getIcon()}
                         </div>
                         <div className="flex-1">
-                            <h3 className="text-base font-semibold text-gray-900">{title}</h3>
+                            <h3 className="text-base font-semibold text-black">{title}</h3>
                             {message && <p className="text-sm text-gray-800 mt-1">{message}</p>}
                             {description && <p className="text-xs text-gray-500 mt-1">{description}</p>}
                         </div>
-                    </div>
+                    </div>                    
 
-                    {/* Botones */}
-                    <div className="flex justify-end gap-2 mt-4">
-                        <button
-                            className="px-3 py-1.5 text-sm border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition"
-                            onClick={() => {
+                    <div className="flex justify-end gap-2 mt-4 mr-4">
+                        <Button
+                            color="default" 
+                            variant="bordered"
+                            size="sm"
+                            onPress={() => {
                                 closeToast();
                                 if (onCancel) onCancel();
                             }}
                         >
                             {cancelText}
-                        </button>
-                        <button
-                            className={`px-3 py-1.5 text-sm text-white rounded-md transition ${getConfirmButtonStyle()}`}
-                            onClick={async () => {
+                        </Button>
+                        <Button
+                            color={type === 'danger' ? 'danger' : type === 'warning' ? 'warning' : 'primary'}
+                            size="sm"
+                            onPress={async () => {
                                 closeToast();
                                 if (onConfirm) await onConfirm();
                             }}
                         >
                             {confirmText}
-                        </button>
+                        </Button>
                     </div>
                 </div>
             ),

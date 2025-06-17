@@ -8,6 +8,7 @@ import { toast } from "react-toastify";
 import TareaModal from "./TareaModal";
 import EditarTareaModal from "./EditarTareaModal";
 import ListaSubtareas from "./ListaSubtareas";
+import DetalleModal from "./DetalleModal";
 import useConfirmation from '@/hooks/useConfirmation';
 
 const SubtareasManager = ({ tareaId, onSubtareasChange }) => {
@@ -20,7 +21,8 @@ const SubtareasManager = ({ tareaId, onSubtareasChange }) => {
     // Modales
     const { isOpen: isCreateOpen, onOpen: onCreateOpen, onOpenChange: onCreateOpenChange } = useDisclosure();
     const { isOpen: isEditOpen, onOpen: onEditOpen, onOpenChange: onEditOpenChange } = useDisclosure();
-    const { showConfirmation } = useConfirmation();    useEffect(() => {
+    const { isOpen: isDetalleOpen, onOpen: onDetalleOpen, onOpenChange: onDetalleOpenChange } = useDisclosure();
+    const { showConfirmation } = useConfirmation();useEffect(() => {
         if (tareaId) {
             cargarSubtareas();
         }
@@ -199,6 +201,17 @@ const SubtareasManager = ({ tareaId, onSubtareasChange }) => {
         onEditOpen();
     };
 
+    const handleDetalleSubtarea = (subtarea) => {
+        setSelectedSubtarea(subtarea);
+        onDetalleOpen();
+    };    const handleEditFromDetalle = () => {
+        // Cerrar modal de detalle y abrir modal de edición
+        onDetalleOpenChange(false);
+        setOriginalUsuarioAsignado(selectedSubtarea.cN_Usuario_asignado);
+        // selectedSubtarea ya está establecida desde handleDetalleSubtarea
+        onEditOpen();
+    };
+
     const toggleMostrarSubtareas = () => {
         setMostrarSubtareas(!mostrarSubtareas);
     };
@@ -228,15 +241,14 @@ const SubtareasManager = ({ tareaId, onSubtareasChange }) => {
                 >
                     Agregar
                 </Button>
-            </div>
-
-            {/* Lista de subtareas */}
+            </div>            {/* Lista de subtareas */}
             {mostrarSubtareas && (
                 <ListaSubtareas
                     subtareas={subtareas}
                     loading={loading}
                     onEdit={handleEditSubtarea}
                     onDelete={handleEliminarSubtarea}
+                    onDetalle={handleDetalleSubtarea}
                 />
             )}
 
@@ -260,6 +272,19 @@ const SubtareasManager = ({ tareaId, onSubtareasChange }) => {
                 onSubmit={handleEditarSubtarea}
                 tarea={selectedSubtarea}
                 tareaOrigenId={tareaId}
+            />
+
+            {/* Modal de detalle de subtarea */}
+            <DetalleModal 
+                isOpen={isDetalleOpen}
+                onOpenChange={onDetalleOpenChange}
+                onClose={() => {
+                    setSelectedSubtarea(null);
+                    onDetalleOpenChange(false);
+                }}
+                tarea={selectedSubtarea}
+                onEdit={handleEditFromDetalle}
+                esSubtarea={true}
             />
         </div>
     );

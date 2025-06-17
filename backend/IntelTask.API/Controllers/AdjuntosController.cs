@@ -5,13 +5,15 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace IntelTask.API.Controllers
-{    [ApiController]
+{
+
+    [ApiController]
     [Route("api/[controller]")]
     // [Authorize] // Comentado temporalmente para testing
     public class AdjuntosController : ControllerBase
     {
         private readonly IntelTaskDbContext _context;
-        private readonly string _rutaArchivos;        public AdjuntosController(IntelTaskDbContext context)
+        private readonly string _rutaArchivos; public AdjuntosController(IntelTaskDbContext context)
         {
             _context = context;
             _rutaArchivos = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
@@ -21,13 +23,14 @@ namespace IntelTask.API.Controllers
         public IActionResult Test()
         {
             return Ok(new { mensaje = "Controlador de adjuntos funcionando", fecha = DateTime.Now });
-        }[HttpPost("subir")]
+        }
+        [HttpPost("subir")]
         public async Task<IActionResult> SubirArchivo(IFormFile archivo, [FromForm] int? idTarea, [FromForm] int usuarioId)
         {
             try
             {
                 Console.WriteLine($"SubirArchivo llamado - Usuario: {usuarioId}, Tarea: {idTarea}");
-                
+
                 if (archivo == null || archivo.Length == 0)
                 {
                     Console.WriteLine("No se proporcionó archivo");
@@ -72,8 +75,9 @@ namespace IntelTask.API.Controllers
                     await _context.SaveChangesAsync();
                 }
 
-                return Ok(new { 
-                    id = adjunto.CN_Id_adjuntos, 
+                return Ok(new
+                {
+                    id = adjunto.CN_Id_adjuntos,
                     nombre = archivo.FileName,
                     ruta = adjunto.CT_Archivo_ruta
                 });
@@ -91,13 +95,13 @@ namespace IntelTask.API.Controllers
             {
                 var adjuntos = await _context.T_Adjuntos
                     .Where(a => _context.T_Adjuntos_X_Tareas
-                        .Any(ax => ax.CN_Id_adjuntos == a.CN_Id_adjuntos && ax.CN_Id_tarea == idTarea))                    .Select(a => new
-                    {
-                        id = a.CN_Id_adjuntos,
-                        nombre = Path.GetFileName(a.CT_Archivo_ruta), // Extraer nombre del archivo
-                        ruta = a.CT_Archivo_ruta,
-                        fecha = a.CF_Fecha_registro
-                    })
+                        .Any(ax => ax.CN_Id_adjuntos == a.CN_Id_adjuntos && ax.CN_Id_tarea == idTarea)).Select(a => new
+                        {
+                            id = a.CN_Id_adjuntos,
+                            nombre = Path.GetFileName(a.CT_Archivo_ruta), // Extraer nombre del archivo
+                            ruta = a.CT_Archivo_ruta,
+                            fecha = a.CF_Fecha_registro
+                        })
                     .ToListAsync();
 
                 return Ok(adjuntos);
@@ -119,7 +123,8 @@ namespace IntelTask.API.Controllers
 
                 var rutaCompleta = Path.Combine(_rutaArchivos, adjunto.CT_Archivo_ruta);
                 if (!System.IO.File.Exists(rutaCompleta))
-                    return NotFound("Archivo no encontrado");                var bytes = await System.IO.File.ReadAllBytesAsync(rutaCompleta);
+                    return NotFound("Archivo no encontrado");
+                var bytes = await System.IO.File.ReadAllBytesAsync(rutaCompleta);
                 var nombreArchivo = Path.GetFileName(adjunto.CT_Archivo_ruta);
                 return File(bytes, "application/octet-stream", nombreArchivo);
             }
