@@ -18,21 +18,21 @@ const Tareas = () => {
     const [tareas, setTareas] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedTarea, setSelectedTarea] = useState(null);
-    const [originalUsuarioAsignado, setOriginalUsuarioAsignado] = useState(null); // Guardar el usuario original
+    const [originalUsuarioAsignado, setOriginalUsuarioAsignado] = useState(null);
     const [estados, setEstados] = useState([]);
-    const [filtroEstado, setFiltroEstado] = useState(null);
-    const [tabActivo, setTabActivo] = useState("misTareas"); // Nuevo estado para el tab activo
+    const [filtroEstado, setFiltroEstado] = useState('all');
+    const [tabActivo, setTabActivo] = useState("misTareas");
     const [isEditing, setIsEditing] = useState(false);
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
-    const { isOpen: isEditOpen, onOpen: onEditOpen, onOpenChange: onEditOpenChange } = useDisclosure();
-    const { showConfirmation } = useConfirmation();    // Cargar datos al montar el componente
+    const { isOpen: isEditOpen, onOpen: onEditOpenChange } = useDisclosure();
+    const { showConfirmation } = useConfirmation();
+
     useEffect(() => {
         if (session?.user?.id && status === 'authenticated') {
             cargarDatos();
         }
     }, [session, status]);
 
-    // Definir tabs dinámicamente basado en la sesión
     const tabs = useMemo(() => [
         {
             id: "misTareas",
@@ -71,10 +71,7 @@ const Tareas = () => {
 
     const cargarDatos = async () => {
         try {
-            console.log('🔄 Cargando tareas y estados...');
             setLoading(true);
-            console.log('🔄 Cargando tareas y estados...');
-
             // Verificar que hay sesión activa
             if (!session?.user?.id || status !== 'authenticated') {
                 console.warn('No hay sesión de usuario activa');
@@ -97,9 +94,6 @@ const Tareas = () => {
                 subtareas: tarea.subtareas || []
             }));
 
-            console.log('Tareas del usuario normalizadas:', tareasNormalizadas);
-            console.log('Estados obtenidos:', estadosData);
-
             setTareas(tareasNormalizadas);
             setEstados(estadosData);
 
@@ -117,7 +111,7 @@ const Tareas = () => {
         onOpen();
     }; const handleOpenEditModal = (tarea) => {
         setSelectedTarea(tarea);
-        setOriginalUsuarioAsignado(tarea.cN_Usuario_asignado); // Guardar el usuario original
+        setOriginalUsuarioAsignado(tarea.cN_Usuario_asignado);
         setIsEditing(true);
         onEditOpen();
     };
@@ -136,30 +130,20 @@ const Tareas = () => {
 
     const enviarNotificacionAsignacion = async (usuarioAsignadoId, tareaCreada, tipoNotificacion = 'NUEVA_ASIGNACION') => {
         try {
-            console.log('📧 Iniciando envío de notificación:', { usuarioAsignadoId, tipoNotificacion });
 
             if (!usuarioAsignadoId) {
                 console.log('❌ No hay usuario asignado ID');
                 return;
             }
 
-            // Obtener información del usuario asignado
-            console.log('🔍 Obteniendo usuarios...');
             const usuarios = await catalogosService.obtenerUsuarios();
-            console.log('👥 Usuarios obtenidos:', usuarios.length);
 
             const usuarioAsignado = usuarios.find(u => u.cN_Id_usuario === usuarioAsignadoId);
-            console.log('👤 Usuario encontrado:', usuarioAsignado);
 
             if (!usuarioAsignado) {
                 console.warn('❌ No se encontró el usuario asignado para enviar notificación');
                 return;
             }
-
-            console.log('📤 Enviando notificación al servicio...', {
-                email: usuarioAsignado.cT_Correo_usuario,
-                tarea: tareaCreada.cT_Titulo_tarea || tareaCreada.titulo
-            });
 
             await notificacionService.enviarNotificacionAsignacion(
                 usuarioAsignado,
@@ -167,16 +151,15 @@ const Tareas = () => {
                 tipoNotificacion
             );
 
-            console.log('✅ Notificación enviada exitosamente');
-            toast.success('📧 Notificación enviada al usuario asignado', {
+            toast.success('Notificación enviada al usuario asignado', {
                 position: "top-right",
                 autoClose: 2000,
             });
 
         } catch (error) {
-            console.error('❌ Error al enviar notificación:', error);
+            console.error('Error al enviar notificación:', error);
             // No mostramos error al usuario para que no interfiera con el flujo principal
-            toast.warning('⚠️ Tarea guardada, pero no se pudo enviar la notificación', {
+            toast.warning('Tarea guardada, pero no se pudo enviar la notificación', {
                 position: "top-right",
                 autoClose: 3000,
             });
@@ -216,11 +199,8 @@ const Tareas = () => {
 
     const handleEditSubmit = async (tareaData) => {
         try {
-            const usuarioAnterior = originalUsuarioAsignado; // Usar el usuario original guardado
+            const usuarioAnterior = originalUsuarioAsignado;
             const usuarioNuevo = tareaData.cN_Usuario_asignado;
-
-            console.log('🔄 Editando tarea - Usuario anterior:', usuarioAnterior, 'Usuario nuevo:', usuarioNuevo);
-            console.log('📋 Datos de tarea a actualizar:', tareaData);
 
             const tareaActualizada = await tareasService.actualizarTarea(selectedTarea.cN_Id_tarea, tareaData);
 
@@ -228,24 +208,21 @@ const Tareas = () => {
                 position: "top-right",
                 autoClose: 3000,
             });
-
-            console.log('✅ Tarea actualizada:', tareaActualizada);
-            console.log('tareaData enviada:', tareaData);
             // Enviar notificación si se asignó un usuario nuevo o cambió el usuario asignado
             if (usuarioNuevo) {
                 // Si no tenía usuario asignado antes, o cambió el usuario asignado
                 if (!usuarioAnterior || usuarioAnterior !== usuarioNuevo) {
                     const tipoNotificacion = !usuarioAnterior ? 'NUEVA_ASIGNACION' : 'REASIGNACION';
-                    console.log('📧 Enviando notificación:', tipoNotificacion, 'al usuario:', usuarioNuevo);
                     await enviarNotificacionAsignacion(usuarioNuevo, tareaActualizada, tipoNotificacion);
                 } else {
                     console.log('ℹ️ No se envía notificación - mismo usuario asignado');
                 }
             } else {
                 console.log('ℹ️ No se envía notificación - no hay usuario asignado');
-            } await cargarDatos();
+            }
+            await cargarDatos();
             setSelectedTarea(null);
-            setOriginalUsuarioAsignado(null); // Limpiar el usuario original
+            setOriginalUsuarioAsignado(null);
             onEditOpenChange(false);
 
         } catch (error) {
@@ -301,14 +278,15 @@ const Tareas = () => {
                 }
             }
         });
-    };
+    }; const filtrarTareasPorEstado = (tareas, estadoId) => {
+        if (!estadoId || estadoId === 'all') return tareas;
 
-    const filtrarTareasPorEstado = (tareas, estadoId) => {
-        if (!estadoId) return tareas;
-        console.log('🔍 Filtrando tareas por estado:', estadoId, tareas);
+        const estadoIdNumerico = parseInt(estadoId);
+
         return tareas.filter((tarea) => {
             const tareaEstadoId = tarea.estado || tarea.cN_Id_estado;
-            return tareaEstadoId === estadoId;
+            console.log('Comparando:', estadoIdNumerico, 'con', tareaEstadoId);
+            return tareaEstadoId === estadoIdNumerico;
         });
     };
 
@@ -322,6 +300,17 @@ const Tareas = () => {
         }
         return estados;
     };
+
+    const tareasFiltradas = useMemo(() => {
+        // 1) aplico filtro de pestaña
+        const tabActual = tabs.find(t => t.id === tabActivo);
+        let list = tabActual ? tabActual.filter(tareas) : [];
+        // 2) aplico filtroEstado
+        if (filtroEstado && filtroEstado !== 'all') {
+            list = filtrarTareasPorEstado(list, filtroEstado);
+        }
+        return list;
+    }, [tareas, tabActivo, filtroEstado, tabs]);
 
     return (
         <Container className="max-w-4xl mx-auto mt-10 h-[calc(100vh-120px)] flex flex-col">
@@ -340,12 +329,11 @@ const Tareas = () => {
                         <Tabs
                             aria-label="Categorías de tareas"
                             variant="underlined"
-                            items={tabs}
                             color="primary"
                             selectedKey={tabActivo}
                             onSelectionChange={(key) => {
                                 setTabActivo(key);
-                                setFiltroEstado(null);
+                                setFiltroEstado('all');
                             }}
                             classNames={{
                                 tabList: "gap-6 w-full relative rounded-none p-0 border-b border-divider",
@@ -354,55 +342,60 @@ const Tareas = () => {
                                 tabContent: "group-data-[selected=true]:text-[#06b6d4]",
                             }}
                         >
-                            {(tab) => {
-                                let tareasFiltradas = tab.filter(tareas);
-                                tareasFiltradas = filtrarTareasPorEstado(tareasFiltradas, filtroEstado);
+                            {tabs.map(tab => (
+                                <Tab key={tab.id} title={tab.label}>
+                                    <div className="flex justify-between items-center mb-4 ml-2 bg-white sticky top-0 z-10 py-2">
+                                        <Select
+                                            placeholder="Filtrar por estado"
+                                            className="w-1/4"
+                                            onSelectionChange={(keys) => {
+                                                const selectedKey = Array.from(keys)[0];
+                                                console.log('Estado ID seleccionado:', selectedKey);
+                                                setFiltroEstado(selectedKey || 'all');
+                                            }}
+                                            selectionMode="single"
+                                            selectedKeys={filtroEstado ? [filtroEstado.toString()] : ['all']}
+                                        >
+                                            <SelectItem key="all" value="all">
+                                                Todos los estados
+                                            </SelectItem>
+                                            {getEstadosDisponibles().map((estado) => (
+                                                <SelectItem
+                                                    key={estado.cN_Id_estado}
+                                                    value={estado.cN_Id_estado.toString()}
+                                                >
+                                                    {estado.cT_Estado || 'Estado'}
+                                                </SelectItem>
+                                            ))}
+                                        </Select>
 
-                                return (
-                                    <Tab key={tab.id} title={tab.label}>
-                                        <div className="flex justify-between items-center mb-4 ml-2 bg-white sticky top-0 z-10 py-2">
-                                            <Select
-                                                placeholder="Filtrar por estado"
-                                                className="w-1/4"
-                                                onSelectionChange={(keys) => {
-                                                    const selectedKey = Array.from(keys)[0];
-                                                    console.log('Estado ID seleccionado:', selectedKey);
-                                                    setFiltroEstado(selectedKey || null);
-                                                }}
-                                                selectedKeys={filtroEstado ? [filtroEstado.toString()] : []}                                            >
-                                                {getEstadosDisponibles().map((estado) => (
-                                                    <SelectItem
-                                                        key={estado.cN_Id_estado}
-                                                        value={estado.cN_Id_estado.toString()}
-                                                    >
-                                                        {estado.cT_Nombre_estado || estado.cT_Estado || 'Estado'}
-                                                    </SelectItem>
-                                                ))}
-                                            </Select>
+                                        <Button
+                                            color="primary"
+                                            endContent={<FiPlus className="w-4 h-4" />}
+                                            className="flex items-center mr-2"
+                                            onPress={() => handleOpenModal()}
+                                        >
+                                            Agregar
+                                        </Button>
+                                    </div>
 
-                                            <Button
-                                                color="primary"
-                                                endContent={<FiPlus className="w-4 h-4" />}
-                                                className="flex items-center mr-2"
-                                                onPress={() => handleOpenModal()}
-                                            >
-                                                Agregar
-                                            </Button>
-                                        </div>
-
-                                        <div className="flex-1 overflow-y-auto max-h-[calc(100vh-300px)] pr-2 py-10">
-                                            {tareasFiltradas.length === 0 ? (
-                                                <EmptyState
-                                                    tabId={tab.id}
-                                                    onAddTask={() => handleOpenModal()}
-                                                />
-                                            ) : (
-                                                <TareaAccordion tareas={tareasFiltradas} onEdit={handleOpenEditModal} onDelete={handleEliminarTarea} />
-                                            )}
-                                        </div>
-                                    </Tab>
-                                );
-                            }}
+                                    <div className="flex-1 overflow-y-auto max-h-[calc(100vh-300px)] pr-2 py-10">
+                                        {tareasFiltradas.length === 0 ? (
+                                            <EmptyState
+                                                tabId={tab.id}
+                                                onAddTask={() => handleOpenModal()}
+                                            />
+                                        ) : (
+                                            <TareaAccordion
+                                                key={`${tabActivo}-${filtroEstado}`}
+                                                tareas={tareasFiltradas}
+                                                onEdit={handleOpenEditModal}
+                                                onDelete={handleEliminarTarea}
+                                            />
+                                        )}
+                                    </div>
+                                </Tab>
+                            ))}
                         </Tabs>
                     </div>
                 </div>
