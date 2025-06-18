@@ -55,7 +55,8 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
                 cN_Id_prioridad: parseInt(formData.get('prioridad')),
                 cN_Id_estado: parseInt(formData.get('estado')),
                 cF_Fecha_limite: formData.get('fechaLimite'),
-                cN_Numero_GIS: formData.get('numeroGIS'),                cN_Usuario_asignado: responsableValue ? parseInt(responsableValue) : null,
+                cN_Numero_GIS: formData.get('numeroGIS'),                
+                cN_Usuario_asignado: responsableValue ? parseInt(responsableValue) : null,
                 CN_Tarea_origen: tareaOrigenId // Incluir el ID de la tarea origen si es una subtarea
             };
 
@@ -97,7 +98,8 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
             <ModalContent>
                 {(onClose) => (
                     <>
-                        <Form onSubmit={handleSubmit} className="w-full">                            <ModalBody className="px-6 pt-6 w-full">
+                        <Form onSubmit={handleSubmit} className="w-full">                            
+                            <ModalBody className="px-6 pt-6 w-full">
                                 <h2 className="text-xl font-bold mb-4">
                                     {tareaOrigenId ? 'Editar subtarea' : 'Editar tarea'} - {tarea?.cN_Id_tarea ? String(tarea.cN_Id_tarea).padStart(2, '0') : '00'}
                                 </h2>

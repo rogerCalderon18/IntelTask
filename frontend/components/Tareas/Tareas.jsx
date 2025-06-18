@@ -24,7 +24,7 @@ const Tareas = () => {
     const [tabActivo, setTabActivo] = useState("misTareas");
     const [isEditing, setIsEditing] = useState(false);
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
-    const { isOpen: isEditOpen, onOpen: onEditOpenChange } = useDisclosure();
+    const { isOpen: isEditOpen, onOpen: onEditOpen, onOpenChange: onEditOpenChange } = useDisclosure();
     const { showConfirmation } = useConfirmation();
 
     useEffect(() => {
@@ -51,11 +51,23 @@ const Tareas = () => {
                 });
                 return tareasFiltradas;
             },
-        },
-        {
+        }, {
             id: "seguimiento",
             label: "En seguimiento",
-            filter: (tareas) => tareas.filter((tarea) => (tarea.estado || tarea.cN_Id_estado) === 2),
+            filter: (tareas) => {
+                const usuarioId = parseInt(session?.user?.id);
+                if (!usuarioId) {
+                    return [];
+                }
+
+                return tareas.filter((tarea) => {
+                    const esCreador = tarea.cN_Usuario_creador === usuarioId;
+                    const tieneAsignado = tarea.cN_Usuario_asignado && tarea.cN_Usuario_asignado !== usuarioId;
+                    const estadoValido = [2, 3, 4].includes(tarea.estado || tarea.cN_Id_estado); // Asignado, En proceso, En espera
+
+                    return esCreador && tieneAsignado && estadoValido;
+                });
+            },
         },
         {
             id: "revision",
@@ -109,11 +121,13 @@ const Tareas = () => {
         setSelectedTarea(tarea);
         setIsEditing(false);
         onOpen();
-    }; const handleOpenEditModal = (tarea) => {
+    };
+
+    const handleOpenEditModal = (tarea) => {
         setSelectedTarea(tarea);
         setOriginalUsuarioAsignado(tarea.cN_Usuario_asignado);
         setIsEditing(true);
-        onEditOpen();
+        onEditOpenChange(true);
     };
 
     const handleCloseModal = () => {
@@ -158,7 +172,6 @@ const Tareas = () => {
 
         } catch (error) {
             console.error('Error al enviar notificación:', error);
-            // No mostramos error al usuario para que no interfiera con el flujo principal
             toast.warning('Tarea guardada, pero no se pudo enviar la notificación', {
                 position: "top-right",
                 autoClose: 3000,
@@ -278,7 +291,8 @@ const Tareas = () => {
                 }
             }
         });
-    }; const filtrarTareasPorEstado = (tareas, estadoId) => {
+    };
+    const filtrarTareasPorEstado = (tareas, estadoId) => {
         if (!estadoId || estadoId === 'all') return tareas;
 
         const estadoIdNumerico = parseInt(estadoId);
@@ -288,14 +302,17 @@ const Tareas = () => {
             console.log('Comparando:', estadoIdNumerico, 'con', tareaEstadoId);
             return tareaEstadoId === estadoIdNumerico;
         });
-    };
-
-    // Función para obtener los estados disponibles según el tab activo
+    };    // Función para obtener los estados disponibles según el tab activo
     const getEstadosDisponibles = () => {
         if (tabActivo === "misTareas") {
             // En "Mis Tareas" solo mostrar Registrado (1) y Asignado (2)
             return estados.filter(estado =>
                 estado.cN_Id_estado === 1 || estado.cN_Id_estado === 2
+            );
+        } else if (tabActivo === "seguimiento") {
+            // En "Seguimiento" mostrar Asignado (2), En proceso (3) y En espera (4)
+            return estados.filter(estado =>
+                estado.cN_Id_estado === 2 || estado.cN_Id_estado === 3 || estado.cN_Id_estado === 4
             );
         }
         return estados;
