@@ -68,16 +68,40 @@ const Tareas = () => {
                     return esCreador && tieneAsignado && estadoValido;
                 });
             },
-        },
-        {
+        },        {
             id: "revision",
             label: "En revisión",
-            filter: (tareas) => tareas.filter((tarea) => (tarea.estado || tarea.cN_Id_estado) === 3),
-        },
-        {
+            filter: (tareas) => {
+                const usuarioId = parseInt(session?.user?.id);
+                if (!usuarioId) {
+                    return [];
+                }
+
+                return tareas.filter((tarea) => {
+                    const estadoEnRevision = (tarea.estado || tarea.cN_Id_estado) === 17;
+                    const esCreador = tarea.cN_Usuario_creador === usuarioId; // Tareas que debo revisar
+                    const esAsignado = tarea.cN_Usuario_asignado === usuarioId; // Tareas que envié a revisión
+                    
+                    return estadoEnRevision && (esCreador || esAsignado);
+                });
+            },
+        },        {
             id: "incumplimiento",
             label: "Incumplimiento",
-            filter: (tareas) => tareas.filter((tarea) => (tarea.estado || tarea.cN_Id_estado) === 4),
+            filter: (tareas) => {
+                const usuarioId = parseInt(session?.user?.id);
+                if (!usuarioId) {
+                    return [];
+                }
+
+                return tareas.filter((tarea) => {
+                    const estadoIncumplida = (tarea.estado || tarea.cN_Id_estado) === 14;
+                    const esCreador = tarea.cN_Usuario_creador === usuarioId; // Tareas incumplidas que debo revisar
+                    const esAsignado = tarea.cN_Usuario_asignado === usuarioId; // Mis tareas incumplidas
+                    
+                    return estadoIncumplida && (esCreador || esAsignado);
+                });
+            },
         },
     ], [session?.user?.id]);
 
@@ -291,10 +315,38 @@ const Tareas = () => {
                 }
             }
         });
-    };
-    const filtrarTareasPorEstado = (tareas, estadoId) => {
+    };    const filtrarTareasPorEstado = (tareas, estadoId) => {
         if (!estadoId || estadoId === 'all') return tareas;
 
+        // Filtros especiales para el tab de revisión
+        if (tabActivo === "revision") {
+            const usuarioId = parseInt(session?.user?.id);
+            if (!usuarioId) return tareas;
+
+            if (estadoId === 'para_revisar') {
+                // Tareas que debo revisar (soy creador)
+                return tareas.filter((tarea) => tarea.cN_Usuario_creador === usuarioId);
+            } else if (estadoId === 'mis_en_revision') {
+                // Mis tareas en revisión (soy asignado)
+                return tareas.filter((tarea) => tarea.cN_Usuario_asignado === usuarioId);
+            }
+        }
+
+        // Filtros especiales para el tab de incumplimiento
+        if (tabActivo === "incumplimiento") {
+            const usuarioId = parseInt(session?.user?.id);
+            if (!usuarioId) return tareas;
+
+            if (estadoId === 'para_revisar_incumplimiento') {
+                // Tareas incumplidas que debo revisar (soy creador)
+                return tareas.filter((tarea) => tarea.cN_Usuario_creador === usuarioId);
+            } else if (estadoId === 'mis_incumplidas') {
+                // Mis tareas incumplidas (soy asignado)
+                return tareas.filter((tarea) => tarea.cN_Usuario_asignado === usuarioId);
+            }
+        }
+
+        // Lógica normal para otros tabs
         const estadoIdNumerico = parseInt(estadoId);
 
         return tareas.filter((tarea) => {
@@ -302,7 +354,7 @@ const Tareas = () => {
             console.log('Comparando:', estadoIdNumerico, 'con', tareaEstadoId);
             return tareaEstadoId === estadoIdNumerico;
         });
-    };    // Función para obtener los estados disponibles según el tab activo
+    };// Función para obtener los estados disponibles según el tab activo
     const getEstadosDisponibles = () => {
         if (tabActivo === "misTareas") {
             // En "Mis Tareas" solo mostrar Registrado (1) y Asignado (2)
@@ -314,6 +366,18 @@ const Tareas = () => {
             return estados.filter(estado =>
                 estado.cN_Id_estado === 2 || estado.cN_Id_estado === 3 || estado.cN_Id_estado === 4
             );
+        } else if (tabActivo === "revision") {
+            // En "Revisión" mostrar opciones personalizadas
+            return [
+                { cN_Id_estado: 'para_revisar', cT_Estado: 'Para revisar' },
+                { cN_Id_estado: 'mis_en_revision', cT_Estado: 'Mis tareas en revisión' }
+            ];
+        } else if (tabActivo === "incumplimiento") {
+            // En "Incumplimiento" mostrar opciones personalizadas
+            return [
+                { cN_Id_estado: 'para_revisar_incumplimiento', cT_Estado: 'Para revisar incumplimiento' },
+                { cN_Id_estado: 'mis_incumplidas', cT_Estado: 'Mis tareas incumplidas' }
+            ];
         }
         return estados;
     };
