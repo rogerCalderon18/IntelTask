@@ -315,7 +315,9 @@ const Tareas = () => {
                 }
             }
         });
-    };    const filtrarTareasPorEstado = (tareas, estadoId) => {
+    };   
+
+    const filtrarTareasPorEstado = (tareas, estadoId) => {
         if (!estadoId || estadoId === 'all') return tareas;
 
         // Filtros especiales para el tab de revisión
@@ -354,7 +356,8 @@ const Tareas = () => {
             console.log('Comparando:', estadoIdNumerico, 'con', tareaEstadoId);
             return tareaEstadoId === estadoIdNumerico;
         });
-    };// Función para obtener los estados disponibles según el tab activo
+    };
+
     const getEstadosDisponibles = () => {
         if (tabActivo === "misTareas") {
             // En "Mis Tareas" solo mostrar Registrado (1) y Asignado (2)

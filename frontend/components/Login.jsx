@@ -72,6 +72,9 @@ const Login = () => {
             className="flex flex-col gap-4"
           >
             <Input
+              type="email"
+              autoComplete="email"
+              isRequired
               name="email"
               placeholder="Usuario"
               variant="bordered"
@@ -80,6 +83,8 @@ const Login = () => {
 
             <Input
               name="password"
+              isRequired
+              autoComplete="current-password"
               endContent={
                 <button
                   aria-label="toggle password visibility"
