@@ -106,7 +106,7 @@ namespace IntelTask.Infrastructure.Repositories
 
                 var estadoAnterior = tareaExistente.CN_Id_estado;
                 var usuarioAsignadoAnterior = tareaExistente.CN_Usuario_asignado;
-
+    
                 // Actualizar solo los campos permitidos
                 tareaExistente.CT_Titulo_tarea = request.CT_Titulo_tarea;
                 tareaExistente.CT_Descripcion_tarea = request.CT_Descripcion_tarea;
@@ -117,7 +117,11 @@ namespace IntelTask.Infrastructure.Repositories
                 tareaExistente.CN_Numero_GIS = request.CN_Numero_GIS;
                 tareaExistente.CN_Usuario_asignado = request.CN_Usuario_asignado;
 
-                // Si el usuario asignado cambió (incluye el caso de asignar por primera vez o cambiar de usuario), actualiza la fecha de asignación
+                if (estadoAnterior == 1 && usuarioAsignadoAnterior != request.CN_Usuario_asignado)
+                {
+                    tareaExistente.CN_Id_estado = 2;
+                } 
+                                // Si el usuario asignado cambió (incluye el caso de asignar por primera vez o cambiar de usuario), actualiza la fecha de asignación
                 if (usuarioAsignadoAnterior != request.CN_Usuario_asignado)
                 {
                     tareaExistente.CF_Fecha_asignacion = DateTime.Now;
