@@ -58,14 +58,28 @@ export const catalogosService = {
     }
   },
 
+    // Obtener todos los usuarios
+  async obtenerUsuariosAsignables(idUsuario) {
+    try {
+      const response = await fetch(`${API_URL}/api/Usuarios/asignables/${idUsuario}`);
+      if (!response.ok) {
+        throw new Error('Error al obtener los usuarios asignables');
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error al obtener usuarios asignables:', error);
+      throw error;
+    }
+  },
+
   // Obtener todos los catálogos de una vez
-  async obtenerTodosCatalogos() {
+  async obtenerTodosCatalogos(idUsuario) {
     try {
       const [estados, prioridades, complejidades, usuarios] = await Promise.all([
         this.obtenerEstados(),
         this.obtenerPrioridades(),
         this.obtenerComplejidades(),
-        this.obtenerUsuarios()
+        this.obtenerUsuariosAsignables(idUsuario)
       ]);
 
       return {

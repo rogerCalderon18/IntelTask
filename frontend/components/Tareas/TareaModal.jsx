@@ -16,7 +16,7 @@ import { catalogosService } from "../../services/catalogosService";
 import { useSession } from "next-auth/react";
 
 const TareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tareaOrigenId = null }) => {
-    const { data: session } = useSession();
+    const { data: session, status } = useSession();
     const [tareaLocal, setTareaLocal] = useState(tarea || {});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [catalogos, setCatalogos] = useState({
@@ -28,7 +28,7 @@ const TareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tareaOrige
     const [loadingCatalogos, setLoadingCatalogos] = useState(true);
 
     useEffect(() => {
-        if (isOpen) {
+        if (isOpen && session?.user?.id && status === 'authenticated') {
             cargarCatalogos();
         }
     }, [isOpen]);
@@ -40,7 +40,7 @@ const TareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tareaOrige
     const cargarCatalogos = async () => {
         try {
             setLoadingCatalogos(true);
-            const catalogosData = await catalogosService.obtenerTodosCatalogos();
+            const catalogosData = await catalogosService.obtenerTodosCatalogos(session?.user?.id);
             setCatalogos(catalogosData);
         } catch (error) {
             console.error('Error al cargar catálogos:', error);
@@ -96,7 +96,7 @@ const TareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tareaOrige
     }
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} onOpenChange={onOpenChange} size="2xl">
+        <Modal isOpen={isOpen} onClose={onClose} onOpenChange={onOpenChange} size="2xl" isDismissable={false}>
             <ModalContent>
                 {(onClose) => (
                     <>

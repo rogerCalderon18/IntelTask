@@ -3,17 +3,22 @@ import { Button, Spinner } from '@heroui/react';
 import { FaPaperclip, FaDownload, FaTrash } from 'react-icons/fa';
 import { adjuntosService } from '../../services/adjuntosService';
 import { useSession } from 'next-auth/react';
+import useConfirmation from '@/hooks/useConfirmation';
 
 const GestorAdjuntos = ({ idTarea, adjuntos: adjuntosIniciales = [], onAdjuntosChange }) => {
     const { data: session } = useSession();
     const [adjuntos, setAdjuntos] = useState(adjuntosIniciales);
     const [cargando, setCargando] = useState(false);
-    const [subiendo, setSubiendo] = useState(false); useEffect(() => {
+    const [subiendo, setSubiendo] = useState(false);
+    const { showConfirmation } = useConfirmation();
+
+   
+    useEffect(() => {
         if (idTarea) {
             cargarAdjuntos();
         }
     }, [idTarea]);
-    
+
     const cargarAdjuntos = async () => {
         if (!idTarea) return;
 
@@ -58,16 +63,23 @@ const GestorAdjuntos = ({ idTarea, adjuntos: adjuntosIniciales = [], onAdjuntosC
         }
     };
 
-    const handleEliminar = async (id) => {
-        if (!confirm('¿Está seguro de eliminar este archivo?')) return;
-
-        try {
-            await adjuntosService.eliminarArchivo(id);
-            await cargarAdjuntos();
-        } catch (error) {
-            console.error('Error al eliminar archivo:', error);
-            alert('Error al eliminar el archivo');
-        }
+    const handleEliminar = (id) => {
+        showConfirmation({
+            title: "¿Está seguro de eliminar este archivo?",
+            description: "Esta acción no se puede deshacer.",
+            type: "danger",
+            confirmText: "Eliminar",
+            cancelText: "Cancelar",
+            onConfirm: async () => {
+                try {
+                    await adjuntosService.eliminarArchivo(id);
+                    await cargarAdjuntos();
+                } catch (error) {
+                    console.error('Error al eliminar archivo:', error);
+                    alert('Error al eliminar el archivo');
+                }
+            }
+        });
     };
 
     const handleDescargar = (id) => {

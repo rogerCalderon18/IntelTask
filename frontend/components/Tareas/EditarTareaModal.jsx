@@ -27,15 +27,15 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
     const [loadingCatalogos, setLoadingCatalogos] = useState(true);
 
     useEffect(() => {
-        if (isOpen) {
+        if (isOpen && session?.user?.id && status === 'authenticated') {
             cargarCatalogos();
         }
     }, [isOpen]);
-    
+
     const cargarCatalogos = async () => {
         try {
             setLoadingCatalogos(true);
-            const catalogosData = await catalogosService.obtenerTodosCatalogos();
+            const catalogosData = await catalogosService.obtenerTodosCatalogos(session.user.id);
             setCatalogos(catalogosData);
         } catch (error) {
             console.error('Error al cargar catálogos:', error);
@@ -57,13 +57,11 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
                 cN_Id_prioridad: parseInt(formData.get('prioridad')),
                 cN_Id_estado: parseInt(formData.get('estado')),
                 cF_Fecha_limite: formData.get('fechaLimite'),
-                cN_Numero_GIS: formData.get('numeroGIS'),                
+                cN_Numero_GIS: formData.get('numeroGIS'),
                 cN_Usuario_asignado: responsableValue ? parseInt(responsableValue) : null,
                 CN_Tarea_origen: tareaOrigenId, // Incluir el ID de la tarea origen si es una subtarea
                 cN_Usuario_editor: session?.user?.id,
             };
-
-            console.log('Datos a actualizar:', tareaData);
             await onSubmit(tareaData);
         } catch (error) {
             console.error('Error en el formulario:', error);
@@ -97,11 +95,11 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
     };
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} onOpenChange={onOpenChange} size="2xl">
+        <Modal isOpen={isOpen} onClose={onClose} onOpenChange={onOpenChange} size="2xl" isDismissable={false}>
             <ModalContent>
                 {(onClose) => (
                     <>
-                        <Form onSubmit={handleSubmit} className="w-full">                            
+                        <Form onSubmit={handleSubmit} className="w-full">
                             <ModalBody className="px-6 pt-6 w-full">
                                 <h2 className="text-xl font-bold mb-4">
                                     {tareaOrigenId ? 'Editar subtarea' : 'Editar tarea'} - {tarea?.cN_Id_tarea ? String(tarea.cN_Id_tarea).padStart(2, '0') : '00'}
