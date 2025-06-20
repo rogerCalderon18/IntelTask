@@ -22,7 +22,9 @@ const SubtareasManager = ({ tareaId, onSubtareasChange }) => {
     const { isOpen: isCreateOpen, onOpen: onCreateOpen, onOpenChange: onCreateOpenChange } = useDisclosure();
     const { isOpen: isEditOpen, onOpen: onEditOpen, onOpenChange: onEditOpenChange } = useDisclosure();
     const { isOpen: isDetalleOpen, onOpen: onDetalleOpen, onOpenChange: onDetalleOpenChange } = useDisclosure();
-    const { showConfirmation } = useConfirmation();useEffect(() => {
+    const { showConfirmation } = useConfirmation();
+    
+    useEffect(() => {
         if (tareaId) {
             cargarSubtareas();
         }
@@ -42,7 +44,9 @@ const SubtareasManager = ({ tareaId, onSubtareasChange }) => {
             toast.error('Error al cargar las subtareas');
         } finally {
             setLoading(false);        }
-    };    const enviarNotificacionAsignacion = async (usuarioAsignadoId, subtareaCreada, tipoNotificacion = 'NUEVA_ASIGNACION') => {
+    };    
+    
+    const enviarNotificacionAsignacion = async (usuarioAsignadoId, subtareaCreada, tipoNotificacion = 'NUEVA_ASIGNACION') => {
         try {
             console.log('📧 Iniciando envío de notificación de subtarea:', { usuarioAsignadoId, tipoNotificacion });
 
@@ -89,7 +93,9 @@ const SubtareasManager = ({ tareaId, onSubtareasChange }) => {
                 autoClose: 3000,
             });
         }
-    };    const handleCrearSubtarea = async (subtareaData) => {
+    };    
+    
+    const handleCrearSubtarea = async (subtareaData) => {
         try {
             const subtareaCreada = await tareasService.crearSubtarea(subtareaData);
 
@@ -116,7 +122,9 @@ const SubtareasManager = ({ tareaId, onSubtareasChange }) => {
                 autoClose: 5000,
             });
         }
-    };    const handleEditarSubtarea = async (subtareaData) => {
+    };    
+    
+    const handleEditarSubtarea = async (subtareaData) => {
         try {
             const usuarioAnterior = originalUsuarioAsignado; // Usar el usuario original guardado
             const usuarioNuevo = subtareaData.cN_Usuario_asignado;
@@ -195,7 +203,9 @@ const SubtareasManager = ({ tareaId, onSubtareasChange }) => {
                 }
             }
         });
-    };    const handleEditSubtarea = (subtarea) => {
+    };    
+    
+    const handleEditSubtarea = (subtarea) => {
         setSelectedSubtarea(subtarea);
         setOriginalUsuarioAsignado(subtarea.cN_Usuario_asignado); // Guardar el usuario original
         onEditOpen();
@@ -204,7 +214,9 @@ const SubtareasManager = ({ tareaId, onSubtareasChange }) => {
     const handleDetalleSubtarea = (subtarea) => {
         setSelectedSubtarea(subtarea);
         onDetalleOpen();
-    };    const handleEditFromDetalle = () => {
+    };    
+    
+    const handleEditFromDetalle = () => {
         // Cerrar modal de detalle y abrir modal de edición
         onDetalleOpenChange(false);
         setOriginalUsuarioAsignado(selectedSubtarea.cN_Usuario_asignado);

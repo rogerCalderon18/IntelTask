@@ -386,14 +386,23 @@ const Tareas = () => {
     };
 
     const tareasFiltradas = useMemo(() => {
+        
         // 1) aplico filtro de pestaña
         const tabActual = tabs.find(t => t.id === tabActivo);
         let list = tabActual ? tabActual.filter(tareas) : [];
+
+        // Asegura que list siempre sea un array
+        list = Array.isArray(list) ? list : [];
+
         // 2) aplico filtroEstado
         if (filtroEstado && filtroEstado !== 'all') {
             list = filtrarTareasPorEstado(list, filtroEstado);
         }
+
+        // 3) solo tareas principales (sin tarea origen)
+        list = list.filter(tarea => !tarea.cN_Tarea_origen);
         return list;
+
     }, [tareas, tabActivo, filtroEstado, tabs]);
 
     return (
