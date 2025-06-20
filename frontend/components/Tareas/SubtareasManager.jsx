@@ -11,7 +11,7 @@ import ListaSubtareas from "./ListaSubtareas";
 import DetalleModal from "./DetalleModal";
 import useConfirmation from '@/hooks/useConfirmation';
 
-const SubtareasManager = ({ tareaId, onSubtareasChange }) => {
+const SubtareasManager = ({ tareaId, tareaPadre, onSubtareasChange }) => {
     const [subtareas, setSubtareas] = useState([]);
     const [selectedSubtarea, setSelectedSubtarea] = useState(null);
     const [originalUsuarioAsignado, setOriginalUsuarioAsignado] = useState(null); // Guardar el usuario original
@@ -271,7 +271,7 @@ const SubtareasManager = ({ tareaId, onSubtareasChange }) => {
                 onClose={() => onCreateOpenChange(false)}
                 onSubmit={handleCrearSubtarea}
                 tarea={null}
-                tareaOrigenId={tareaId}
+                tareaPadre={tareaPadre}
             />            {/* Modal para editar subtarea */}
             <EditarTareaModal
                 isOpen={isEditOpen}
@@ -283,7 +283,7 @@ const SubtareasManager = ({ tareaId, onSubtareasChange }) => {
                 }}
                 onSubmit={handleEditarSubtarea}
                 tarea={selectedSubtarea}
-                tareaOrigenId={tareaId}
+                tareaPadre={tareaPadre}
             />
 
             {/* Modal de detalle de subtarea */}

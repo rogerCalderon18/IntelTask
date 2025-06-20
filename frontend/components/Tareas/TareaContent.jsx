@@ -40,6 +40,7 @@ const TareaContent = ({ descripcion, fechaEntrega, subtareas, tarea, onEdit, onD
       {/* Gestor de subtareas */}
       <SubtareasManager 
         tareaId={tarea?.cN_Id_tarea || tarea?.id} 
+        tareaPadre={tarea}
         onSubtareasChange={handleSubtareasChange}
       />      <div className="flex justify-between items-center pt-3 border-t border-gray-200">
         <div className="flex items-center gap-2">

@@ -15,7 +15,8 @@ import {
 import { catalogosService } from "../../services/catalogosService";
 import { useSession } from "next-auth/react";
 
-const TareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tareaOrigenId = null }) => {
+const TareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tareaPadre = null }) => {
+    console.log("tarea", tarea);
     const { data: session, status } = useSession();
     const [tareaLocal, setTareaLocal] = useState(tarea || {});
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -35,7 +36,11 @@ const TareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tareaOrige
 
     useEffect(() => {
         setTareaLocal(tarea || {});
+        console.log("Tarea local actualizada:", tareaLocal);
     }, [tarea]);
+
+    console.log("tareas Padre", tareaPadre);
+
 
     const cargarCatalogos = async () => {
         try {
@@ -66,7 +71,7 @@ const TareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tareaOrige
                 cN_Numero_GIS: formData.get('numeroGIS'),
                 cN_Usuario_creador: session?.user?.id,
                 cN_Usuario_asignado: responsableValue ? parseInt(responsableValue) : null,
-                cN_Tarea_origen: tareaOrigenId // Incluir el ID de la tarea origen si es una subtarea
+                cN_Tarea_origen: tareaPadre ? (tareaPadre.cN_Id_tarea || tareaPadre.id) : null
             };
 
             console.log('Datos a enviar:', tareaData);
@@ -100,20 +105,20 @@ const TareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tareaOrige
             <ModalContent>
                 {(onClose) => (
                     <>
-                        <Form onSubmit={handleSubmit} className="w-full">                            
+                        <Form onSubmit={handleSubmit} className="w-full">
                             <ModalBody className="px-6 pt-6 w-full">
                                 <h2 className="text-xl font-bold mb-4">
-                                    {tareaOrigenId ? (tarea ? "Editar subtarea" : "Nueva subtarea") : (tarea ? "Editar tarea" : "Nueva tarea")}
+                                    {tareaPadre ? (tarea ? "Editar subtarea" : "Nueva subtarea") : (tarea ? "Editar tarea" : "Nueva tarea")}
                                 </h2>
 
                                 <div className="grid grid-cols-2 gap-4 w-full">
-                                    {tareaOrigenId && (
+                                    {tareaPadre && (
                                         <div className="col-span-2">
                                             <Input
-                                                name="tareaOrigen"
-                                                label="Tarea Origen"
+                                                name="tareaPadre"
+                                                label="Tarea Padre"
                                                 labelPlacement="outside"
-                                                value={`Tarea #${String(tareaOrigenId).padStart(2, '0')}`}
+                                                value={`Tarea #${String(tareaPadre.cN_Id_tarea).padStart(2, '0')}`}
                                                 variant="bordered"
                                                 isDisabled={true}
                                                 className="bg-gray-50"
@@ -171,8 +176,10 @@ const TareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tareaOrige
                                         type="date"
                                         defaultValue={tarea?.cF_Fecha_limite ? new Date(tarea.cF_Fecha_limite).toISOString().split('T')[0] : ""}
                                         variant="bordered"
-                                        errorMessage="La fecha límite es obligatoria"
+                                        errorMessage={"La fecha límite es obligatoria"}
                                         isDisabled={isSubmitting}
+                                        min={new Date().toISOString().split("T")[0]}
+                                        max={tareaPadre?.cF_Fecha_limite ? tareaPadre.cF_Fecha_limite.split("T")[0] : undefined}
                                     />
 
                                     <Select
@@ -242,7 +249,8 @@ const TareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tareaOrige
                                             >
                                                 {usuario.cT_Nombre_usuario}
                                             </SelectItem>
-                                        ))}                                    </Select>
+                                        ))}
+                                    </Select>
                                 </div>
                             </ModalBody>
 
