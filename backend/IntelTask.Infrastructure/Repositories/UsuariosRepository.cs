@@ -93,10 +93,13 @@ namespace IntelTask.Infrastructure.Repositories
                 .Select(o => o.CN_Codigo_oficina)
                 .ToListAsync();
 
+            // Incluir la oficina actual
+            oficinasDependientes.Add(oficinaUsuario);
             // 4. Buscar usuarios en esas oficinas y con roles permitidos
             var usuariosAsignables = await _context.TI_Usuario_X_Oficina
                 .Where(x => oficinasDependientes.Contains(x.CN_Codigo_oficina))
-                .Include(x => x.Usuario)
+                .Include(x => x.Usuario!)
+                    .ThenInclude(u => u.Rol!)
                 .Where(x => x.Usuario != null
                          && x.Usuario.Rol != null
                          && rolesAsignables.Contains(x.Usuario.CN_Id_rol))
