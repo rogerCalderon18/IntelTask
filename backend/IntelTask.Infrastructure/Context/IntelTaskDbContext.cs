@@ -25,6 +25,9 @@ namespace IntelTask.Infrastructure.Context
           public DbSet<EBitacoraCambioEstado> T_Bitacora_Cambio_Estado { get; set; }
           public DbSet<ETiposDocumentos> T_Tipos_documentos { get; set; }
           public DbSet<EUsuarioXOficina> TI_Usuario_X_Oficina { get; set; }
+          public DbSet<ETareasSeguimiento> T_Tareas_Seguimiento { get; set; }
+          public DbSet<ETareasIncumplimiento> T_Tareas_Incumplimientos { get; set; }
+          public DbSet<ETareasJustificacionRechazo> T_Tareas_Justificacion_Rechazo { get; set; }
 
 
           protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -72,6 +75,15 @@ namespace IntelTask.Infrastructure.Context
 
                modelBuilder.Entity<EUsuarioXOficina>().ToTable("TI_Usuario_X_Oficina")
                     .HasKey(e => new { e.CN_Id_usuario, e.CN_Codigo_oficina });
+
+               modelBuilder.Entity<ETareasSeguimiento>().ToTable("T_Tareas_Seguimiento")
+                    .HasKey(e => new { e.CN_Id_seguimiento, e.CN_Id_tarea });
+
+               modelBuilder.Entity<ETareasIncumplimiento>().ToTable("T_Tareas_Incumplimientos")
+                    .HasKey(e => new { e.CN_Id_tarea_incumplimiento, e.CN_Id_tarea });
+              
+               modelBuilder.Entity<ETareasJustificacionRechazo>().ToTable("T_Tareas_Justificacion_Rechazo")
+                    .HasKey(e => new { e.CN_Id_tarea_rechazo, e.CN_Id_tarea });
           }
      }
 }

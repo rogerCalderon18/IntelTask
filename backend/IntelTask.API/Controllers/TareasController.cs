@@ -149,4 +149,95 @@ public class TareasController : ControllerBase
             return StatusCode(500, $"Error interno del servidor: {ex.Message}");
         }
     }
+
+    [HttpGet("{tareaId}/seguimientos")]
+    public async Task<ActionResult<IEnumerable<TareaSeguimientoResponse>>> F_PUB_ObtenerSeguimientosPorTarea(int tareaId)
+    {
+        var seguimientos = await _tareasRepository.F_PUB_ObtenerSeguimientosPorTarea(tareaId);
+        var response = seguimientos.Select(s => new TareaSeguimientoResponse
+        {
+            CN_Id_seguimiento = s.CN_Id_seguimiento,
+            CN_Id_tarea = s.CN_Id_tarea,
+            CT_Comentario = s.CT_Comentario,
+            CF_Fecha_seguimiento = s.CF_Fecha_seguimiento
+        });
+        return Ok(response);
+    }
+
+    [HttpPost("{tareaId}/seguimientos")]
+    public async Task<IActionResult> M_PUB_AgregarSeguimiento(int tareaId, [FromBody] TareaSeguimientoRequest request)
+    {
+        if (request == null || tareaId != request.CN_Id_tarea)
+        {
+            return BadRequest("Datos de seguimiento inválidos.");
+        }
+        var seguimiento = new ETareasSeguimiento
+        {
+            CN_Id_tarea = request.CN_Id_tarea,
+            CT_Comentario = request.CT_Comentario ?? string.Empty,
+            CF_Fecha_seguimiento = DateTime.Now
+        };
+        await _tareasRepository.M_PUB_AgregarSeguimiento(seguimiento);
+        return Ok();
+    }
+
+    [HttpGet("{tareaId}/incumplimientos")]
+    public async Task<ActionResult<IEnumerable<TareaIncumplimientoResponse>>> F_PUB_ObtenerIncumplimientosPorTarea(int tareaId)
+    {
+        var lista = await _tareasRepository.F_PUB_ObtenerIncumplimientosPorTarea(tareaId);
+        var response = lista.Select(i => new TareaIncumplimientoResponse
+        {
+            CN_Id_tarea_incumplimiento = i.CN_Id_tarea_incumplimiento,
+            CN_Id_tarea = i.CN_Id_tarea,
+            CT_Justificacion_incumplimiento = i.CT_Justificacion_incumplimiento,
+            CF_Fecha_incumplimiento = i.CF_Fecha_incumplimiento
+        });
+        return Ok(response);
+    }
+
+    [HttpPost("{tareaId}/incumplimientos")]
+    public async Task<IActionResult> M_PUB_AgregarIncumplimiento(int tareaId, [FromBody] TareaIncumplimientoRequest request)
+    {
+        if (request == null || tareaId != request.CN_Id_tarea)
+        {
+            return BadRequest("Datos de incumplimiento inválidos.");
+        }
+        var entity = new ETareasIncumplimiento
+        {
+            CN_Id_tarea = request.CN_Id_tarea,
+            CT_Justificacion_incumplimiento = request.CT_Justificacion_incumplimiento
+        };
+        await _tareasRepository.M_PUB_AgregarIncumplimiento(entity);
+        return Ok();
+    }
+
+    [HttpGet("{tareaId}/rechazos")]
+    public async Task<ActionResult<IEnumerable<TareaJustificacionRechazoResponse>>> F_PUB_ObtenerRechazosPorTarea(int tareaId)
+    {
+        var lista = await _tareasRepository.F_PUB_ObtenerRechazosPorTarea(tareaId);
+        var response = lista.Select(r => new TareaJustificacionRechazoResponse
+        {
+            CN_Id_tarea_rechazo = r.CN_Id_tarea_rechazo,
+            CN_Id_tarea = r.CN_Id_tarea,
+            CF_Fecha_hora_rechazo = r.CF_Fecha_hora_rechazo,
+            CT_Descripcion_rechazo = r.CT_Descripcion_rechazo
+        });
+        return Ok(response);
+    }
+
+    [HttpPost("{tareaId}/rechazos")]
+    public async Task<IActionResult> M_PUB_AgregarRechazo(int tareaId, [FromBody] TareaJustificacionRechazoRequest request)
+    {
+        if (request == null || tareaId != request.CN_Id_tarea)
+        {
+            return BadRequest("Datos de rechazo inválidos.");
+        }
+        var entity = new ETareasJustificacionRechazo
+        {
+            CN_Id_tarea = request.CN_Id_tarea,
+            CT_Descripcion_rechazo = request.CT_Descripcion_rechazo ?? string.Empty
+        };
+        await _tareasRepository.M_PUB_AgregarRechazo(entity);
+        return Ok();
+    }
 }

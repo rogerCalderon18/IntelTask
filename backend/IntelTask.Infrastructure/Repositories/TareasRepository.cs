@@ -106,7 +106,7 @@ namespace IntelTask.Infrastructure.Repositories
 
                 var estadoAnterior = tareaExistente.CN_Id_estado;
                 var usuarioAsignadoAnterior = tareaExistente.CN_Usuario_asignado;
-    
+
                 // Actualizar solo los campos permitidos
                 tareaExistente.CT_Titulo_tarea = request.CT_Titulo_tarea;
                 tareaExistente.CT_Descripcion_tarea = request.CT_Descripcion_tarea;
@@ -120,8 +120,8 @@ namespace IntelTask.Infrastructure.Repositories
                 if (estadoAnterior == 1 && usuarioAsignadoAnterior != request.CN_Usuario_asignado)
                 {
                     tareaExistente.CN_Id_estado = 2;
-                } 
-                                // Si el usuario asignado cambió (incluye el caso de asignar por primera vez o cambiar de usuario), actualiza la fecha de asignación
+                }
+                // Si el usuario asignado cambió (incluye el caso de asignar por primera vez o cambiar de usuario), actualiza la fecha de asignación
                 if (usuarioAsignadoAnterior != request.CN_Usuario_asignado)
                 {
                     tareaExistente.CF_Fecha_asignacion = DateTime.Now;
@@ -166,34 +166,34 @@ namespace IntelTask.Infrastructure.Repositories
             {
                 throw new Exception("RELACION_ERROR: La complejidad especificada no existe.");
             }
-            
+
             // Validar que exista el estado
             if (!await _context.T_Estados.AnyAsync(e => e.CN_Id_estado == tarea.CN_Id_estado))
             {
                 throw new Exception("RELACION_ERROR: El estado especificado no existe.");
             }
-            
+
             // Validar que exista la prioridad
             if (!await _context.T_Prioridades.AnyAsync(p => p.CN_Id_prioridad == tarea.CN_Id_prioridad))
             {
                 throw new Exception("RELACION_ERROR: La prioridad especificada no existe.");
             }
-            
+
             // Validar que exista el usuario creador
             if (!await _context.T_Usuarios.AnyAsync(u => u.CN_Id_usuario == tarea.CN_Usuario_creador))
             {
                 throw new Exception("RELACION_ERROR: El usuario creador especificado no existe.");
             }
-            
+
             // Validar que exista el usuario asignado, si se especificó
-            if (tarea.CN_Usuario_asignado.HasValue && 
+            if (tarea.CN_Usuario_asignado.HasValue &&
                 !await _context.T_Usuarios.AnyAsync(u => u.CN_Id_usuario == tarea.CN_Usuario_asignado))
             {
                 throw new Exception("RELACION_ERROR: El usuario asignado especificado no existe.");
             }
-            
+
             // Validar que exista la tarea origen, si se especificó
-            if (tarea.CN_Tarea_origen.HasValue && 
+            if (tarea.CN_Tarea_origen.HasValue &&
                 !await _context.T_Tareas.AnyAsync(t => t.CN_Id_tarea == tarea.CN_Tarea_origen))
             {
                 throw new Exception("RELACION_ERROR: La tarea origen especificada no existe.");
@@ -207,21 +207,22 @@ namespace IntelTask.Infrastructure.Repositories
             {
                 throw new Exception("RELACION_ERROR: La complejidad especificada no existe.");
             }
-            
+
             // Validar que exista el estado
             if (!await _context.T_Estados.AnyAsync(e => e.CN_Id_estado == request.CN_Id_estado))
             {
                 throw new Exception("RELACION_ERROR: El estado especificado no existe.");
             }
-            
+
             // Validar que exista la prioridad
             if (!await _context.T_Prioridades.AnyAsync(p => p.CN_Id_prioridad == request.CN_Id_prioridad))
             {
                 throw new Exception("RELACION_ERROR: La prioridad especificada no existe.");
             }
-              // Validar que exista el usuario asignado solo si se especifica
-            if (request.CN_Usuario_asignado.HasValue && 
-                !await _context.T_Usuarios.AnyAsync(u => u.CN_Id_usuario == request.CN_Usuario_asignado))            {
+            // Validar que exista el usuario asignado solo si se especifica
+            if (request.CN_Usuario_asignado.HasValue &&
+                !await _context.T_Usuarios.AnyAsync(u => u.CN_Id_usuario == request.CN_Usuario_asignado))
+            {
                 throw new Exception("RELACION_ERROR: El usuario asignado especificado no existe.");
             }
         }
@@ -254,6 +255,53 @@ namespace IntelTask.Infrastructure.Repositories
             {
                 throw new Exception($"DB_ERROR: Error al eliminar la tarea: {ex.Message}", ex);
             }
+        }
+
+        public async Task<IEnumerable<ETareasSeguimiento>> F_PUB_ObtenerSeguimientosPorTarea(int tareaId)
+        {
+            return await _context.T_Tareas_Seguimiento
+                .Where(s => s.CN_Id_tarea == tareaId)
+                .OrderByDescending(s => s.CF_Fecha_seguimiento)
+                .ToListAsync();
+        }
+
+        public async Task M_PUB_AgregarSeguimiento(ETareasSeguimiento seguimiento)
+        {
+            await _context.T_Tareas_Seguimiento.AddAsync(seguimiento);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<IEnumerable<ETareasIncumplimiento>> F_PUB_ObtenerIncumplimientosPorTarea(int tareaId)
+        {
+            return await _context.T_Tareas_Incumplimientos
+                .Where(i => i.CN_Id_tarea == tareaId)
+                .OrderByDescending(i => i.CF_Fecha_incumplimiento)
+                .ToListAsync();
+        }
+
+        public async Task M_PUB_AgregarIncumplimiento(ETareasIncumplimiento incumplimiento)
+        {
+            // Generar el ID automáticamente
+            var maxId = await _context.T_Tareas_Incumplimientos.MaxAsync(i => (int?)i.CN_Id_tarea_incumplimiento) ?? 0;
+            incumplimiento.CN_Id_tarea_incumplimiento = maxId + 1;
+            incumplimiento.CF_Fecha_incumplimiento = DateTime.Now;
+            await _context.T_Tareas_Incumplimientos.AddAsync(incumplimiento);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<IEnumerable<ETareasJustificacionRechazo>> F_PUB_ObtenerRechazosPorTarea(int tareaId)
+        {
+            return await _context.T_Tareas_Justificacion_Rechazo
+                .Where(r => r.CN_Id_tarea == tareaId)
+                .OrderByDescending(r => r.CF_Fecha_hora_rechazo)
+                .ToListAsync();
+        }
+
+        public async Task M_PUB_AgregarRechazo(ETareasJustificacionRechazo rechazo)
+        {
+            rechazo.CF_Fecha_hora_rechazo = DateTime.Now;
+            await _context.T_Tareas_Justificacion_Rechazo.AddAsync(rechazo);
+            await _context.SaveChangesAsync();
         }
     }
 }
