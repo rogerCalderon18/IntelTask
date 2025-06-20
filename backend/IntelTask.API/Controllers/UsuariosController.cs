@@ -53,5 +53,12 @@ namespace IntelTask.API.Controllers
             await _usuariosRepository.M_PUB_ActualizarUsuario(usuario);
             return Ok("Usuario actualizado exitosamente");
         }
+
+        [HttpGet("asignables/{id}")]
+        public async Task<ActionResult<IEnumerable<EUsuarios>>> F_PUB_ObtenerUsuariosAsignables(int id)
+        {
+            var usuarios = await _usuariosRepository.F_PUB_ObtenerUsuariosAsignables(id);
+            return Ok(usuarios);
+        }
     }
 }

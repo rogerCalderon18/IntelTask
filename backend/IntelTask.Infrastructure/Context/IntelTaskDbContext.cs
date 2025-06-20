@@ -17,10 +17,14 @@ namespace IntelTask.Infrastructure.Context
           public DbSet<EPrioridades> T_Prioridades { get; set; }
           public DbSet<EComplejidades> T_Complejidades { get; set; }
           public DbSet<EOficinas> T_Oficinas { get; set; }
-          public DbSet<EDiasNoHabiles> T_Dias_No_Habiles { get; set; }          public DbSet<EUsuarios> T_Usuarios { get; set; }
+          public DbSet<EDiasNoHabiles> T_Dias_No_Habiles { get; set; }
+          public DbSet<EUsuarios> T_Usuarios { get; set; }
           public DbSet<ETareas> T_Tareas { get; set; }
           public DbSet<EAdjuntos> T_Adjuntos { get; set; }
           public DbSet<EAdjuntosXTareas> T_Adjuntos_X_Tareas { get; set; }
+          public DbSet<EBitacoraCambioEstado> T_Bitacora_Cambio_Estado { get; set; }
+          public DbSet<ETiposDocumentos> T_Tipos_documentos { get; set; }
+          public DbSet<EUsuarioXOficina> TI_Usuario_X_Oficina { get; set; }
 
 
           protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -59,6 +63,15 @@ namespace IntelTask.Infrastructure.Context
                     
                modelBuilder.Entity<EAdjuntosXTareas>().ToTable("T_Adjuntos_X_Tareas")
                     .HasKey(e => new { e.CN_Id_adjuntos, e.CN_Id_tarea });
+                    
+               modelBuilder.Entity<EBitacoraCambioEstado>().ToTable("T_Bitacora_Cambios_Estados")
+                    .HasKey(e => e.CN_Id_cambio_estado);
+
+               modelBuilder.Entity<ETiposDocumentos>().ToTable("T_Tipos_documentos")
+                    .HasKey(e => e.CN_Id_tipo_documento);
+
+               modelBuilder.Entity<EUsuarioXOficina>().ToTable("TI_Usuario_X_Oficina")
+                    .HasKey(e => new { e.CN_Id_usuario, e.CN_Codigo_oficina });
           }
      }
 }

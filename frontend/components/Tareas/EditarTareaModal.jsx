@@ -13,8 +13,10 @@ import {
 } from "@heroui/react";
 import { catalogosService } from "../../services/catalogosService";
 import GestorAdjuntos from "./GestorAdjuntos";
+import { useSession } from "next-auth/react";
 
 const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tareaOrigenId = null }) => {
+    const { data: session, status } = useSession();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [catalogos, setCatalogos] = useState({
         estados: [],
@@ -29,7 +31,7 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
             cargarCatalogos();
         }
     }, [isOpen]);
-
+    
     const cargarCatalogos = async () => {
         try {
             setLoadingCatalogos(true);
@@ -57,7 +59,8 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
                 cF_Fecha_limite: formData.get('fechaLimite'),
                 cN_Numero_GIS: formData.get('numeroGIS'),                
                 cN_Usuario_asignado: responsableValue ? parseInt(responsableValue) : null,
-                CN_Tarea_origen: tareaOrigenId // Incluir el ID de la tarea origen si es una subtarea
+                CN_Tarea_origen: tareaOrigenId, // Incluir el ID de la tarea origen si es una subtarea
+                cN_Usuario_editor: session?.user?.id,
             };
 
             console.log('Datos a actualizar:', tareaData);

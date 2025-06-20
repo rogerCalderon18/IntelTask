@@ -3,6 +3,7 @@ using IntelTask.Domain.Interfaces;
 using IntelTask.Infrastructure.Context;
 using IntelTask.Infrastructure.Repositories;
 using IntelTask.Domain.Configuration;
+using IntelTask.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +25,10 @@ builder.Services.AddScoped<IDiasNoHabilesRepository, DiasNoHabilesRepository>();
 builder.Services.AddScoped<IUsuariosRepository, UsuariosRepository>();
 builder.Services.AddScoped<ITareasRepository, TareasRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IBitacoraCambioEstadoService, BitacoraCambioEstadoService>();
+builder.Services.AddScoped<IBitacoraCambioEstadoRepository, BitacoraCambioEstadoRepository>();
+builder.Services.AddScoped<ITipoDocumentoRepository, TipoDocumentoRepository>(); // Registrar el repositorio de tipo documento
+
 
 // Configurar EmailSettings
 builder.Services.Configure<EmailSettings>(

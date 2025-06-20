@@ -15,10 +15,10 @@ namespace IntelTask.Domain.Entities
         public bool CB_Estado_usuario { get; set; }
         public DateTime CF_Fecha_creacion_usuario { get; set; }
         public DateTime? CF_Fecha_modificacion_usuario { get; set; }
-        public int CN_Id_rol { get; set; }
+        public required int CN_Id_rol { get; set; }
 
         // Relación de navegación
         [ForeignKey("CN_Id_rol")]
-        public virtual ERoles? Rol { get; set; }
+        public virtual required ERoles Rol { get; set; }
     }
 }

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("IntelTask.Infrastructure")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b04b2b89d25ade4badd4873c0fe579835a15823c")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+48d1fc43fc2d168c53d8b87a4022dad3703844f1")]
 [assembly: System.Reflection.AssemblyProductAttribute("IntelTask.Infrastructure")]
 [assembly: System.Reflection.AssemblyTitleAttribute("IntelTask.Infrastructure")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

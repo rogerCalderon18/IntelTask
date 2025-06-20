@@ -9,10 +9,12 @@ namespace IntelTask.Infrastructure.Repositories
     public class TareasRepository : ITareasRepository
     {
         private readonly IntelTaskDbContext _context;
+        private readonly IBitacoraCambioEstadoService _bitacoraCambioEstadoService;
 
-        public TareasRepository(IntelTaskDbContext context)
+        public TareasRepository(IntelTaskDbContext context, IBitacoraCambioEstadoService bitacoraCambioEstadoService)
         {
             _context = context;
+            _bitacoraCambioEstadoService = bitacoraCambioEstadoService;
         }
 
         public async Task<IEnumerable<ETareas>> F_PUB_ObtenerTodasLasTareas()
@@ -58,9 +60,21 @@ namespace IntelTask.Infrastructure.Repositories
             {
                 // Verificar si existen las relaciones
                 await ValidarRelaciones(tarea);
-                
                 await _context.T_Tareas.AddAsync(tarea);
                 await _context.SaveChangesAsync();
+
+                // Registrar bitácora de creación
+                var bitacora = new EBitacoraCambioEstado
+                {
+                    CN_Id_tarea_permiso = tarea.CN_Id_tarea,
+                    CN_Id_tipo_documento = 1, // Ajusta según tu lógica
+                    CN_Id_estado_anterior = tarea.CN_Id_estado,
+                    CN_Id_estado_nuevo = tarea.CN_Id_estado,
+                    CF_Fecha_hora_cambio = DateTime.Now,
+                    CN_Id_usuario_responsable = tarea.CN_Usuario_creador, // Usuario creador
+                    CT_Observaciones = "Tarea creada"
+                };
+                await _bitacoraCambioEstadoService.M_PUB_RegistrarCambioEstadoAsync(bitacora);
             }
             catch (Exception ex)
             {
@@ -90,6 +104,8 @@ namespace IntelTask.Infrastructure.Repositories
                 // Validar relaciones antes de actualizar
                 await ValidarRelacionesParaActualizacion(request);
 
+                var estadoAnterior = tareaExistente.CN_Id_estado;
+
                 // Actualizar solo los campos permitidos
                 tareaExistente.CT_Titulo_tarea = request.CT_Titulo_tarea;
                 tareaExistente.CT_Descripcion_tarea = request.CT_Descripcion_tarea;
@@ -100,8 +116,7 @@ namespace IntelTask.Infrastructure.Repositories
                 tareaExistente.CN_Numero_GIS = request.CN_Numero_GIS;
                 tareaExistente.CN_Usuario_asignado = request.CN_Usuario_asignado;
 
-                // Si el estado es completado y no tiene fecha de finalización, establecerla
-                if (request.CN_Id_estado == 1 && tareaExistente.CF_Fecha_finalizacion == null)
+                if (request.CN_Id_estado == 5 && tareaExistente.CF_Fecha_finalizacion == new DateTime(1900, 1, 1))
                 {
                     tareaExistente.CF_Fecha_finalizacion = DateTime.Now;
                 }
@@ -109,7 +124,22 @@ namespace IntelTask.Infrastructure.Repositories
                 _context.Entry(tareaExistente).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
 
-                // Devolver la tarea actualizada con todas las relaciones cargadas
+                // Guardar cambio de estado en la bitácora si el estado cambió
+                if (estadoAnterior != request.CN_Id_estado)
+                {
+                    var bitacora = new EBitacoraCambioEstado
+                    {
+                        CN_Id_tarea_permiso = tareaExistente.CN_Id_tarea,
+                        CN_Id_tipo_documento = 1, // Ajusta según tu lógica
+                        CN_Id_estado_anterior = estadoAnterior,
+                        CN_Id_estado_nuevo = request.CN_Id_estado,
+                        CF_Fecha_hora_cambio = DateTime.Now,
+                        CN_Id_usuario_responsable = request.CN_Usuario_editor, // Usuario que edita
+                        CT_Observaciones = null
+                    };
+                    await _bitacoraCambioEstadoService.M_PUB_RegistrarCambioEstadoAsync(bitacora);
+                }
+
                 return await F_PUB_ObtenerTareaPorId(id) ?? tareaExistente;
             }
             catch (Exception ex)
