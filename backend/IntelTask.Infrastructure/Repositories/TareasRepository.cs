@@ -299,6 +299,8 @@ namespace IntelTask.Infrastructure.Repositories
 
         public async Task M_PUB_AgregarRechazo(ETareasJustificacionRechazo rechazo)
         {
+            var maxId = await _context.T_Tareas_Justificacion_Rechazo.MaxAsync(i => (int?)i.CN_Id_tarea_rechazo) ?? 0;
+            rechazo.CN_Id_tarea_rechazo = maxId + 1;
             rechazo.CF_Fecha_hora_rechazo = DateTime.Now;
             await _context.T_Tareas_Justificacion_Rechazo.AddAsync(rechazo);
             await _context.SaveChangesAsync();
