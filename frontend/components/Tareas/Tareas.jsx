@@ -386,7 +386,6 @@ const Tareas = () => {
     };
 
     const tareasFiltradas = useMemo(() => {
-        
         // 1) aplico filtro de pestaña
         const tabActual = tabs.find(t => t.id === tabActivo);
         let list = tabActual ? tabActual.filter(tareas) : [];
@@ -399,10 +398,16 @@ const Tareas = () => {
             list = filtrarTareasPorEstado(list, filtroEstado);
         }
 
-        // 3) solo tareas principales (sin tarea origen)
-        list = list.filter(tarea => !tarea.cN_Tarea_origen);
-        return list;
-
+        // 3) Evitar mostrar subtareas sueltas si su padre está en la lista
+        const idsPadres = new Set(list.map(t => t.cN_Id_tarea));
+        return list.filter(tarea => {
+            // Si es subtarea y su padre está en la lista, no mostrarla suelta
+            if (tarea.cN_Tarea_origen && idsPadres.has(tarea.cN_Tarea_origen)) {
+                return false;
+            }
+            return true;
+        });
+        
     }, [tareas, tabActivo, filtroEstado, tabs]);
 
     return (
