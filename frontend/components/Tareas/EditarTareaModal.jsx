@@ -21,27 +21,10 @@ import IncumplimientoInput from "./IncumplimientoInput";
 import HistorialRechazos from "./HistorialRechazos";
 import { useSession } from "next-auth/react";
 
-// Mapa de transiciones de estados permitidas
-const obtenerEstadosPermitidos = (estadoActual, esCreador = false) => {
-    const transiciones = {
-        1: [2, 14], // Registrado -> Asignado, Incumplimiento
-        2: [3, 4, 14], // Asignado -> En proceso, En espera, Incumplimiento
-        3: [4, 17, 14], // En proceso -> En espera, En revisión, Incumplimiento
-        4: [3, 14], // En espera -> En proceso, Incumplimiento
-        5: [], // Terminado -> ninguno (final)
-        14: [4], // Incumplido -> En espera
-        15: [2], // Rechazado -> Asignado
-        17: esCreador ? [5, 15] : [] // En revisión -> Solo el creador puede Terminar o Rechazar
-    };
-
-    return transiciones[estadoActual] || [];
-};
-
 const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tareaPadre = null, restricciones = {}, restriccionesAcciones = {} }) => {
     const { data: session, status } = useSession();
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [scrollBehavior, setScrollBehavior] = React.useState("inside");
-    const [selectedEstado, setSelectedEstado] = useState(null);
+    const [scrollBehavior, setScrollBehavior] = React.useState("inside");    const [selectedEstado, setSelectedEstado] = useState(null);
     const [mostrarJustificacionRechazo, setMostrarJustificacionRechazo] = useState(false);
     const [justificacionRechazo, setJustificacionRechazo] = useState("");
     const [catalogos, setCatalogos] = useState({
@@ -140,8 +123,22 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
         return date.toISOString().split('T')[0];
     };
 
-    // Función para obtener los estados filtrados que se pueden mostrar en el Select
-    const obtenerEstadosFiltrados = () => {
+    // Mapa de transiciones de estados permitidas
+    const obtenerEstadosPermitidos = (estadoActual, esCreador = false) => {
+        const transiciones = {
+            1: [2], // Registrado -> Asignado
+            2: [3, 4], // Asignado -> En proceso, En espera
+            3: [4, 17], // En proceso -> En espera, En revisión
+            4: [3], // En espera -> En proceso
+            5: [], // Terminado -> ninguno (final)
+            14: [2, 3, 4], // Incumplido -> Asignado, En proceso, En espera
+            15: [2], // Rechazado -> Asignado
+            17: esCreador ? [5, 15] : [] // En revisión -> Solo el creador puede Terminar o Rechazar
+        };
+
+        return transiciones[estadoActual] || [];
+    };
+      const obtenerEstadosFiltrados = () => {
         if (!tarea?.cN_Id_estado || catalogos.estados.length === 0) {
             return catalogos.estados;
         }
@@ -149,18 +146,25 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
         // Obtener estados permitidos basándose en el estado actual y si es el creador
         const esCreador = session?.user?.id === tarea?.cN_Usuario_creador;
         const estadosPermitidos = obtenerEstadosPermitidos(tarea.cN_Id_estado, esCreador);
-
+        
         // Filtrar los estados del catálogo para mostrar solo los permitidos
-        const estadosFiltrados = catalogos.estados.filter(estado =>
+        const estadosFiltrados = catalogos.estados.filter(estado => 
             estadosPermitidos.includes(estado.cN_Id_estado)
         );
 
-        // Si no hay estados filtrados (ej: estado final), mostrar solo el estado actual
-        if (estadosFiltrados.length === 0 && tarea?.cN_Id_estado) {
-            const estadoActual = catalogos.estados.find(estado =>
-                estado.cN_Id_estado === tarea.cN_Id_estado
-            );
-            return estadoActual ? [estadoActual] : [];
+        // Siempre incluir el estado actual al inicio de la lista (será no seleccionable)
+        const estadoActual = catalogos.estados.find(estado => 
+            estado.cN_Id_estado === tarea.cN_Id_estado
+        );
+        
+        if (estadoActual) {
+            // Si el estado actual no está en los filtrados, agregarlo al inicio
+            if (!estadosFiltrados.some(estado => estado.cN_Id_estado === tarea.cN_Id_estado)) {
+                return [estadoActual, ...estadosFiltrados];
+            }
+            // Si ya está en los filtrados, reorganizar para que esté al inicio
+            const sinEstadoActual = estadosFiltrados.filter(estado => estado.cN_Id_estado !== tarea.cN_Id_estado);
+            return [estadoActual, ...sinEstadoActual];
         }
 
         return estadosFiltrados;
@@ -330,14 +334,18 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
                                                     setMostrarJustificacionRechazo(false);
                                                     setJustificacionRechazo("");
                                                 }
-                                            }}
-                                        >
+                                            }}                                        >
                                             {obtenerEstadosFiltrados().map((estado) => (
                                                 <SelectItem
                                                     key={estado.cN_Id_estado}
                                                     value={estado.cN_Id_estado.toString()}
+                                                    isDisabled={estado.cN_Id_estado === tarea?.cN_Id_estado}
+                                                    className={estado.cN_Id_estado === tarea?.cN_Id_estado ? "text-gray-500 bg-gray-100" : ""}
                                                 >
-                                                    {estado.cT_Estado}
+                                                    {estado.cN_Id_estado === tarea?.cN_Id_estado 
+                                                        ? `${estado.cT_Estado}` 
+                                                        : estado.cT_Estado
+                                                    }
                                                 </SelectItem>
                                             ))}
                                         </Select>
