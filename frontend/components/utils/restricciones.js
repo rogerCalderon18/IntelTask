@@ -19,8 +19,105 @@ export const RESTRICCIONES_CONFIG = {
             complejidad: true,
             prioridad: true,
             usuarioAsignado: true,
-            descripcionEspera: false,
+            descripcionEspera: true,
             estado: false,
+            numeroGIS: true,
+            fechaLimite: true
+        },
+        3: { // Estado En proceso
+            titulo: true,
+            descripcion: true,
+            adjuntos: false,
+            complejidad: true,
+            prioridad: true,
+            usuarioAsignado: false,
+            descripcionEspera: false,
+            estado: true,
+            numeroGIS: true,
+            fechaLimite: true
+        },
+        4: { // Estado En espera
+            titulo: true,
+            descripcion: true,
+            adjuntos: false,
+            complejidad: true,
+            prioridad: true,
+            usuarioAsignado: false,
+            descripcionEspera: false,
+            estado: true,
+            numeroGIS: true,
+            fechaLimite: true
+        },
+        5: { // Estado Terminado
+            titulo: true,
+            descripcion: true,
+            adjuntos: false,
+            complejidad: true,
+            prioridad: true,
+            usuarioAsignado: false,
+            descripcionEspera: false,
+            estado: true,
+            numeroGIS: true,
+            fechaLimite: true
+        },
+        14: { // Estado Incumplido
+            titulo: true,
+            descripcion: true,
+            adjuntos: false,
+            complejidad: true,
+            prioridad: true,
+            usuarioAsignado: false,
+            descripcionEspera: false,
+            estado: true,
+            numeroGIS: true,
+            fechaLimite: true
+        },
+        15: { // Estado Rechazada
+            titulo: true,
+            descripcion: true,
+            adjuntos: false,
+            complejidad: true,
+            prioridad: true,
+            usuarioAsignado: false,
+            descripcionEspera: false,
+            estado: true,
+            numeroGIS: true,
+            fechaLimite: true
+        },        17: { // Estado En revision
+            titulo: true,
+            descripcion: true,
+            adjuntos: false,
+            complejidad: true,
+            prioridad: true,
+            usuarioAsignado: false,
+            descripcionEspera: false,
+            estado: true,
+            numeroGIS: true,
+            fechaLimite: true
+        }
+    },
+    subtareas: {
+        1: { // Estado Registrado
+            titulo: false,
+            descripcion: false,
+            adjuntos: false,
+            complejidad: false,
+            prioridad: false,
+            usuarioAsignado: false,
+            descripcionEspera: true,
+            estado: true,
+            numeroGIS: true,
+            fechaLimite: true
+        },
+        2: { // Estado Asignado
+            titulo: true,
+            descripcion: true,
+            adjuntos: false,
+            complejidad: true,
+            prioridad: true,
+            usuarioAsignado: false,
+            descripcionEspera: true,
+            estado: true,
             numeroGIS: true,
             fechaLimite: true
         },
@@ -100,40 +197,40 @@ export const RESTRICCIONES_CONFIG = {
     seguimiento: {
         // Estados típicos: 2 (Asignado), 3 (En proceso), 4 (En espera)
         2: {
-            titulo: false,
-            descripcion: false,
+            titulo: true,
+            descripcion: true,
             adjuntos: false,
-            complejidad: false,
-            prioridad: false,
+            complejidad: true,
+            prioridad: true,
             usuarioAsignado: false,
-            descripcionEspera: false,
-            estado: false,
-            numeroGIS: false,
-            fechaLimite: false
+            descripcionEspera: true,
+            estado: true,
+            numeroGIS: true,
+            fechaLimite: true
         },
         3: {
-            titulo: false,
-            descripcion: false,
+            titulo: true,
+            descripcion: true,
             adjuntos: false,
-            complejidad: false,
-            prioridad: false,
+            complejidad: true,
+            prioridad: true,
             usuarioAsignado: false,
-            descripcionEspera: false,
-            estado: false,
-            numeroGIS: false,
-            fechaLimite: false
+            descripcionEspera: true,
+            estado: true,
+            numeroGIS: true,
+            fechaLimite: true
         },
         4: {
-            titulo: false,
-            descripcion: false,
+            titulo: true,
+            descripcion: true,
             adjuntos: false,
-            complejidad: false,
-            prioridad: false,
+            complejidad: true,
+            prioridad: true,
             usuarioAsignado: false,
-            descripcionEspera: false,
-            estado: false,
-            numeroGIS: false,
-            fechaLimite: false
+            descripcionEspera: true,
+            estado: true,
+            numeroGIS: true,
+            fechaLimite: true
         }
     },
     revision: {
@@ -205,7 +302,7 @@ export const RESTRICCIONES_ACCIONES_CONFIG = {
     misTareas: {
         1: { // Estado Registrado
             eliminar: true,
-            editar: true,
+            editar: false,
             asignar: false,
             cambiarEstado: true,
             agregarComentarios: true,
@@ -214,6 +311,79 @@ export const RESTRICCIONES_ACCIONES_CONFIG = {
         },
         2: { // Estado Asignado
             eliminar: false, // No se puede eliminar tarea en estado asignado
+            editar: false,
+            asignar: false,
+            cambiarEstado: true,
+            agregarComentarios: true,
+            subirAdjuntos: true,
+            verDetalles: true
+        },
+        3: { // Estado En proceso
+            eliminar: false,
+            editar: true,
+            asignar: false,
+            cambiarEstado: true,
+            agregarComentarios: true,
+            subirAdjuntos: true,
+            verDetalles: true
+        },
+        4: { // Estado En espera
+            eliminar: false,
+            editar: true,
+            asignar: false,
+            cambiarEstado: true,
+            agregarComentarios: true,
+            subirAdjuntos: true,
+            verDetalles: true
+        },
+        5: { // Estado Terminado
+            eliminar: false,
+            editar: false,
+            asignar: false,
+            cambiarEstado: false,
+            agregarComentarios: true,
+            subirAdjuntos: false,
+            verDetalles: true
+        },
+        14: { // Estado Incumplido
+            eliminar: false,
+            editar: false,
+            asignar: false,
+            cambiarEstado: true,
+            agregarComentarios: true,
+            subirAdjuntos: false,
+            verDetalles: true
+        },
+        15: { // Estado Rechazada
+            eliminar: false,
+            editar: false,
+            asignar: false,
+            cambiarEstado: false,
+            agregarComentarios: true,
+            subirAdjuntos: false,
+            verDetalles: true
+        },        17: { // Estado En revision
+            eliminar: false,
+            editar: false,
+            asignar: false,
+            cambiarEstado: true,
+            agregarComentarios: true,
+            subirAdjuntos: false,
+            verDetalles: true
+        }
+    },
+    subtareas: {
+        1: { // Estado Registrado
+            eliminar: true,
+            editar: false,
+            asignar: false,
+            cambiarEstado: true,
+            agregarComentarios: true,
+            subirAdjuntos: true,
+            verDetalles: true
+        },
+        2: { // Estado Asignado
+            eliminar: false, // No se puede eliminar subtarea en estado asignado
             editar: true,
             asignar: false,
             cambiarEstado: true,
@@ -478,7 +648,7 @@ export const puedeEjecutarAccionPorRol = (accion, rolId) => {
 };
 
 // Función combinada que verifica tanto restricciones de estado como de rol
-export const puedeEjecutarAccionCompleta = (tarea, accion, userId, rolId) => {
+export const puedeEjecutarAccionCompleta = (tarea, accion, tipoSeccion, rolId) => {
     // Verificar restricciones por rol primero
     if (!puedeEjecutarAccionPorRol(accion, rolId)) {
         return false;
@@ -490,6 +660,6 @@ export const puedeEjecutarAccionCompleta = (tarea, accion, userId, rolId) => {
         return true;
     }
 
-    // Para otras acciones, usar la función existente
-    return puedeEjecutarAccion(tarea, accion, userId);
+    // Para otras acciones, usar la función existente con tipoSeccion correcto
+    return puedeEjecutarAccion(tarea, accion, tipoSeccion);
 };

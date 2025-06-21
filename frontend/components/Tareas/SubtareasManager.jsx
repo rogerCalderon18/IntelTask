@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Button, useDisclosure } from "@heroui/react";
 import { FiPlus, FiList } from "react-icons/fi";
 import { tareasService } from "../../services/tareasService";
@@ -10,6 +10,7 @@ import EditarTareaModal from "./EditarTareaModal";
 import ListaSubtareas from "./ListaSubtareas";
 import DetalleModal from "./DetalleModal";
 import useConfirmation from '@/hooks/useConfirmation';
+import { obtenerRestricciones, obtenerRestriccionesAcciones } from '../utils/restricciones';
 
 const SubtareasManager = ({ tareaId, tareaPadre, onSubtareasChange }) => {
     const [subtareas, setSubtareas] = useState([]);
@@ -23,6 +24,15 @@ const SubtareasManager = ({ tareaId, tareaPadre, onSubtareasChange }) => {
     const { isOpen: isEditOpen, onOpen: onEditOpen, onOpenChange: onEditOpenChange } = useDisclosure();
     const { isOpen: isDetalleOpen, onOpen: onDetalleOpen, onOpenChange: onDetalleOpenChange } = useDisclosure();
     const { showConfirmation } = useConfirmation();
+    
+    // Restricciones para subtareas
+    const restriccionesEditar = useMemo(() => {
+        return obtenerRestricciones(selectedSubtarea, 'subtareas');
+    }, [selectedSubtarea]);
+
+    const restriccionesAccionesEditar = useMemo(() => {
+        return obtenerRestriccionesAcciones(selectedSubtarea, 'subtareas');
+    }, [selectedSubtarea]);
     
     useEffect(() => {
         if (tareaId) {
@@ -284,6 +294,8 @@ const SubtareasManager = ({ tareaId, tareaPadre, onSubtareasChange }) => {
                 onSubmit={handleEditarSubtarea}
                 tarea={selectedSubtarea}
                 tareaPadre={tareaPadre}
+                restricciones={restriccionesEditar}
+                restriccionesAcciones={restriccionesAccionesEditar}
             />
 
             {/* Modal de detalle de subtarea */}

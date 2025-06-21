@@ -426,16 +426,26 @@ const Tareas = () => {
     // Restricciones para el modal de creación
     const restriccionesCrear = useMemo(() => {
         return getRestriccionesCampos(null, tabActivo);
-    }, [tabActivo]);
+    }, [tabActivo]);    // Función para determinar el tipo de sección correcto
+    const determinarTipoSeccion = (tarea, tabActivo) => {
+        // Si la tarea tiene un CN_Tarea_origen, es una subtarea
+        if (tarea && (tarea.CN_Tarea_origen || tarea.cN_Tarea_origen)) {
+            return 'subtareas';
+        }
+        // Si no, usar el tab activo
+        return tabActivo;
+    };
 
     // Restricciones para el modal de edición
     const restriccionesEditar = useMemo(() => {
-        return getRestriccionesCampos(selectedTarea, tabActivo);
+        const tipoSeccion = selectedTarea ? determinarTipoSeccion(selectedTarea, tabActivo) : tabActivo;
+        return getRestriccionesCampos(selectedTarea, tipoSeccion);
     }, [selectedTarea, tabActivo]);
 
     // Restricciones de acciones para edición
     const restriccionesAccionesEditar = useMemo(() => {
-        return getRestriccionesAcciones(selectedTarea, tabActivo);
+        const tipoSeccion = selectedTarea ? determinarTipoSeccion(selectedTarea, tabActivo) : tabActivo;
+        return getRestriccionesAcciones(selectedTarea, tipoSeccion);
     }, [selectedTarea, tabActivo]);
 
     return (

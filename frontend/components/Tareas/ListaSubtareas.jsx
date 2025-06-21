@@ -2,6 +2,7 @@ import React from "react";
 import { Spinner, Chip } from "@heroui/react";
 import { FiEdit, FiTrash2, FiClock, FiUser, FiEye } from "react-icons/fi";
 import getColorClass from "../utils/getColorClass";
+import { obtenerRestriccionesAcciones } from "../utils/restricciones";
 
 const ListaSubtareas = ({ subtareas, loading, onEdit, onDelete, onDetalle }) => {
     if (loading) {
@@ -95,29 +96,43 @@ const ListaSubtareas = ({ subtareas, loading, onEdit, onDelete, onDetalle }) => 
                                     </div>
                                 )}
                             </div>
-                        </div>
-                          <div className="flex items-center gap-1 ml-2">
-                            <button
-                                onClick={() => onDetalle && onDetalle(subtarea)}
-                                className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                                title="Ver detalle"
-                            >
-                                <FiEye className="w-4 h-4" />
-                            </button>
-                            <button
-                                onClick={() => onEdit(subtarea)}
-                                className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                                title="Editar subtarea"
-                            >
-                                <FiEdit className="w-4 h-4" />
-                            </button>
-                            <button
-                                onClick={() => onDelete(subtarea)}
-                                className="p-1 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                                title="Eliminar subtarea"
-                            >
-                                <FiTrash2 className="w-4 h-4" />
-                            </button>
+                        </div>                          <div className="flex items-center gap-1 ml-2">
+                            {(() => {
+                                // Obtener restricciones para esta subtarea específica
+                                const restriccionesAcciones = obtenerRestriccionesAcciones(subtarea, 'subtareas');
+                                
+                                return (
+                                    <>
+                                        <button
+                                            onClick={() => onDetalle && onDetalle(subtarea)}
+                                            className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                            title="Ver detalle"
+                                        >
+                                            <FiEye className="w-4 h-4" />
+                                        </button>
+                                        
+                                        {restriccionesAcciones.editar && (
+                                            <button
+                                                onClick={() => onEdit(subtarea)}
+                                                className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                                title="Editar subtarea"
+                                            >
+                                                <FiEdit className="w-4 h-4" />
+                                            </button>
+                                        )}
+                                        
+                                        {restriccionesAcciones.eliminar && (
+                                            <button
+                                                onClick={() => onDelete(subtarea)}
+                                                className="p-1 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                                                title="Eliminar subtarea"
+                                            >
+                                                <FiTrash2 className="w-4 h-4" />
+                                            </button>
+                                        )}
+                                    </>
+                                );
+                            })()}
                         </div>
                     </div>
                 </div>
