@@ -83,6 +83,63 @@ namespace IntelTask.Infrastructure.Repositories
             }
         }
 
+        private async Task PonerEnEsperaOtrasTareasEnProcesoAsync(ETareas tarea, int usuarioResponsable)
+        {
+            // Sólo aplicar si la tarea va a "En Proceso" (estado 3) y tiene usuario asignado
+            if (tarea.CN_Id_estado != 3 || !tarea.CN_Usuario_asignado.HasValue)
+                return;
+
+            // 1) Obtener IDs y estados anteriores de las demás tareas "En Proceso"
+            var tareasEnProceso = await _context.T_Tareas
+                .Where(t =>
+                    t.CN_Usuario_asignado == tarea.CN_Usuario_asignado.Value &&
+                    t.CN_Id_estado == 3 &&
+                    t.CN_Id_tarea != tarea.CN_Id_tarea)
+                .Select(t => new { t.CN_Id_tarea, t.CN_Id_estado })
+                .ToListAsync();
+
+            if (!tareasEnProceso.Any())
+                return;
+
+            // 2) Construir bitácoras y actualizar entidades en memoria
+            var bitacoras = new List<EBitacoraCambioEstado>();
+            foreach (var info in tareasEnProceso)
+            {
+                // Cargar la tarea completa para modificar su estado
+                var tareaEnProceso = new ETareas { CN_Id_tarea = info.CN_Id_tarea };
+                _context.T_Tareas.Attach(tareaEnProceso);
+                tareaEnProceso.CN_Id_estado = 4; // "En Espera"
+
+                bitacoras.Add(new EBitacoraCambioEstado
+                {
+                    CN_Id_tarea_permiso = info.CN_Id_tarea,
+                    CN_Id_tipo_documento = 1, // 1 = tarea
+                    CN_Id_estado_anterior = info.CN_Id_estado,
+                    CN_Id_estado_nuevo = 4,
+                    CF_Fecha_hora_cambio = DateTime.UtcNow,
+                    CN_Id_usuario_responsable = usuarioResponsable,
+                    CT_Observaciones = $"Automático: tarea {tarea.CN_Id_tarea} puesta en proceso"
+                });
+            }
+
+            // 3) Aplicar todo en una sola transacción y un único SaveChanges
+            using var tx = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                // Agregar las bitácoras en lote
+                _context.T_Bitacora_Cambio_Estado.AddRange(bitacoras);
+                await _context.SaveChangesAsync();
+
+                await tx.CommitAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                // Manejo de concurrencia: informar al cliente o reintentar
+                throw new InvalidOperationException("No se pudo actualizar porque la tarea cambió simultáneamente.");
+            }
+        }
+
+
         public async Task<ETareas> M_PUB_ActualizarTarea(int id, TareaUpdateRequest request)
         {
             try
@@ -134,6 +191,12 @@ namespace IntelTask.Infrastructure.Repositories
 
                 _context.Entry(tareaExistente).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
+
+                // Si la tarea cambia a "En Proceso" (estado 3), poner otras tareas del mismo usuario en espera
+                if (request.CN_Id_estado == 3 && estadoAnterior != 3)
+                {
+                    await PonerEnEsperaOtrasTareasEnProcesoAsync(tareaExistente, request.CN_Usuario_editor);
+                }
 
                 // Guardar cambio de estado en la bitácora si el estado cambió
                 if (estadoAnterior != request.CN_Id_estado)

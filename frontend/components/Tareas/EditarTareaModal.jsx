@@ -18,9 +18,24 @@ import GestorAdjuntos from "./GestorAdjuntos";
 import Seguimientos from "@/components/Tareas/Seguimientos";
 import SeguimientoInput from "./SeguimientoInput";
 import IncumplimientoInput from "./IncumplimientoInput";
-import HistorialIncumplimientos from "./HistorialIncumplimientos";
 import HistorialRechazos from "./HistorialRechazos";
 import { useSession } from "next-auth/react";
+
+// Mapa de transiciones de estados permitidas
+const obtenerEstadosPermitidos = (estadoActual, esCreador = false) => {
+    const transiciones = {
+        1: [2, 14], // Registrado -> Asignado, Incumplimiento
+        2: [3, 4, 14], // Asignado -> En proceso, En espera, Incumplimiento
+        3: [4, 17, 14], // En proceso -> En espera, En revisión, Incumplimiento
+        4: [3, 14], // En espera -> En proceso, Incumplimiento
+        5: [], // Terminado -> ninguno (final)
+        14: [4], // Incumplido -> En espera
+        15: [2], // Rechazado -> Asignado
+        17: esCreador ? [5, 15] : [] // En revisión -> Solo el creador puede Terminar o Rechazar
+    };
+
+    return transiciones[estadoActual] || [];
+};
 
 const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tareaPadre = null, restricciones = {}, restriccionesAcciones = {} }) => {
     const { data: session, status } = useSession();
@@ -62,6 +77,7 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
             setLoadingCatalogos(false);
         }
     };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
@@ -117,13 +133,37 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
                 </ModalContent>
             </Modal>
         );
-    }
-
-    // Formatear fecha para el input de fecha
+    }    // Formatear fecha para el input de fecha
     const formatearFecha = (fecha) => {
         if (!fecha) return "";
         const date = new Date(fecha);
         return date.toISOString().split('T')[0];
+    };
+
+    // Función para obtener los estados filtrados que se pueden mostrar en el Select
+    const obtenerEstadosFiltrados = () => {
+        if (!tarea?.cN_Id_estado || catalogos.estados.length === 0) {
+            return catalogos.estados;
+        }
+
+        // Obtener estados permitidos basándose en el estado actual y si es el creador
+        const esCreador = session?.user?.id === tarea?.cN_Usuario_creador;
+        const estadosPermitidos = obtenerEstadosPermitidos(tarea.cN_Id_estado, esCreador);
+
+        // Filtrar los estados del catálogo para mostrar solo los permitidos
+        const estadosFiltrados = catalogos.estados.filter(estado =>
+            estadosPermitidos.includes(estado.cN_Id_estado)
+        );
+
+        // Si no hay estados filtrados (ej: estado final), mostrar solo el estado actual
+        if (estadosFiltrados.length === 0 && tarea?.cN_Id_estado) {
+            const estadoActual = catalogos.estados.find(estado =>
+                estado.cN_Id_estado === tarea.cN_Id_estado
+            );
+            return estadoActual ? [estadoActual] : [];
+        }
+
+        return estadosFiltrados;
     };
 
     return (
@@ -273,8 +313,7 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
                                             ))}
                                         </Select>
                                     </div>                                    <div>
-                                        <label className="text-sm text-gray-700 mb-1 block">Estado:</label>
-                                        <Select
+                                        <label className="text-sm text-gray-700 mb-1 block">Estado:</label>                                        <Select
                                             isRequired
                                             name="estado"
                                             placeholder="Selecciona estado"
@@ -293,22 +332,14 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
                                                 }
                                             }}
                                         >
-                                            {/* Si la tarea está en revisión (estado 17) y el usuario es el creador, mostrar solo Terminar y Rechazar */}
-                                            {tarea?.cN_Id_estado === 17 && session?.user?.id === tarea?.cN_Usuario_creador ? (
-                                                <>
-                                                    <SelectItem key="5" value="5">Terminado</SelectItem>
-                                                    <SelectItem key="15" value="15">Rechazado</SelectItem>
-                                                </>
-                                            ) : (
-                                                catalogos.estados.map((estado) => (
-                                                    <SelectItem
-                                                        key={estado.cN_Id_estado}
-                                                        value={estado.cN_Id_estado.toString()}
-                                                    >
-                                                        {estado.cT_Estado}
-                                                    </SelectItem>
-                                                ))
-                                            )}
+                                            {obtenerEstadosFiltrados().map((estado) => (
+                                                <SelectItem
+                                                    key={estado.cN_Id_estado}
+                                                    value={estado.cN_Id_estado.toString()}
+                                                >
+                                                    {estado.cT_Estado}
+                                                </SelectItem>
+                                            ))}
                                         </Select>
                                     </div>
 
