@@ -9,8 +9,8 @@ const EmptyState = ({ tabId, onAddTask }) => {
                 return {
                     icon: <FiCheckCircle className="w-16 h-16 text-green-400" />,
                     title: "¡Excelente trabajo!",
-                    subtitle: "No tienes tareas completadas aún",
-                    description: "Cuando completes tus tareas, aparecerán aquí para que puedas hacer un seguimiento de tu progreso.",
+                    subtitle: "No tienes tareas pendientes",
+                    description: "Cuando registres tareas, aparecerán aquí para que puedas hacer un seguimiento del progreso.",
                     buttonText: "Crear nueva tarea",
                     showButton: true,
                     bgColor: "bg-gradient-to-br from-green-50 to-emerald-50",

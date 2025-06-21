@@ -4,6 +4,9 @@ import { FiCalendar, FiUser, FiFlag, FiClock, FiFileText, FiPaperclip, FiHash, F
 import { adjuntosService } from "../../services/adjuntosService";
 import { catalogosService } from "../../services/catalogosService";
 import { toast } from "react-toastify";
+import Seguimientos from "./Seguimientos";
+import HistorialIncumplimientos from "./HistorialIncumplimientos";
+import HistorialRechazos from "./HistorialRechazos";
 
 const DetalleModal = ({ isOpen, onOpenChange, tarea, onEdit, onClose, esSubtarea = false }) => {
     const [adjuntos, setAdjuntos] = useState([]);
@@ -389,6 +392,15 @@ const DetalleModal = ({ isOpen, onOpenChange, tarea, onEdit, onClose, esSubtarea
                                     </div>
                                 </>
                             )}
+                            <div className="px-6 pb-2">
+                                <Seguimientos tarea={tarea} />
+                            </div>
+                            <div className="col-span-2">
+                                <HistorialIncumplimientos tareaId={tarea?.CN_Id_tarea ?? tarea?.cN_Id_tarea} />
+                            </div>
+                            <div className="col-span-2">
+                                <HistorialRechazos tareaId={tarea?.CN_Id_tarea ?? tarea?.cN_Id_tarea} />
+                            </div>
                         </ModalBody>
 
                         <ModalFooter>
