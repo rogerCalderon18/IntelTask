@@ -4,11 +4,20 @@ import { useDisclosure } from "@heroui/react";
 import SubTareaItem from "./SubTareaItem";
 import SubtareasManager from "./SubtareasManager";
 import DetalleModal from "./DetalleModal";
+// Importar solo obtenerRestriccionesAcciones
+import { obtenerRestriccionesAcciones } from "../utils/restricciones.js";
+import { useSession } from "next-auth/react";
 
-const TareaContent = ({ descripcion, fechaEntrega, subtareas, tarea, onEdit, onDelete }) => {
+// Ahora recibimos tipoSeccion como prop
+const TareaContent = ({ descripcion, fechaEntrega, subtareas, tarea, onEdit, onDelete, tipoSeccion }) => {
   const [subtareasActuales, setSubtareasActuales] = useState(subtareas || []);
   const { isOpen: isDetalleOpen, onOpen: onDetalleOpen, onOpenChange: onDetalleOpenChange } = useDisclosure();
-  
+
+  // Calcular restricciones de acciones para la tarea y sección actual
+  const restriccionesAcciones = obtenerRestriccionesAcciones(tarea, tipoSeccion);
+
+  console.log("restriccionesAcciones", restriccionesAcciones, "tipoSeccion", tipoSeccion);
+
   const handleSubtareasChange = (nuevasSubtareas) => {
     setSubtareasActuales(nuevasSubtareas);
   };
@@ -33,6 +42,7 @@ const TareaContent = ({ descripcion, fechaEntrega, subtareas, tarea, onEdit, onD
       onEdit(tarea);
     }
   };
+
   return (
     <div className="p-4 border border-gray-100 rounded-md -mt-1">
       <p className="text-sm text-gray-700 mb-4">{descripcion}</p>
@@ -42,7 +52,8 @@ const TareaContent = ({ descripcion, fechaEntrega, subtareas, tarea, onEdit, onD
         tareaId={tarea?.cN_Id_tarea || tarea?.id} 
         tareaPadre={tarea}
         onSubtareasChange={handleSubtareasChange}
-      />      <div className="flex justify-between items-center pt-3 border-t border-gray-200">
+      />
+      <div className="flex justify-between items-center pt-3 border-t border-gray-200">
         <div className="flex items-center gap-2">
           <FiEye 
             className="text-gray-600 cursor-pointer hover:text-blue-500 transition-colors" 
@@ -54,11 +65,14 @@ const TareaContent = ({ descripcion, fechaEntrega, subtareas, tarea, onEdit, onD
             onClick={handleEditClick}
             title="Editar tarea"
           />
-          <FiTrash2 
-            className="text-gray-600 cursor-pointer hover:text-red-500 transition-colors" 
-            onClick={handleDeleteClick}
-            title="Eliminar tarea"
-          />
+          {/* Mostrar el icono de eliminar solo si está permitido */}
+          {restriccionesAcciones.eliminar && (
+            <FiTrash2 
+              className="text-gray-600 cursor-pointer hover:text-red-500 transition-colors" 
+              onClick={handleDeleteClick}
+              title="Eliminar tarea"
+            />
+          )}
         </div>
         <span className="text-xs text-gray-500">Fecha de entrega: {fechaEntrega}</span>
       </div>

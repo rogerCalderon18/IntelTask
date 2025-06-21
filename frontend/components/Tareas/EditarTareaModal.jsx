@@ -15,7 +15,7 @@ import { catalogosService } from "../../services/catalogosService";
 import GestorAdjuntos from "./GestorAdjuntos";
 import { useSession } from "next-auth/react";
 
-const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tareaPadre = null }) => {
+const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tareaPadre = null, restricciones = {}, restriccionesAcciones = {} }) => {
     const { data: session, status } = useSession();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [catalogos, setCatalogos] = useState({
@@ -50,15 +50,16 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
         try {
             const formData = new FormData(e.currentTarget);
             const responsableValue = formData.get('responsable');
+            // Construir tareaData con los valores del formulario o, si el campo está restringido, con el valor original de la tarea
             const tareaData = {
-                cT_Titulo_tarea: formData.get('titulo'),
-                cT_Descripcion_tarea: formData.get('descripcion'),
-                cN_Id_complejidad: parseInt(formData.get('complejidad')),
-                cN_Id_prioridad: parseInt(formData.get('prioridad')),
-                cN_Id_estado: parseInt(formData.get('estado')),
-                cF_Fecha_limite: formData.get('fechaLimite'),
-                cN_Numero_GIS: formData.get('numeroGIS'),
-                cN_Usuario_asignado: responsableValue ? parseInt(responsableValue) : null,
+                cT_Titulo_tarea: restricciones.titulo ? tarea?.cT_Titulo_tarea : formData.get('titulo'),
+                cT_Descripcion_tarea: restricciones.descripcion ? tarea?.cT_Descripcion_tarea : formData.get('descripcion'),
+                cN_Id_complejidad: restricciones.complejidad ? tarea?.cN_Id_complejidad : parseInt(formData.get('complejidad')),
+                cN_Id_prioridad: restricciones.prioridad ? tarea?.cN_Id_prioridad : parseInt(formData.get('prioridad')),
+                cN_Id_estado: restricciones.estado ? tarea?.cN_Id_estado : parseInt(formData.get('estado')),
+                cF_Fecha_limite: restricciones.fechaLimite ? tarea?.cF_Fecha_limite : formData.get('fechaLimite'),
+                cN_Numero_GIS: restricciones.numeroGIS ? tarea?.cN_Numero_GIS : formData.get('numeroGIS'),
+                cN_Usuario_asignado: restricciones.usuarioAsignado ? tarea?.cN_Usuario_asignado : (responsableValue ? parseInt(responsableValue) : null),
                 cN_Tarea_origen: tareaPadre ? (tareaPadre.cN_Id_tarea || tareaPadre.id) : null,
                 cN_Usuario_editor: session?.user?.id,
             };
@@ -131,11 +132,11 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
                                             placeholder="Título de la tarea"
                                             defaultValue={tarea?.cT_Titulo_tarea || ""}
                                             variant="bordered"
+                                            readOnly={restricciones.titulo}
                                             isDisabled={isSubmitting}
                                             className="w-full"
                                         />
                                     </div>
-
 
                                     <div className="col-span-2 flex flex-col gap-1">
                                         <label className="text-sm font-medium text-foreground">
@@ -147,6 +148,7 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
                                             defaultValue={tarea?.cT_Descripcion_tarea || ""}
                                             rows={3}
                                             className="w-full px-3 py-2 rounded-medium border-2 border-default-200 hover:border-default-300 focus:border-black transition-all duration-150 ease-in-out focus:outline-none resize-none text-sm overflow-hidden"
+                                            readOnly={restricciones.descripcion}
                                             disabled={isSubmitting}
                                             required
                                             style={{ minHeight: '80px', maxHeight: '120px' }}
@@ -160,6 +162,7 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
                                             placeholder="Número GIS"
                                             defaultValue={tarea?.cN_Numero_GIS || ""}
                                             variant="bordered"
+                                            readOnly={restricciones.numeroGIS}
                                             isDisabled={isSubmitting}
                                         />
                                     </div>
@@ -172,6 +175,7 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
                                             type="date"
                                             defaultValue={formatearFecha(tarea?.cF_Fecha_limite)}
                                             variant="bordered"
+                                            readOnly={restricciones.fechaLimite}
                                             isDisabled={isSubmitting}
                                             min={new Date().toISOString().split("T")[0]}
                                             max={tareaPadre?.cF_Fecha_limite ? tareaPadre.cF_Fecha_limite.split("T")[0] : undefined}
@@ -186,7 +190,7 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
                                             placeholder="Selecciona prioridad"
                                             defaultSelectedKeys={tarea?.cN_Id_prioridad ? [tarea.cN_Id_prioridad.toString()] : []}
                                             variant="bordered"
-                                            isDisabled={isSubmitting}
+                                            isDisabled={isSubmitting || restricciones.prioridad}
                                         >
                                             {catalogos.prioridades.map((prioridad) => (
                                                 <SelectItem
@@ -207,7 +211,7 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
                                             placeholder="Selecciona complejidad"
                                             defaultSelectedKeys={tarea?.cN_Id_complejidad ? [tarea.cN_Id_complejidad.toString()] : []}
                                             variant="bordered"
-                                            isDisabled={isSubmitting}
+                                            isDisabled={isSubmitting || restricciones.complejidad}
                                         >
                                             {catalogos.complejidades.map((complejidad) => (
                                                 <SelectItem
@@ -218,14 +222,15 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
                                                 </SelectItem>
                                             ))}
                                         </Select>
-                                    </div>                                    <div>
+                                    </div>
+                                    <div>
                                         <label className="text-sm text-gray-700 mb-1 block">Responsable (Opcional):</label>
                                         <Select
                                             name="responsable"
                                             placeholder="Selecciona un usuario"
                                             defaultSelectedKeys={tarea?.cN_Usuario_asignado ? [tarea.cN_Usuario_asignado.toString()] : []}
                                             variant="bordered"
-                                            isDisabled={isSubmitting}
+                                            isDisabled={isSubmitting || restricciones.usuarioAsignado}
                                         >
                                             {catalogos.usuarios.map((usuario) => (
                                                 <SelectItem
@@ -237,7 +242,6 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
                                             ))}
                                         </Select>
                                     </div>
-
                                     <div>
                                         <label className="text-sm text-gray-700 mb-1 block">Estado:</label>
                                         <Select
@@ -246,7 +250,7 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
                                             placeholder="Selecciona estado"
                                             defaultSelectedKeys={tarea?.cN_Id_estado ? [tarea.cN_Id_estado.toString()] : []}
                                             variant="bordered"
-                                            isDisabled={isSubmitting}
+                                            isDisabled={isSubmitting || restricciones.estado}
                                         >
                                             {catalogos.estados.map((estado) => (
                                                 <SelectItem
@@ -262,6 +266,7 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
                                         <GestorAdjuntos
                                             idTarea={tarea?.cN_Id_tarea}
                                             onAdjuntosChange={(adjuntos) => console.log('Adjuntos actualizados:', adjuntos)}
+                                            isDisabled={restricciones.adjuntos}
                                         />
                                     </div>
                                 </div>
@@ -284,6 +289,7 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
                                         className="text-white rounded-md px-6"
                                         isLoading={isSubmitting}
                                         spinner={<Spinner size="sm" color="current" />}
+                                        isDisabled={restriccionesAcciones && restriccionesAcciones.editar === false}
                                     >
                                         {isSubmitting ? "Actualizando..." : "Editar"}
                                     </Button>

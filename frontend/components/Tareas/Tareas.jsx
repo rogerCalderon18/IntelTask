@@ -13,6 +13,9 @@ import { toast } from "react-toastify";
 import useConfirmation from '@/hooks/useConfirmation';
 import { useSession } from 'next-auth/react';
 
+// Importar restricciones
+import { obtenerRestricciones, obtenerRestriccionesAcciones } from '../utils/restricciones';
+
 const Tareas = () => {
     const { data: session, status } = useSession();
     const [tareas, setTareas] = useState([]);
@@ -68,7 +71,7 @@ const Tareas = () => {
                     return esCreador && tieneAsignado && estadoValido;
                 });
             },
-        },        {
+        }, {
             id: "revision",
             label: "En revisión",
             filter: (tareas) => {
@@ -81,11 +84,11 @@ const Tareas = () => {
                     const estadoEnRevision = (tarea.estado || tarea.cN_Id_estado) === 17;
                     const esCreador = tarea.cN_Usuario_creador === usuarioId; // Tareas que debo revisar
                     const esAsignado = tarea.cN_Usuario_asignado === usuarioId; // Tareas que envié a revisión
-                    
+
                     return estadoEnRevision && (esCreador || esAsignado);
                 });
             },
-        },        {
+        }, {
             id: "incumplimiento",
             label: "Incumplimiento",
             filter: (tareas) => {
@@ -98,7 +101,7 @@ const Tareas = () => {
                     const estadoIncumplida = (tarea.estado || tarea.cN_Id_estado) === 14;
                     const esCreador = tarea.cN_Usuario_creador === usuarioId; // Tareas incumplidas que debo revisar
                     const esAsignado = tarea.cN_Usuario_asignado === usuarioId; // Mis tareas incumplidas
-                    
+
                     return estadoIncumplida && (esCreador || esAsignado);
                 });
             },
@@ -141,6 +144,16 @@ const Tareas = () => {
         }
     };
 
+    // Obtener restricciones de campos para el modal de edición/creación
+    const getRestriccionesCampos = (tarea, tipoSeccion) => {
+        return obtenerRestricciones(tarea, tipoSeccion);
+    };
+
+    // Obtener restricciones de acciones para el modal de edición/creación
+    const getRestriccionesAcciones = (tarea, tipoSeccion) => {
+        return obtenerRestriccionesAcciones(tarea, tipoSeccion);
+    };
+
     const handleOpenModal = (tarea = null) => {
         setSelectedTarea(tarea);
         setIsEditing(false);
@@ -151,7 +164,7 @@ const Tareas = () => {
         setSelectedTarea(tarea);
         setOriginalUsuarioAsignado(tarea.cN_Usuario_asignado);
         setIsEditing(true);
-        onEditOpenChange(true);
+        onEditOpen(true);
     };
 
     const handleCloseModal = () => {
@@ -315,7 +328,7 @@ const Tareas = () => {
                 }
             }
         });
-    };   
+    };
 
     const filtrarTareasPorEstado = (tareas, estadoId) => {
         if (!estadoId || estadoId === 'all') return tareas;
@@ -407,8 +420,23 @@ const Tareas = () => {
             }
             return true;
         });
-        
+
     }, [tareas, tabActivo, filtroEstado, tabs]);
+
+    // Restricciones para el modal de creación
+    const restriccionesCrear = useMemo(() => {
+        return getRestriccionesCampos(null, tabActivo);
+    }, [tabActivo]);
+
+    // Restricciones para el modal de edición
+    const restriccionesEditar = useMemo(() => {
+        return getRestriccionesCampos(selectedTarea, tabActivo);
+    }, [selectedTarea, tabActivo]);
+
+    // Restricciones de acciones para edición
+    const restriccionesAccionesEditar = useMemo(() => {
+        return getRestriccionesAcciones(selectedTarea, tabActivo);
+    }, [selectedTarea, tabActivo]);
 
     return (
         <Container className="max-w-4xl mx-auto mt-10 h-[calc(100vh-120px)] flex flex-col">
@@ -489,6 +517,7 @@ const Tareas = () => {
                                                 tareas={tareasFiltradas}
                                                 onEdit={handleOpenEditModal}
                                                 onDelete={handleEliminarTarea}
+                                                tipoSeccion={tabActivo}
                                             />
                                         )}
                                     </div>
@@ -505,6 +534,7 @@ const Tareas = () => {
                 onClose={handleCloseModal}
                 onSubmit={handleSubmit}
                 tarea={null}
+                restricciones={restriccionesCrear}
             />
 
             <EditarTareaModal
@@ -513,6 +543,8 @@ const Tareas = () => {
                 onClose={handleCloseEditModal}
                 onSubmit={handleEditSubmit}
                 tarea={selectedTarea}
+                restricciones={restriccionesEditar}
+                restriccionesAcciones={restriccionesAccionesEditar}
             />
         </Container>
     );
