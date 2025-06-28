@@ -5,7 +5,7 @@ import { FiMessageCircle, FiClock } from "react-icons/fi";
 const Seguimientos = forwardRef(({ tarea }, ref) => {
     const [seguimientos, setSeguimientos] = useState([]);
     const [loading, setLoading] = useState(true);
-    const ESTADOS_SEGUIMIENTO = [2, 3, 4];
+    const ESTADOS_SEGUIMIENTO = [2, 3, 4, 17];
     const estadoId = tarea?.CN_Id_estado ?? tarea?.cN_Id_estado;
     const puedeVerSeguimientos = ESTADOS_SEGUIMIENTO.includes(estadoId);
     

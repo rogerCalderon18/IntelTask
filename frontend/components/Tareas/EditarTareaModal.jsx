@@ -144,7 +144,7 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
         }
 
         // Obtener estados permitidos basándose en el estado actual y si es el creador
-        const esCreador = session?.user?.id === tarea?.cN_Usuario_creador;
+        const esCreador = parseInt(session?.user?.id) === tarea?.cN_Usuario_creador;
         const estadosPermitidos = obtenerEstadosPermitidos(tarea.cN_Id_estado, esCreador);
         
         // Filtrar los estados del catálogo para mostrar solo los permitidos
