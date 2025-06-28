@@ -4,19 +4,13 @@ import { useDisclosure } from "@heroui/react";
 import SubTareaItem from "./SubTareaItem";
 import SubtareasManager from "./SubtareasManager";
 import DetalleModal from "./DetalleModal";
-// Importar solo obtenerRestriccionesAcciones
-import { obtenerRestriccionesAcciones } from "../utils/restricciones.js";
-import { useSession } from "next-auth/react";
 
-// Ahora recibimos tipoSeccion como prop
-const TareaContent = ({ descripcion, fechaEntrega, subtareas, tarea, onEdit, onDelete, tipoSeccion }) => {
+// Ahora recibimos tipoSeccion y restriccionesAcciones como props
+const TareaContent = ({ descripcion, fechaEntrega, subtareas, tarea, onEdit, onDelete, tipoSeccion, restriccionesAcciones = {} }) => {
   const [subtareasActuales, setSubtareasActuales] = useState(subtareas || []);
   const { isOpen: isDetalleOpen, onOpen: onDetalleOpen, onOpenChange: onDetalleOpenChange } = useDisclosure();
 
-  // Calcular restricciones de acciones para la tarea y sección actual
-  const restriccionesAcciones = obtenerRestriccionesAcciones(tarea, tipoSeccion);
-
-  console.log("restriccionesAcciones", restriccionesAcciones, "tipoSeccion", tipoSeccion);
+  console.log("restriccionesAcciones", restriccionesAcciones, "tipoSeccion", tipoSeccion, tarea);
 
   const handleSubtareasChange = (nuevasSubtareas) => {
     setSubtareasActuales(nuevasSubtareas);
@@ -51,6 +45,7 @@ const TareaContent = ({ descripcion, fechaEntrega, subtareas, tarea, onEdit, onD
       <SubtareasManager 
         tareaId={tarea?.cN_Id_tarea || tarea?.id} 
         tareaPadre={tarea}
+        tipoSeccion={tipoSeccion}
         onSubtareasChange={handleSubtareasChange}
       />
       <div className="flex justify-between items-center pt-3 border-t border-gray-200">
@@ -60,11 +55,14 @@ const TareaContent = ({ descripcion, fechaEntrega, subtareas, tarea, onEdit, onD
             onClick={handleDetalleClick}
             title="Ver detalle"
           />
-          <FiEdit 
-            className="text-gray-600 cursor-pointer hover:text-blue-500 transition-colors" 
-            onClick={handleEditClick}
-            title="Editar tarea"
-          />
+          {/* Mostrar el icono de editar solo si está permitido */}
+          {restriccionesAcciones.editar && (
+            <FiEdit 
+              className="text-gray-600 cursor-pointer hover:text-blue-500 transition-colors" 
+              onClick={handleEditClick}
+              title="Editar tarea"
+            />
+          )}
           {/* Mostrar el icono de eliminar solo si está permitido */}
           {restriccionesAcciones.eliminar && (
             <FiTrash2 

@@ -1,267 +1,222 @@
+// Definición de estados de tareas
+export const ESTADOS = {
+    REGISTRADO: 1,
+    ASIGNADO: 2,
+    EN_PROCESO: 3,
+    EN_ESPERA: 4,
+    TERMINADO: 5,
+    INCUMPLIDO: 14,
+    RECHAZADA: 15,
+    EN_REVISION: 17
+};
+
+// CONFIGURACIÓN ULTRA SIMPLE: Solo Estado + Relación (creador/asignado)
 export const RESTRICCIONES_CONFIG = {
-    misTareas: {
-        1: { // Estado Registrado
-            titulo: false,
-            descripcion: false,
-            adjuntos: false,
-            complejidad: false,
-            prioridad: false,
-            usuarioAsignado: false,
-            descripcionEspera: true,
-            estado: true,
-            numeroGIS: true,
-            fechaLimite: true
+    // REGISTRADO
+    [ESTADOS.REGISTRADO]: {
+        creador: {
+            titulo: false, descripcion: false, adjuntos: false, complejidad: true,
+            prioridad: true, usuarioAsignado: false, descripcionEspera: false,
+            estado: true, numeroGIS: true, fechaLimite: true
         },
-        2: { // Estado Asignado
-            titulo: true,
-            descripcion: true,
-            adjuntos: false,
-            complejidad: true,
-            prioridad: true,
-            usuarioAsignado: true,
-            descripcionEspera: true,
-            estado: false,
-            numeroGIS: true,
-            fechaLimite: true
-        },
-        3: { // Estado En proceso
-            titulo: true,
-            descripcion: true,
-            adjuntos: false,
-            complejidad: true,
-            prioridad: true,
-            usuarioAsignado: false,
-            descripcionEspera: false,
-            estado: true,
-            numeroGIS: true,
-            fechaLimite: true
-        },
-        4: { // Estado En espera
-            titulo: true,
-            descripcion: true,
-            adjuntos: false,
-            complejidad: true,
-            prioridad: true,
-            usuarioAsignado: false,
-            descripcionEspera: false,
-            estado: true,
-            numeroGIS: true,
-            fechaLimite: true
-        },
-        5: { // Estado Terminado
-            titulo: true,
-            descripcion: true,
-            adjuntos: false,
-            complejidad: true,
-            prioridad: true,
-            usuarioAsignado: false,
-            descripcionEspera: false,
-            estado: true,
-            numeroGIS: true,
-            fechaLimite: true
-        },
-        14: { // Estado Incumplido
-            titulo: true,
-            descripcion: true,
-            adjuntos: false,
-            complejidad: true,
-            prioridad: true,
-            usuarioAsignado: false,
-            descripcionEspera: false,
-            estado: true,
-            numeroGIS: true,
-            fechaLimite: true
-        },
-        15: { // Estado Rechazada
-            titulo: true,
-            descripcion: true,
-            adjuntos: false,
-            complejidad: true,
-            prioridad: true,
-            usuarioAsignado: false,
-            descripcionEspera: false,
-            estado: true,
-            numeroGIS: true,
-            fechaLimite: true
-        },        17: { // Estado En revision
-            titulo: true,
-            descripcion: true,
-            adjuntos: false,
-            complejidad: true,
-            prioridad: true,
-            usuarioAsignado: false,
-            descripcionEspera: false,
-            estado: true,
-            numeroGIS: true,
-            fechaLimite: true
+        asignado: {
+            titulo: true, descripcion: true, adjuntos: true, complejidad: true,
+            prioridad: true, usuarioAsignado: true, descripcionEspera: true,
+            estado: true, numeroGIS: true, fechaLimite: true
         }
     },
-    subtareas: {
-        1: { // Estado Registrado
-            titulo: false,
-            descripcion: false,
-            adjuntos: false,
-            complejidad: false,
-            prioridad: false,
-            usuarioAsignado: false,
-            descripcionEspera: true,
-            estado: true,
-            numeroGIS: true,
-            fechaLimite: true
+    // ASIGNADO - Caso especial: Director creador + Subdirector asignado
+    [ESTADOS.ASIGNADO]: {
+        creador: {
+            titulo: true, descripcion: true, adjuntos: true, complejidad: true,
+            prioridad: true, usuarioAsignado: false, descripcionEspera: true,
+            estado: true, numeroGIS: true, fechaLimite: true
         },
-        2: { // Estado Asignado
-            titulo: true,
-            descripcion: true,
-            adjuntos: false,
-            complejidad: true,
-            prioridad: true,
-            usuarioAsignado: false,
-            descripcionEspera: true,
-            estado: true,
-            numeroGIS: true,
-            fechaLimite: true
-        },
-        3: { // Estado En proceso
-            titulo: true,
-            descripcion: true,
-            adjuntos: false,
-            complejidad: true,
-            prioridad: true,
-            usuarioAsignado: false,
-            descripcionEspera: false,
-            estado: true,
-            numeroGIS: true,
-            fechaLimite: true
-        },
-        4: { // Estado En espera
-            titulo: true,
-            descripcion: true,
-            adjuntos: false,
-            complejidad: true,
-            prioridad: true,
-            usuarioAsignado: false,
-            descripcionEspera: false,
-            estado: true,
-            numeroGIS: true,
-            fechaLimite: true
-        },
-        5: { // Estado Terminado
-            titulo: true,
-            descripcion: true,
-            adjuntos: false,
-            complejidad: true,
-            prioridad: true,
-            usuarioAsignado: false,
-            descripcionEspera: false,
-            estado: true,
-            numeroGIS: true,
-            fechaLimite: true
-        },
-        14: { // Estado Incumplido
-            titulo: true,
-            descripcion: true,
-            adjuntos: false,
-            complejidad: true,
-            prioridad: true,
-            usuarioAsignado: false,
-            descripcionEspera: false,
-            estado: true,
-            numeroGIS: true,
-            fechaLimite: true
-        },
-        15: { // Estado Rechazada
-            titulo: true,
-            descripcion: true,
-            adjuntos: false,
-            complejidad: true,
-            prioridad: true,
-            usuarioAsignado: false,
-            descripcionEspera: false,
-            estado: true,
-            numeroGIS: true,
-            fechaLimite: true
-        },
-        17: { // Estado En revision
-            titulo: true,
-            descripcion: true,
-            adjuntos: false,
-            complejidad: true,
-            prioridad: true,
-            usuarioAsignado: false,
-            descripcionEspera: false,
-            estado: true,
-            numeroGIS: true,
-            fechaLimite: true
+        asignado: {
+            titulo: true, descripcion: true, adjuntos: true, complejidad: true,
+            prioridad: true, usuarioAsignado: true, descripcionEspera: true,
+            estado: false, numeroGIS: true, fechaLimite: true
         }
     },
-    seguimiento: {
-        // Estados típicos: 2 (Asignado), 3 (En proceso), 4 (En espera)
-        2: {
-            titulo: true,
-            descripcion: true,
-            adjuntos: false,
-            complejidad: true,
-            prioridad: true,
-            usuarioAsignado: false,
-            descripcionEspera: true,
-            estado: true,
-            numeroGIS: true,
-            fechaLimite: true
+    // EN_PROCESO
+    [ESTADOS.EN_PROCESO]: {
+        creador: {
+            titulo: true, descripcion: true, adjuntos: true, complejidad: true,
+            prioridad: true, usuarioAsignado: false, descripcionEspera: true,
+            estado: true, numeroGIS: true, fechaLimite: true
         },
-        3: {
-            titulo: true,
-            descripcion: true,
-            adjuntos: false,
-            complejidad: true,
-            prioridad: true,
-            usuarioAsignado: false,
-            descripcionEspera: true,
-            estado: true,
-            numeroGIS: true,
-            fechaLimite: true
-        },
-        4: {
-            titulo: true,
-            descripcion: true,
-            adjuntos: false,
-            complejidad: true,
-            prioridad: true,
-            usuarioAsignado: false,
-            descripcionEspera: true,
-            estado: true,
-            numeroGIS: true,
-            fechaLimite: true
+        asignado: {
+            titulo: true, descripcion: true, adjuntos: true, complejidad: true,
+            prioridad: true, usuarioAsignado: true, descripcionEspera: true,
+            estado: false, numeroGIS: true, fechaLimite: true
         }
     },
-    revision: {
-        17: {
-            titulo: false,
-            descripcion: false,
-            adjuntos: false,
-            complejidad: false,
-            prioridad: false,
-            usuarioAsignado: false,
-            descripcionEspera: false,
-            estado: false,
-            numeroGIS: false,
-            fechaLimite: false
+    // EN_ESPERA
+    [ESTADOS.EN_ESPERA]: {
+        creador: {
+            titulo: true, descripcion: true, adjuntos: true, complejidad: true,
+            prioridad: true, usuarioAsignado: false, descripcionEspera: true,
+            estado: true, numeroGIS: true, fechaLimite: true
+        },
+        asignado: {
+            titulo: true, descripcion: true, adjuntos: true, complejidad: true,
+            prioridad: true, usuarioAsignado: true, descripcionEspera: true,
+            estado: false, numeroGIS: true, fechaLimite: true
         }
     },
-    incumplimiento: {
-        // Estados típicos: 14 (Incumplido)
-        14: {
-            titulo: false,
-            descripcion: false,
-            adjuntos: false,
-            complejidad: false,
-            prioridad: false,
-            usuarioAsignado: false,
-            descripcionEspera: false,
-            estado: false,
-            numeroGIS: false,
-            fechaLimite: false
+    // TERMINADO
+    [ESTADOS.TERMINADO]: {
+        creador: {
+            titulo: true, descripcion: true, adjuntos: true, complejidad: true,
+            prioridad: true, usuarioAsignado: true, descripcionEspera: true,
+            estado: true, numeroGIS: true, fechaLimite: true
+        },
+        asignado: {
+            titulo: true, descripcion: true, adjuntos: true, complejidad: true,
+            prioridad: true, usuarioAsignado: true, descripcionEspera: true,
+            estado: true, numeroGIS: true, fechaLimite: true
+        }
+    },
+    // INCUMPLIDO
+    [ESTADOS.INCUMPLIDO]: {
+        creador: {
+            titulo: false, descripcion: false, adjuntos: false, complejidad: false,
+            prioridad: false, usuarioAsignado: false, descripcionEspera: false,
+            estado: false, numeroGIS: false, fechaLimite: false
+        },
+        asignado: {
+            titulo: true, descripcion: true, adjuntos: true, complejidad: true,
+            prioridad: true, usuarioAsignado: true, descripcionEspera: true,
+            estado: true, numeroGIS: true, fechaLimite: true
+        }
+    },
+    // RECHAZADA
+    [ESTADOS.RECHAZADA]: {
+        creador: {
+            titulo: false, descripcion: false, adjuntos: false, complejidad: false,
+            prioridad: false, usuarioAsignado: false, descripcionEspera: true,
+            estado: false, numeroGIS: false, fechaLimite: false
+        },
+        asignado: {
+            titulo: true, descripcion: true, adjuntos: true, complejidad: true,
+            prioridad: true, usuarioAsignado: true, descripcionEspera: true,
+            estado: false, numeroGIS: true, fechaLimite: true
+        }
+    },
+    // EN_REVISION
+    [ESTADOS.EN_REVISION]: {
+        creador: {
+            titulo: true, descripcion: true, adjuntos: true, complejidad: true,
+            prioridad: true, usuarioAsignado: true, descripcionEspera: true,
+            estado: false, numeroGIS: true, fechaLimite: true
+        },
+        asignado: {
+            titulo: true, descripcion: true, adjuntos: true, complejidad: true,
+            prioridad: true, usuarioAsignado: true, descripcionEspera: true,
+            estado: true, numeroGIS: true, fechaLimite: true
         }
     }
+};
+
+// CONFIGURACIÓN ULTRA SIMPLE DE ACCIONES: Solo Estado + Relación
+export const RESTRICCIONES_ACCIONES_CONFIG = {
+    // REGISTRADO
+    [ESTADOS.REGISTRADO]: {
+        creador: {
+            eliminar: true, editar: true, asignar: true, cambiarEstado: true,
+            agregarComentarios: true, subirAdjuntos: true, verDetalles: true
+        },
+        asignado: {
+            eliminar: false, editar: false, asignar: false, cambiarEstado: false,
+            agregarComentarios: true, subirAdjuntos: false, verDetalles: false
+        }
+    },
+    // ASIGNADO
+    [ESTADOS.ASIGNADO]: {
+        creador: {
+            eliminar: false, editar: true, asignar: true, cambiarEstado: true,
+            agregarComentarios: true, subirAdjuntos: true, verDetalles: true
+        },
+        asignado: {
+            eliminar: false, editar: true, asignar: false, cambiarEstado: true,
+            agregarComentarios: true, subirAdjuntos: true, verDetalles: true
+        }
+    },
+    // EN_PROCESO
+    [ESTADOS.EN_PROCESO]: {
+        creador: {
+            eliminar: false, editar: true, asignar: true, cambiarEstado: true,
+            agregarComentarios: true, subirAdjuntos: true, verDetalles: true
+        },
+        asignado: {
+            eliminar: false, editar: true, asignar: false, cambiarEstado: true,
+            agregarComentarios: true, subirAdjuntos: true, verDetalles: true
+        }
+    },
+    // EN_ESPERA
+    [ESTADOS.EN_ESPERA]: {
+        creador: {
+            eliminar: false, editar: true, asignar: true, cambiarEstado: true,
+            agregarComentarios: true, subirAdjuntos: true, verDetalles: true
+        },
+        asignado: {
+            eliminar: false, editar: true, asignar: false, cambiarEstado: true,
+            agregarComentarios: true, subirAdjuntos: true, verDetalles: true
+        }
+    },
+    // TERMINADO
+    [ESTADOS.TERMINADO]: {
+        creador: {
+            eliminar: false, editar: false, asignar: false, cambiarEstado: false,
+            agregarComentarios: true, subirAdjuntos: false, verDetalles: true
+        },
+        asignado: {
+            eliminar: false, editar: false, asignar: false, cambiarEstado: false,
+            agregarComentarios: true, subirAdjuntos: false, verDetalles: true
+        }
+    },
+    // INCUMPLIDO
+    [ESTADOS.INCUMPLIDO]: {
+        creador: {
+            eliminar: false, editar: true, asignar: true, cambiarEstado: true,
+            agregarComentarios: true, subirAdjuntos: false, verDetalles: true
+        },
+        asignado: {
+            eliminar: false, editar: false, asignar: false, cambiarEstado: false,
+            agregarComentarios: true, subirAdjuntos: false, verDetalles: true
+        }
+    },
+    // RECHAZADA
+    [ESTADOS.RECHAZADA]: {
+        creador: {
+            eliminar: false, editar: true, asignar: true, cambiarEstado: true,
+            agregarComentarios: true, subirAdjuntos: true, verDetalles: true
+        },
+        asignado: {
+            eliminar: false, editar: true, asignar: false, cambiarEstado: false,
+            agregarComentarios: true, subirAdjuntos: false, verDetalles: true
+        }
+    },
+    // EN_REVISION
+    [ESTADOS.EN_REVISION]: {
+        creador: {
+            eliminar: false, editar: true, asignar: true, cambiarEstado: true,
+            agregarComentarios: true, subirAdjuntos: true, verDetalles: true
+        },
+        asignado: {
+            eliminar: false, editar: true, asignar: false, cambiarEstado: true,
+            agregarComentarios: true, subirAdjuntos: true, verDetalles: true
+        }
+    }
+};
+
+// Helper: Obtener relación del usuario con la tarea
+const obtenerRelacionUsuarioTarea = (tarea, usuarioId) => {
+
+    console.log("Obteniendo relación usuario-tarea:", { tarea, usuarioId });
+    if (tarea.cN_Usuario_creador === usuarioId || tarea.creadoPorId === usuarioId) return 'creador';
+    if (tarea.cN_Usuario_asignado === usuarioId || tarea.asignadoAId === usuarioId) return 'asignado';
+    return 'ninguna';
 };
 
 // Restricciones por defecto (todos los campos editables)
@@ -278,279 +233,114 @@ export const RESTRICCIONES_DEFAULT = {
     adjuntos: false
 };
 
-// Función para obtener restricciones
-export const obtenerRestricciones = (tarea, tipoSeccion) => {
-    console.log("obtenerRestricciones del formulario desde el archivo", tarea, tipoSeccion);
+// Función principal para obtener restricciones de campos
+export const obtenerRestricciones = (tarea, tipoSeccion, usuario) => {
+    console.log("Obteniendo restricciones:", { tarea, tipoSeccion, usuario });
 
-    if (!tarea) return RESTRICCIONES_DEFAULT;
-
-    const estadoId = tarea.estadoId || tarea.cN_Id_estado;
-
-    // Buscar configuración específica
-    const restriccionesSeccion = RESTRICCIONES_CONFIG[tipoSeccion];
-    if (restriccionesSeccion && restriccionesSeccion[estadoId]) {
-        console.log("obtenerRestricciones del formulario desde el archivo", tarea, tipoSeccion, "restriccionesSeccion", restriccionesSeccion[estadoId], estadoId);
-        return restriccionesSeccion[estadoId];
+    // Validaciones básicas
+    if (!tarea || !usuario) {
+        console.warn("Parámetros insuficientes para determinar restricciones");
+        return RESTRICCIONES_DEFAULT;
     }
 
-    // Retornar restricciones por defecto si no se encuentra configuración
+
+    const { id: usuarioId } = usuario;
+    const usuarioIdInt = parseInt(usuarioId, 10);
+    const estadoId = tarea.cN_Id_estado || tarea.estadoId;
+    console.log(`Estado de la tarea: ${estadoId}, Usuario ID: ${usuarioIdInt}`);
+
+    // Obtener configuración para el estado actual
+    const estadoConfig = RESTRICCIONES_CONFIG[estadoId];
+    if (!estadoConfig) {
+        console.warn(`No se encontró configuración para el estado: ${estadoId}`);
+        return RESTRICCIONES_DEFAULT;
+    }
+
+    // Determinar relación usuario-tarea
+    const relacion = obtenerRelacionUsuarioTarea(tarea, usuarioIdInt);
+    if (relacion === 'ninguna') {
+        // Si no es ni creador ni asignado, todas las restricciones
+        console.log(`Usuario sin relación con la tarea - aplicando máximas restricciones`);
+        return {
+            titulo: true, descripcion: true, adjuntos: true, complejidad: true,
+            prioridad: true, usuarioAsignado: true, descripcionEspera: true,
+            estado: true, numeroGIS: true, fechaLimite: true
+        };
+    }
+
+    const restricciones = estadoConfig[relacion];
+    if (restricciones) {
+        console.log(`Restricciones aplicadas: Estado ${estadoId} -> ${relacion}`);
+        return restricciones;
+    }
+
+    console.warn(`No se encontró configuración específica. Usando restricciones por defecto.`);
     return RESTRICCIONES_DEFAULT;
 };
 
-// Configuración de restricciones de acciones por estado y tipo de sección
-export const RESTRICCIONES_ACCIONES_CONFIG = {
-    misTareas: {
-        1: { // Estado Registrado
-            eliminar: true,
-            editar: false,
-            asignar: false,
-            cambiarEstado: true,
-            agregarComentarios: true,
-            subirAdjuntos: true,
-            verDetalles: true
-        },
-        2: { // Estado Asignado
-            eliminar: false, // No se puede eliminar tarea en estado asignado
-            editar: false,
-            asignar: false,
-            cambiarEstado: true,
-            agregarComentarios: true,
-            subirAdjuntos: true,
-            verDetalles: true
-        },
-        3: { // Estado En proceso
-            eliminar: false,
-            editar: true,
-            asignar: false,
-            cambiarEstado: true,
-            agregarComentarios: true,
-            subirAdjuntos: true,
-            verDetalles: true
-        },
-        4: { // Estado En espera
-            eliminar: false,
-            editar: true,
-            asignar: false,
-            cambiarEstado: true,
-            agregarComentarios: true,
-            subirAdjuntos: true,
-            verDetalles: true
-        },
-        5: { // Estado Terminado
-            eliminar: false,
-            editar: false,
-            asignar: false,
-            cambiarEstado: false,
-            agregarComentarios: true,
-            subirAdjuntos: false,
-            verDetalles: true
-        },
-        14: { // Estado Incumplido
-            eliminar: false,
-            editar: false,
-            asignar: false,
-            cambiarEstado: true,
-            agregarComentarios: true,
-            subirAdjuntos: false,
-            verDetalles: true
-        },
-        15: { // Estado Rechazada
-            eliminar: false,
-            editar: false,
-            asignar: false,
-            cambiarEstado: false,
-            agregarComentarios: true,
-            subirAdjuntos: false,
-            verDetalles: true
-        },        17: { // Estado En revision
-            eliminar: false,
-            editar: false,
-            asignar: false,
-            cambiarEstado: true,
-            agregarComentarios: true,
-            subirAdjuntos: false,
-            verDetalles: true
-        }
-    },
-    subtareas: {
-        1: { // Estado Registrado
-            eliminar: true,
-            editar: false,
-            asignar: false,
-            cambiarEstado: true,
-            agregarComentarios: true,
-            subirAdjuntos: true,
-            verDetalles: true
-        },
-        2: { // Estado Asignado
-            eliminar: false, // No se puede eliminar subtarea en estado asignado
-            editar: true,
-            asignar: false,
-            cambiarEstado: true,
-            agregarComentarios: true,
-            subirAdjuntos: true,
-            verDetalles: true
-        },
-        3: { // Estado En proceso
-            eliminar: false,
-            editar: true,
-            asignar: false,
-            cambiarEstado: true,
-            agregarComentarios: true,
-            subirAdjuntos: true,
-            verDetalles: true
-        },
-        4: { // Estado En espera
-            eliminar: false,
-            editar: true,
-            asignar: false,
-            cambiarEstado: true,
-            agregarComentarios: true,
-            subirAdjuntos: true,
-            verDetalles: true
-        },
-        5: { // Estado Terminado
-            eliminar: false,
-            editar: false,
-            asignar: false,
-            cambiarEstado: false,
-            agregarComentarios: true,
-            subirAdjuntos: false,
-            verDetalles: true
-        },
-        14: { // Estado Incumplido
-            eliminar: false,
-            editar: false,
-            asignar: false,
-            cambiarEstado: true,
-            agregarComentarios: true,
-            subirAdjuntos: false,
-            verDetalles: true
-        },
-        15: { // Estado Rechazada
-            eliminar: false,
-            editar: false,
-            asignar: false,
-            cambiarEstado: false,
-            agregarComentarios: true,
-            subirAdjuntos: false,
-            verDetalles: true
-        },
-        17: { // Estado En revision
-            eliminar: false,
-            editar: false,
-            asignar: false,
-            cambiarEstado: true,
-            agregarComentarios: true,
-            subirAdjuntos: false,
-            verDetalles: true
-        }
-    },
-    seguimiento: {
-        2: {
-            eliminar: false,
-            editar: false,
-            asignar: false,
-            cambiarEstado: false,
-            agregarComentarios: true,
-            subirAdjuntos: false,
-            verDetalles: true
-        },
-        3: {
-            eliminar: false,
-            editar: false,
-            asignar: false,
-            cambiarEstado: false,
-            agregarComentarios: true,
-            subirAdjuntos: false,
-            verDetalles: true
-        },
-        4: {
-            eliminar: false,
-            editar: false,
-            asignar: false,
-            cambiarEstado: false,
-            agregarComentarios: true,
-            subirAdjuntos: false,
-            verDetalles: true
-        }
-    },
-    revision: {
-        17: {
-            eliminar: false,
-            editar: false,
-            asignar: false,
-            cambiarEstado: false,
-            agregarComentarios: true,
-            subirAdjuntos: false,
-            verDetalles: true
-        }
-    },
-    incumplimiento: {
-        14: {
-            eliminar: false,
-            editar: false,
-            asignar: false,
-            cambiarEstado: false,
-            agregarComentarios: true,
-            subirAdjuntos: false,
-            verDetalles: true
-        }
-    }
-};
-
-// Restricciones de acciones por defecto (todas las acciones permitidas)
+// Restricciones de acciones por defecto
 export const RESTRICCIONES_ACCIONES_DEFAULT = {
-    eliminar: true,
-    editar: true,
-    asignar: true,
-    cambiarEstado: true,
+    eliminar: false,
+    editar: false,
+    asignar: false,
+    cambiarEstado: false,
     agregarComentarios: true,
-    subirAdjuntos: true,
+    subirAdjuntos: false,
     verDetalles: true
 };
 
 // Función para obtener restricciones de acciones
-export const obtenerRestriccionesAcciones = (tarea, tipoSeccion) => {
-    console.log("obtenerRestriccionesAcciones desde el archivo", tarea, tipoSeccion);
-    if (!tarea) return RESTRICCIONES_ACCIONES_DEFAULT;
+export const obtenerRestriccionesAcciones = (tarea, tipoSeccion, usuario) => {
+    console.log("Obteniendo restricciones de acciones:", { tarea, tipoSeccion, usuario });
 
-    const estadoId = tarea.estadoId || tarea.cN_Id_estado;
-
-    // Buscar configuración específica
-    const restriccionesSeccion = RESTRICCIONES_ACCIONES_CONFIG[tipoSeccion];
-    if (restriccionesSeccion && restriccionesSeccion[estadoId]) {
-        console.log("obtenerRestriccionesAcciones desde el archivo", tarea, tipoSeccion, "restriccionesSeccion", restriccionesSeccion[estadoId], estadoId);
-        return restriccionesSeccion[estadoId];
-
+    if (!tarea || !usuario) {
+        return RESTRICCIONES_ACCIONES_DEFAULT;
     }
 
+    const { id: usuarioId } = usuario;
+    const usuarioIdInt = parseInt(usuarioId, 10);
+    const estadoId = tarea.cN_Id_estado || tarea.estadoId;
 
-    // Retornar restricciones por defecto si no se encuentra configuración
-    return RESTRICCIONES_ACCIONES_DEFAULT;
+    // Obtener configuración para el estado actual
+    const estadoConfig = RESTRICCIONES_ACCIONES_CONFIG[estadoId];
+    if (!estadoConfig) {
+        return RESTRICCIONES_ACCIONES_DEFAULT;
+    }
+
+    // Determinar relación usuario-tarea
+    const relacion = obtenerRelacionUsuarioTarea(tarea, usuarioIdInt);
+    if (relacion === 'ninguna') {
+        // Si no es ni creador ni asignado, todas las acciones restringidas
+        return {
+            eliminar: true, editar: true, asignar: true, cambiarEstado: true,
+            agregarComentarios: true, subirAdjuntos: true, verDetalles: false
+        };
+    }
+
+    return estadoConfig[relacion] || RESTRICCIONES_ACCIONES_DEFAULT;
 };
 
 // Función para verificar si una acción específica está permitida
-export const puedeEjecutarAccion = (tarea, accion, tipoSeccion) => {
-    if (!tarea || !accion || !tipoSeccion) return false;
+export const puedeEjecutarAccion = (tarea, accion, tipoSeccion, usuario) => {
+    if (!tarea || !accion || !tipoSeccion || !usuario) return false;
 
-    const restricciones = obtenerRestriccionesAcciones(tarea, tipoSeccion);
+    const restricciones = obtenerRestriccionesAcciones(tarea, tipoSeccion, usuario);
     return restricciones[accion] === true;
 };
 
 // Función para obtener todas las acciones permitidas para una tarea
-export const obtenerAccionesPermitidas = (tarea, tipoSeccion) => {
-    if (!tarea || !tipoSeccion) return [];
+export const obtenerAccionesPermitidas = (tarea, tipoSeccion, usuario) => {
+    if (!tarea || !tipoSeccion || !usuario) return [];
 
-    const restricciones = obtenerRestriccionesAcciones(tarea, tipoSeccion);
+    const restricciones = obtenerRestriccionesAcciones(tarea, tipoSeccion, usuario);
     return Object.keys(restricciones).filter(accion => restricciones[accion] === true);
 };
 
 // Función para verificar múltiples acciones a la vez
-export const verificarAccionesMultiples = (tarea, acciones, tipoSeccion) => {
-    if (!tarea || !acciones || !Array.isArray(acciones) || !tipoSeccion) return {};
+export const verificarAccionesMultiples = (tarea, acciones, tipoSeccion, usuario) => {
+    if (!tarea || !acciones || !Array.isArray(acciones) || !tipoSeccion || !usuario) return {};
 
-    const restricciones = obtenerRestriccionesAcciones(tarea, tipoSeccion);
+    const restricciones = obtenerRestriccionesAcciones(tarea, tipoSeccion, usuario);
     const resultado = {};
     acciones.forEach(accion => {
         resultado[accion] = restricciones[accion] === true;
@@ -558,108 +348,43 @@ export const verificarAccionesMultiples = (tarea, acciones, tipoSeccion) => {
     return resultado;
 };
 
-// Configuración de restricciones por rol de usuario
-export const RESTRICCIONES_POR_ROL = {
-    1: { // Director
-        crearTareas: true,
-        crearSubtareas: true,
-        eliminarTareas: true,
-        editarTareas: true,
-        asignarTareas: true
-    },
-    2: { // Subdirector
-        crearTareas: true,
-        crearSubtareas: true,
-        eliminarTareas: true,
-        editarTareas: true,
-        asignarTareas: true
-    },
-    3: { // Jefe
-        crearTareas: true,
-        crearSubtareas: true,
-        eliminarTareas: true,
-        editarTareas: true,
-        asignarTareas: true
-    },
-    4: { // Coordinador
-        crearTareas: true,
-        crearSubtareas: true,
-        eliminarTareas: true,
-        editarTareas: true,
-        asignarTareas: true
-    },
-    5: { // Profesional 3
-        crearTareas: true,
-        crearSubtareas: true,
-        eliminarTareas: true,
-        editarTareas: true,
-        asignarTareas: true
-    },
-    6: { // Profesional 2
-        crearTareas: false,
-        crearSubtareas: false,
-        eliminarTareas: true,
-        editarTareas: true,
-        asignarTareas: false
-    },
-    7: { // Profesional 1
-        crearTareas: false,
-        crearSubtareas: false,
-        eliminarTareas: true,
-        editarTareas: true,
-        asignarTareas: false
-    },
-    8: { // Técnico
-        crearTareas: false,
-        crearSubtareas: false,
-        eliminarTareas: true,
-        editarTareas: true,
-        asignarTareas: false
-    }
+// Función para verificar si un campo específico está restringido
+export const esCampoRestringido = (tarea, campo, tipoSeccion, usuario) => {
+    if (!tarea || !campo || !tipoSeccion || !usuario) return true;
+
+    const restricciones = obtenerRestricciones(tarea, tipoSeccion, usuario);
+    return restricciones[campo] === true;
 };
 
-// Restricciones por rol por defecto (todos los permisos habilitados)
-export const RESTRICCIONES_ROL_DEFAULT = {
-    crearTareas: true,
-    crearSubtareas: true,
-    eliminarTareas: true,
-    editarTareas: true,
-    asignarTareas: true
+// Función helper para obtener el nombre del estado
+export const obtenerNombreEstado = (estadoId) => {
+    const nombresEstados = {
+        [ESTADOS.REGISTRADO]: 'Registrado',
+        [ESTADOS.ASIGNADO]: 'Asignado',
+        [ESTADOS.EN_PROCESO]: 'En Proceso',
+        [ESTADOS.EN_ESPERA]: 'En Espera',
+        [ESTADOS.TERMINADO]: 'Terminado',
+        [ESTADOS.INCUMPLIDO]: 'Incumplido',
+        [ESTADOS.RECHAZADA]: 'Rechazada',
+        [ESTADOS.EN_REVISION]: 'En Revisión'
+    };
+    return nombresEstados[estadoId] || 'Desconocido';
 };
 
-export const obtenerRestriccionesPorRol = (rolId) => {
-    if (!rolId) return RESTRICCIONES_ROL_DEFAULT;
+// Función para debug - mostrar información de restricciones
+export const debugRestricciones = (tarea, tipoSeccion, usuario) => {
+    console.group('🔒 Debug de Restricciones');
+    console.log('Tarea:', tarea);
+    console.log('Usuario:', usuario);
+    console.log('Estado:', tarea?.cN_Id_estado || tarea?.estadoId);
+    const usuarioIdInt = parseInt(usuario?.id, 10);
+    console.log('Relación con tarea:', obtenerRelacionUsuarioTarea(tarea, usuarioIdInt));
 
-    const restricciones = RESTRICCIONES_POR_ROL[rolId];
-    if (restricciones) {
-        return restricciones;
-    }
+    const restriccionesCampos = obtenerRestricciones(tarea, tipoSeccion, usuario);
+    console.log('Restricciones de campos:', restriccionesCampos);
 
-    // Retornar restricciones por defecto si no se encuentra el rol
-    return RESTRICCIONES_ROL_DEFAULT;
-};
+    const restriccionesAcciones = obtenerRestriccionesAcciones(tarea, tipoSeccion, usuario);
+    console.log('Restricciones de acciones:', restriccionesAcciones);
 
-// Función para verificar si un usuario puede realizar una acción según su rol
-export const puedeEjecutarAccionPorRol = (accion, rolId) => {
-    if (!accion || !rolId) return false;
-
-    const restricciones = obtenerRestriccionesPorRol(rolId);
-    return restricciones[accion] === true;
-};
-
-// Función combinada que verifica tanto restricciones de estado como de rol
-export const puedeEjecutarAccionCompleta = (tarea, accion, tipoSeccion, rolId) => {
-    // Verificar restricciones por rol primero
-    if (!puedeEjecutarAccionPorRol(accion, rolId)) {
-        return false;
-    }
-
-    // Si el rol permite la acción, verificar restricciones por estado
-    if (accion === 'crearTareas' || accion === 'crearSubtareas') {
-        // Para crear tareas/subtareas, solo verificamos el rol
-        return true;
-    }
-
-    // Para otras acciones, usar la función existente con tipoSeccion correcto
-    return puedeEjecutarAccion(tarea, accion, tipoSeccion);
+    console.groupEnd();
 };

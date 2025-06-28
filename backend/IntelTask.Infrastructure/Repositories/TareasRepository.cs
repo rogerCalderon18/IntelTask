@@ -68,7 +68,7 @@ namespace IntelTask.Infrastructure.Repositories
                 {
                     CN_Id_tarea_permiso = tarea.CN_Id_tarea,
                     CN_Id_tipo_documento = 1, // Ajusta según tu lógica
-                    CN_Id_estado_anterior = tarea.CN_Id_estado,
+                    CN_Id_estado_anterior = tarea.CN_Id_estado == 2 ? (byte) 1 : tarea.CN_Id_estado, // Si es nueva, el estado anterior es 1 (registrado)
                     CN_Id_estado_nuevo = tarea.CN_Id_estado,
                     CF_Fecha_hora_cambio = DateTime.Now,
                     CN_Id_usuario_responsable = tarea.CN_Usuario_creador, // Usuario creador
@@ -138,7 +138,6 @@ namespace IntelTask.Infrastructure.Repositories
                 throw new InvalidOperationException("No se pudo actualizar porque la tarea cambió simultáneamente.");
             }
         }
-
 
         public async Task<ETareas> M_PUB_ActualizarTarea(int id, TareaUpdateRequest request)
         {

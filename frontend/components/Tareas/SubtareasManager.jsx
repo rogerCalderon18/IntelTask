@@ -10,9 +10,11 @@ import EditarTareaModal from "./EditarTareaModal";
 import ListaSubtareas from "./ListaSubtareas";
 import DetalleModal from "./DetalleModal";
 import useConfirmation from '@/hooks/useConfirmation';
-import { obtenerRestricciones, obtenerRestriccionesAcciones } from '../utils/restricciones';
+import { useSession } from "next-auth/react";
+import { obtenerRestricciones, obtenerRestriccionesAcciones } from "../utils/restricciones";
 
-const SubtareasManager = ({ tareaId, tareaPadre, onSubtareasChange }) => {
+const SubtareasManager = ({ tareaId, tareaPadre, tipoSeccion, onSubtareasChange }) => {
+    const { data: session } = useSession();
     const [subtareas, setSubtareas] = useState([]);
     const [selectedSubtarea, setSelectedSubtarea] = useState(null);
     const [originalUsuarioAsignado, setOriginalUsuarioAsignado] = useState(null); // Guardar el usuario original
@@ -24,15 +26,6 @@ const SubtareasManager = ({ tareaId, tareaPadre, onSubtareasChange }) => {
     const { isOpen: isEditOpen, onOpen: onEditOpen, onOpenChange: onEditOpenChange } = useDisclosure();
     const { isOpen: isDetalleOpen, onOpen: onDetalleOpen, onOpenChange: onDetalleOpenChange } = useDisclosure();
     const { showConfirmation } = useConfirmation();
-    
-    // Restricciones para subtareas
-    const restriccionesEditar = useMemo(() => {
-        return obtenerRestricciones(selectedSubtarea, 'subtareas');
-    }, [selectedSubtarea]);
-
-    const restriccionesAccionesEditar = useMemo(() => {
-        return obtenerRestriccionesAcciones(selectedSubtarea, 'subtareas');
-    }, [selectedSubtarea]);
     
     useEffect(() => {
         if (tareaId) {
@@ -238,6 +231,37 @@ const SubtareasManager = ({ tareaId, tareaPadre, onSubtareasChange }) => {
         setMostrarSubtareas(!mostrarSubtareas);
     };
 
+    // Restricciones para el modal de creación de subtareas
+    const restriccionesCrearSubtarea = useMemo(() => {
+        if (!tareaPadre || !session?.user) return {};
+        
+        return obtenerRestricciones(tareaPadre, tipoSeccion, session.user);
+    }, [tareaPadre, tipoSeccion, session]);
+
+    // Restricciones para el modal de edición de subtareas
+    const restriccionesEditarSubtarea = useMemo(() => {
+        if (!selectedSubtarea || !session?.user) return {};
+        
+        return obtenerRestricciones(selectedSubtarea, tipoSeccion, session.user);
+    }, [selectedSubtarea, tipoSeccion, session]);
+
+    // Restricciones de acciones para edición de subtareas
+    const restriccionesAccionesEditarSubtarea = useMemo(() => {
+        if (!selectedSubtarea || !session?.user) return {};
+        
+        return obtenerRestriccionesAcciones(selectedSubtarea, tipoSeccion, session.user);
+    }, [selectedSubtarea, tipoSeccion, session]);
+
+    // Subtareas con restricciones aplicadas
+    const subtareasConRestricciones = useMemo(() => {
+        if (!session?.user || !subtareas.length) return subtareas;
+
+        return subtareas.map(subtarea => ({
+            ...subtarea,
+            restriccionesAcciones: obtenerRestriccionesAcciones(subtarea, tipoSeccion, session.user)
+        }));
+    }, [subtareas, tipoSeccion, session]);
+
     return (
         <div className="mt-3 pt-3 border-t border-gray-200 my-5">
             <div className="flex items-center justify-between mb-2">
@@ -266,7 +290,7 @@ const SubtareasManager = ({ tareaId, tareaPadre, onSubtareasChange }) => {
             </div>            {/* Lista de subtareas */}
             {mostrarSubtareas && (
                 <ListaSubtareas
-                    subtareas={subtareas}
+                    subtareas={subtareasConRestricciones}
                     loading={loading}
                     onEdit={handleEditSubtarea}
                     onDelete={handleEliminarSubtarea}
@@ -282,6 +306,7 @@ const SubtareasManager = ({ tareaId, tareaPadre, onSubtareasChange }) => {
                 onSubmit={handleCrearSubtarea}
                 tarea={null}
                 tareaPadre={tareaPadre}
+                restricciones={restriccionesCrearSubtarea}
             />            {/* Modal para editar subtarea */}
             <EditarTareaModal
                 isOpen={isEditOpen}
@@ -294,8 +319,8 @@ const SubtareasManager = ({ tareaId, tareaPadre, onSubtareasChange }) => {
                 onSubmit={handleEditarSubtarea}
                 tarea={selectedSubtarea}
                 tareaPadre={tareaPadre}
-                restricciones={restriccionesEditar}
-                restriccionesAcciones={restriccionesAccionesEditar}
+                restricciones={restriccionesEditarSubtarea}
+                restriccionesAcciones={restriccionesAccionesEditarSubtarea}
             />
 
             {/* Modal de detalle de subtarea */}

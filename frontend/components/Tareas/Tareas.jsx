@@ -23,8 +23,8 @@ const Tareas = () => {
     const [selectedTarea, setSelectedTarea] = useState(null);
     const [originalUsuarioAsignado, setOriginalUsuarioAsignado] = useState(null);
     const [estados, setEstados] = useState([]);
-    const [filtroEstado, setFiltroEstado] = useState('all');
-    const [tabActivo, setTabActivo] = useState("misTareas");
+    const [tabActivo, setTabActivo] = useState("pendientes");
+    const [filtroRol, setFiltroRol] = useState("todos"); // filtro de rol: creador/asignado
     const [isEditing, setIsEditing] = useState(false);
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
     const { isOpen: isEditOpen, onOpen: onEditOpen, onOpenChange: onEditOpenChange } = useDisclosure();
@@ -38,75 +38,42 @@ const Tareas = () => {
 
     const tabs = useMemo(() => [
         {
-            id: "misTareas",
-            label: "Mis Tareas",
-            filter: (tareas) => {
-                const usuarioId = parseInt(session?.user?.id);
-                if (!usuarioId) {
-                    return;
-                }
-
-                const tareasFiltradas = tareas.filter((tarea) => {
-                    const esCreador = tarea.cN_Usuario_creador === usuarioId;
-                    const esAsignado = tarea.cN_Usuario_asignado === usuarioId;
-                    const cumpleCondicion = esCreador || esAsignado;
-                    return cumpleCondicion;
-                });
-                return tareasFiltradas;
-            },
+            id: "pendientes",
+            label: "Pendientes",
+            description: "Tareas registradas y asignadas",
+            estados: [1, 2], // Registrado, Asignado
         }, {
-            id: "seguimiento",
-            label: "En seguimiento",
-            filter: (tareas) => {
-                const usuarioId = parseInt(session?.user?.id);
-                if (!usuarioId) {
-                    return [];
-                }
-
-                return tareas.filter((tarea) => {
-                    const esCreador = tarea.cN_Usuario_creador === usuarioId;
-                    const tieneAsignado = tarea.cN_Usuario_asignado && tarea.cN_Usuario_asignado !== usuarioId;
-                    const estadoValido = [2, 3, 4].includes(tarea.estado || tarea.cN_Id_estado); // Asignado, En proceso, En espera
-
-                    return esCreador && tieneAsignado && estadoValido;
-                });
-            },
+            id: "enProceso",
+            label: "En Proceso",
+            description: "Tareas en desarrollo",
+            estados: [3], // En proceso
         }, {
-            id: "revision",
-            label: "En revisión",
-            filter: (tareas) => {
-                const usuarioId = parseInt(session?.user?.id);
-                if (!usuarioId) {
-                    return [];
-                }
-
-                return tareas.filter((tarea) => {
-                    const estadoEnRevision = (tarea.estado || tarea.cN_Id_estado) === 17;
-                    const esCreador = tarea.cN_Usuario_creador === usuarioId; // Tareas que debo revisar
-                    const esAsignado = tarea.cN_Usuario_asignado === usuarioId; // Tareas que envié a revisión
-
-                    return estadoEnRevision && (esCreador || esAsignado);
-                });
-            },
+            id: "enEspera",
+            label: "En Espera",
+            description: "Tareas pausadas o bloqueadas",
+            estados: [4], // En espera
         }, {
-            id: "incumplimiento",
-            label: "Incumplimiento",
-            filter: (tareas) => {
-                const usuarioId = parseInt(session?.user?.id);
-                if (!usuarioId) {
-                    return [];
-                }
-
-                return tareas.filter((tarea) => {
-                    const estadoIncumplida = (tarea.estado || tarea.cN_Id_estado) === 14;
-                    const esCreador = tarea.cN_Usuario_creador === usuarioId; // Tareas incumplidas que debo revisar
-                    const esAsignado = tarea.cN_Usuario_asignado === usuarioId; // Mis tareas incumplidas
-
-                    return estadoIncumplida && (esCreador || esAsignado);
-                });
-            },
+            id: "enRevision",
+            label: "En Revisión",
+            description: "Tareas pendientes de revisión",
+            estados: [17], // En revisión
+        }, {
+            id: "rechazadas",
+            label: "Rechazadas",
+            description: "Tareas rechazadas",
+            estados: [15], // Rechazada
+        }, {
+            id: "incumplidas",
+            label: "Incumplidas",
+            description: "Tareas no completadas a tiempo",
+            estados: [14], // Incumplido
+        }, {
+            id: "terminadas",
+            label: "Terminadas",
+            description: "Tareas completadas exitosamente",
+            estados: [5], // Terminado
         },
-    ], [session?.user?.id]);
+    ], []);
 
     const cargarDatos = async () => {
         try {
@@ -142,16 +109,6 @@ const Tareas = () => {
         } finally {
             setLoading(false);
         }
-    };
-
-    // Obtener restricciones de campos para el modal de edición/creación
-    const getRestriccionesCampos = (tarea, tipoSeccion) => {
-        return obtenerRestricciones(tarea, tipoSeccion);
-    };
-
-    // Obtener restricciones de acciones para el modal de edición/creación
-    const getRestriccionesAcciones = (tarea, tipoSeccion) => {
-        return obtenerRestriccionesAcciones(tarea, tipoSeccion);
     };
 
     const handleOpenModal = (tarea = null) => {
@@ -330,86 +287,31 @@ const Tareas = () => {
         });
     };
 
-    const filtrarTareasPorEstado = (tareas, estadoId) => {
-        if (!estadoId || estadoId === 'all') return tareas;
 
-        // Filtros especiales para el tab de revisión
-        if (tabActivo === "revision") {
-            const usuarioId = parseInt(session?.user?.id);
-            if (!usuarioId) return tareas;
-
-            if (estadoId === 'para_revisar') {
-                // Tareas que debo revisar (soy creador)
-                return tareas.filter((tarea) => tarea.cN_Usuario_creador === usuarioId);
-            } else if (estadoId === 'mis_en_revision') {
-                // Mis tareas en revisión (soy asignado)
-                return tareas.filter((tarea) => tarea.cN_Usuario_asignado === usuarioId);
-            }
-        }
-
-        // Filtros especiales para el tab de incumplimiento
-        if (tabActivo === "incumplimiento") {
-            const usuarioId = parseInt(session?.user?.id);
-            if (!usuarioId) return tareas;
-
-            if (estadoId === 'para_revisar_incumplimiento') {
-                // Tareas incumplidas que debo revisar (soy creador)
-                return tareas.filter((tarea) => tarea.cN_Usuario_creador === usuarioId);
-            } else if (estadoId === 'mis_incumplidas') {
-                // Mis tareas incumplidas (soy asignado)
-                return tareas.filter((tarea) => tarea.cN_Usuario_asignado === usuarioId);
-            }
-        }
-
-        // Lógica normal para otros tabs
-        const estadoIdNumerico = parseInt(estadoId);
-
-        return tareas.filter((tarea) => {
-            const tareaEstadoId = tarea.estado || tarea.cN_Id_estado;
-            console.log('Comparando:', estadoIdNumerico, 'con', tareaEstadoId);
-            return tareaEstadoId === estadoIdNumerico;
-        });
-    };
-
-    const getEstadosDisponibles = () => {
-        if (tabActivo === "misTareas") {
-            // En "Mis Tareas" solo mostrar Registrado (1) y Asignado (2)
-            return estados.filter(estado =>
-                estado.cN_Id_estado === 1 || estado.cN_Id_estado === 2
-            );
-        } else if (tabActivo === "seguimiento") {
-            // En "Seguimiento" mostrar Asignado (2), En proceso (3) y En espera (4)
-            return estados.filter(estado =>
-                estado.cN_Id_estado === 2 || estado.cN_Id_estado === 3 || estado.cN_Id_estado === 4
-            );
-        } else if (tabActivo === "revision") {
-            // En "Revisión" mostrar opciones personalizadas
-            return [
-                { cN_Id_estado: 'para_revisar', cT_Estado: 'Para revisar' },
-                { cN_Id_estado: 'mis_en_revision', cT_Estado: 'Mis tareas en revisión' }
-            ];
-        } else if (tabActivo === "incumplimiento") {
-            // En "Incumplimiento" mostrar opciones personalizadas
-            return [
-                { cN_Id_estado: 'para_revisar_incumplimiento', cT_Estado: 'Para revisar incumplimiento' },
-                { cN_Id_estado: 'mis_incumplidas', cT_Estado: 'Mis tareas incumplidas' }
-            ];
-        }
-        return estados;
-    };
 
     const tareasFiltradas = useMemo(() => {
-        // 1) aplico filtro de pestaña
+        // 1) Filtrar por estado del tab
+        const usuarioId = parseInt(session?.user?.id);
+        if (!usuarioId) return [];
+
         const tabActual = tabs.find(t => t.id === tabActivo);
-        let list = tabActual ? tabActual.filter(tareas) : [];
+        if (!tabActual) return [];
 
-        // Asegura que list siempre sea un array
-        list = Array.isArray(list) ? list : [];
+        // Filtrar por estados del tab
+        let list = tareas.filter((tarea) => {
+            return tabActual.estados.includes(tarea.estado || tarea.cN_Id_estado);
+        });
 
-        // 2) aplico filtroEstado
-        if (filtroEstado && filtroEstado !== 'all') {
-            list = filtrarTareasPorEstado(list, filtroEstado);
-        }
+        // 2) Filtrar por rol del usuario
+        list = list.filter((tarea) => {
+            const esCreador = tarea.cN_Usuario_creador === usuarioId;
+            const esAsignado = tarea.cN_Usuario_asignado === usuarioId;
+
+            // Aplicar filtro de rol
+            if (filtroRol === "creador") return esCreador;
+            if (filtroRol === "asignado") return esAsignado;
+            return esCreador || esAsignado; // "todos" - cualquier relación con la tarea
+        });
 
         // 3) Evitar mostrar subtareas sueltas si su padre está en la lista
         const idsPadres = new Set(list.map(t => t.cN_Id_tarea));
@@ -421,32 +323,37 @@ const Tareas = () => {
             return true;
         });
 
-    }, [tareas, tabActivo, filtroEstado, tabs]);
+    }, [tareas, tabActivo, filtroRol, tabs, session]);
 
     // Restricciones para el modal de creación
     const restriccionesCrear = useMemo(() => {
-        return getRestriccionesCampos(null, tabActivo);
-    }, [tabActivo]);    // Función para determinar el tipo de sección correcto
-    const determinarTipoSeccion = (tarea, tabActivo) => {
-        // Si la tarea tiene un CN_Tarea_origen, es una subtarea
-        if (tarea && (tarea.CN_Tarea_origen || tarea.cN_Tarea_origen)) {
-            return 'subtareas';
-        }
-        // Si no, usar el tab activo
-        return tabActivo;
-    };
+        if (!session?.user) return {};
+        return obtenerRestricciones(null, tabActivo, session.user);
+    }, [tabActivo, session]);
 
     // Restricciones para el modal de edición
     const restriccionesEditar = useMemo(() => {
-        const tipoSeccion = selectedTarea ? determinarTipoSeccion(selectedTarea, tabActivo) : tabActivo;
-        return getRestriccionesCampos(selectedTarea, tipoSeccion);
-    }, [selectedTarea, tabActivo]);
+        if (!session?.user || !selectedTarea) return {};
+        const restricciones = obtenerRestricciones(selectedTarea, tabActivo, session.user);
+        console.log('Restricciones de campos:', restricciones);
+        return restricciones;
+    }, [selectedTarea, tabActivo, session]);
 
     // Restricciones de acciones para edición
     const restriccionesAccionesEditar = useMemo(() => {
-        const tipoSeccion = selectedTarea ? determinarTipoSeccion(selectedTarea, tabActivo) : tabActivo;
-        return getRestriccionesAcciones(selectedTarea, tipoSeccion);
-    }, [selectedTarea, tabActivo]);
+        if (!session?.user || !selectedTarea) return {};
+        const restricciones = obtenerRestriccionesAcciones(selectedTarea, tabActivo, session.user);
+        return restricciones;
+    }, [selectedTarea, tabActivo, session]);
+
+    // Restricciones para las tareas en las listas
+    const tareasConRestricciones = useMemo(() => {
+        if (!session?.user || !tareasFiltradas) return [];
+        return tareasFiltradas.map(tarea => ({
+            ...tarea,
+            restriccionesAcciones: obtenerRestriccionesAcciones(tarea, tabActivo, session.user)
+        }));
+    }, [tareasFiltradas, tabActivo, session]);
 
     return (
         <Container className="max-w-4xl mx-auto mt-10 h-[calc(100vh-120px)] flex flex-col">
@@ -469,7 +376,6 @@ const Tareas = () => {
                             selectedKey={tabActivo}
                             onSelectionChange={(key) => {
                                 setTabActivo(key);
-                                setFiltroEstado('all');
                             }}
                             classNames={{
                                 tabList: "gap-6 w-full relative rounded-none p-0 border-b border-divider",
@@ -481,29 +387,28 @@ const Tareas = () => {
                             {tabs.map(tab => (
                                 <Tab key={tab.id} title={tab.label}>
                                     <div className="flex justify-between items-center mb-4 ml-2 bg-white sticky top-0 z-10 py-2">
-                                        <Select
-                                            placeholder="Filtrar por estado"
-                                            className="w-1/4"
-                                            onSelectionChange={(keys) => {
-                                                const selectedKey = Array.from(keys)[0];
-                                                console.log('Estado ID seleccionado:', selectedKey);
-                                                setFiltroEstado(selectedKey || 'all');
-                                            }}
-                                            selectionMode="single"
-                                            selectedKeys={filtroEstado ? [filtroEstado.toString()] : ['all']}
-                                        >
-                                            <SelectItem key="all" value="all">
-                                                Todos los estados
-                                            </SelectItem>
-                                            {getEstadosDisponibles().map((estado) => (
-                                                <SelectItem
-                                                    key={estado.cN_Id_estado}
-                                                    value={estado.cN_Id_estado.toString()}
-                                                >
-                                                    {estado.cT_Estado || 'Estado'}
+                                        <div className="flex gap-4 w-1/2">
+                                            <Select
+                                                placeholder="Filtrar por perspectiva"
+                                                className="w-1/2"
+                                                onSelectionChange={(keys) => {
+                                                    const selectedKey = Array.from(keys)[0];
+                                                    setFiltroRol(selectedKey || 'todos');
+                                                }}
+                                                selectionMode="single"
+                                                selectedKeys={[filtroRol]}
+                                            >
+                                                <SelectItem key="todos" value="todos">
+                                                    Todas las tareas
                                                 </SelectItem>
-                                            ))}
-                                        </Select>
+                                                <SelectItem key="creador" value="creador">
+                                                    Tareas que creé
+                                                </SelectItem>
+                                                <SelectItem key="asignado" value="asignado">
+                                                    Tareas asignadas a mí
+                                                </SelectItem>
+                                            </Select>
+                                        </div>
 
                                         <Button
                                             color="primary"
@@ -516,15 +421,15 @@ const Tareas = () => {
                                     </div>
 
                                     <div className="flex-1 overflow-y-auto max-h-[calc(100vh-300px)] pr-2 py-10">
-                                        {tareasFiltradas.length === 0 ? (
+                                        {tareasConRestricciones.length === 0 ? (
                                             <EmptyState
                                                 tabId={tab.id}
                                                 onAddTask={() => handleOpenModal()}
                                             />
                                         ) : (
                                             <TareaAccordion
-                                                key={`${tabActivo}-${filtroEstado}`}
-                                                tareas={tareasFiltradas}
+                                                key={`${tabActivo}-${filtroRol}`}
+                                                tareas={tareasConRestricciones}
                                                 onEdit={handleOpenEditModal}
                                                 onDelete={handleEliminarTarea}
                                                 tipoSeccion={tabActivo}
