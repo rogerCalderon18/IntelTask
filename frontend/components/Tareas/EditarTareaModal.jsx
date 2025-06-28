@@ -429,7 +429,7 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
                                         isLoading={isSubmitting}
                                         spinner={<Spinner size="sm" color="current" />}
                                         isDisabled={
-                                            (restriccionesAcciones && restriccionesAcciones.editar === true) ||
+                                            (restriccionesAcciones && restriccionesAcciones.editar !== true) ||
                                             (mostrarJustificacionRechazo && !justificacionRechazo.trim())
                                         }
                                     >

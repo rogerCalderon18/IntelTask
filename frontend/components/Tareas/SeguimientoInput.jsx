@@ -1,14 +1,17 @@
 import { useState } from "react";
 import { FiMessageCircle, FiSend } from "react-icons/fi";
 import { agregarSeguimiento } from "../../services/seguimientoService";
+import { useSession } from "next-auth/react";
 
 export default function SeguimientoInput({ tareaId, tarea, onAgregado }) {
     const [comentario, setComentario] = useState("");
+    const { data: session } = useSession();
     const [loading, setLoading] = useState(false);
     const [justAdded, setJustAdded] = useState(false);
+    const estadosPermitidos = [2, 3, 4, 17];
 
     const usuarioAsignado = tarea?.cN_Usuario_asignado ?? tarea?.CN_Usuario_asignado;
-    const usuarioActual = tarea?.cN_Usuario_editor ?? tarea?.CN_Usuario_editor;
+    const usuarioActual = parseInt(session.user?.id);
     const estadoTarea = tarea?.cN_Id_estado ?? tarea?.CN_Id_estado;
 
     const handleAgregar = async () => {
@@ -27,8 +30,6 @@ export default function SeguimientoInput({ tareaId, tarea, onAgregado }) {
         }
     };
 
-    // Solo mostrar el input si la tarea está en estado Asignado (2), En proceso (3) o En espera (4)
-    const estadosPermitidos = [2, 3, 4];
     if (!estadosPermitidos.includes(estadoTarea)) {
         return null;
     }

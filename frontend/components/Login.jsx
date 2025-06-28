@@ -29,7 +29,7 @@ const Login = () => {
         if (result?.error) {
           setErrorMessage("Credenciales inválidas");
         } else if (result?.url) {
-          router.replace("/");
+          router.replace("/tareas");
         }
       } catch (error) {
         setErrorMessage("Ocurrió un error. Intente nuevamente.");

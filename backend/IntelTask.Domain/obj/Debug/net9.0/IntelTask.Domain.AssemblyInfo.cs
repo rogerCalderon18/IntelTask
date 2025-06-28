@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("IntelTask.Domain")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+fe348a0b2f49d7f15f71fb4b8a9958d270393cc8")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6727128133f816c2a0936cad59c12f6d03621ba8")]
 [assembly: System.Reflection.AssemblyProductAttribute("IntelTask.Domain")]
 [assembly: System.Reflection.AssemblyTitleAttribute("IntelTask.Domain")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
