@@ -24,6 +24,7 @@ builder.Services.AddScoped<IOficinasRepository, OficinasRepository>();
 builder.Services.AddScoped<IDiasNoHabilesRepository, DiasNoHabilesRepository>();
 builder.Services.AddScoped<IUsuariosRepository, UsuariosRepository>();
 builder.Services.AddScoped<ITareasRepository, TareasRepository>();
+builder.Services.AddScoped<IPermisosRepository, PermisosRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IBitacoraCambioEstadoService, BitacoraCambioEstadoService>();
 builder.Services.AddScoped<IBitacoraCambioEstadoRepository, BitacoraCambioEstadoRepository>();

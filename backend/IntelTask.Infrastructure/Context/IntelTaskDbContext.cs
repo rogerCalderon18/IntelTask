@@ -30,6 +30,8 @@ namespace IntelTask.Infrastructure.Context
           public DbSet<ETareasJustificacionRechazo> T_Tareas_Justificacion_Rechazo { get; set; }
           public DbSet<ENotificaciones> T_Notificaciones { get; set; }
           public DbSet<ENotificacionesXUsuarios> TI_Notificaciones_X_Usuarios { get; set; }
+          public DbSet<EPermisos> T_Permisos { get; set; }
+          public DbSet<EAdjuntosXPermisos> T_Adjuntos_X_Permisos { get; set; }
 
 
           protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -92,6 +94,12 @@ namespace IntelTask.Infrastructure.Context
 
                modelBuilder.Entity<ENotificacionesXUsuarios>().ToTable("TI_Notificaciones_X_Usuarios")
                     .HasKey(e => new { e.CN_Id_notificacion, e.CN_Id_usuario });
+
+               modelBuilder.Entity<EPermisos>().ToTable("T_Permisos")
+                    .HasKey(e => e.CN_Id_permiso);
+
+               modelBuilder.Entity<EAdjuntosXPermisos>().ToTable("T_Adjuntos_X_Permisos")
+                    .HasKey(e => new { e.CN_Id_adjuntos, e.CN_Id_permiso });
           }
      }
 }

@@ -25,16 +25,26 @@ namespace IntelTask.API.Controllers
             return Ok(new { mensaje = "Controlador de adjuntos funcionando", fecha = DateTime.Now });
         }
         [HttpPost("subir")]
-        public async Task<IActionResult> SubirArchivo(IFormFile archivo, [FromForm] int? idTarea, [FromForm] int usuarioId)
+        public async Task<IActionResult> SubirArchivo(IFormFile archivo, [FromForm] int? idTarea, [FromForm] int? idPermiso, [FromForm] int usuarioId)
         {
             try
             {
-                Console.WriteLine($"SubirArchivo llamado - Usuario: {usuarioId}, Tarea: {idTarea}");
+                Console.WriteLine($"SubirArchivo llamado - Usuario: {usuarioId}, Tarea: {idTarea}, Permiso: {idPermiso}");
 
                 if (archivo == null || archivo.Length == 0)
                 {
                     Console.WriteLine("No se proporcionó archivo");
                     return BadRequest("No se ha proporcionado ningún archivo");
+                }
+
+                if (!idTarea.HasValue && !idPermiso.HasValue)
+                {
+                    return BadRequest("Debe especificar una tarea o un permiso para asociar el archivo");
+                }
+
+                if (idTarea.HasValue && idPermiso.HasValue)
+                {
+                    return BadRequest("No se puede asociar un archivo a una tarea y un permiso al mismo tiempo");
                 }
 
                 Console.WriteLine($"Archivo recibido: {archivo.FileName}, Tamaño: {archivo.Length}");
@@ -52,7 +62,9 @@ namespace IntelTask.API.Controllers
                 using (var stream = new FileStream(rutaCompleta, FileMode.Create))
                 {
                     await archivo.CopyToAsync(stream);
-                }                // Guardar en BD
+                }
+
+                // Guardar en BD
                 var adjunto = new EAdjuntos
                 {
                     CT_Archivo_ruta = nombreUnico,
@@ -72,6 +84,18 @@ namespace IntelTask.API.Controllers
                         CN_Id_tarea = idTarea.Value
                     };
                     _context.T_Adjuntos_X_Tareas.Add(relacion);
+                    await _context.SaveChangesAsync();
+                }
+
+                // Asociar con permiso si se especifica
+                if (idPermiso.HasValue && idPermiso.Value > 0)
+                {
+                    var relacion = new EAdjuntosXPermisos
+                    {
+                        CN_Id_adjuntos = adjunto.CN_Id_adjuntos,
+                        CN_Id_permiso = idPermiso.Value
+                    };
+                    _context.T_Adjuntos_X_Permisos.Add(relacion);
                     await _context.SaveChangesAsync();
                 }
 
@@ -102,6 +126,31 @@ namespace IntelTask.API.Controllers
                             ruta = a.CT_Archivo_ruta,
                             fecha = a.CF_Fecha_registro
                         })
+                    .ToListAsync();
+
+                return Ok(adjuntos);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error: {ex.Message}");
+            }
+        }
+
+        [HttpGet("permiso/{idPermiso}")]
+        public async Task<IActionResult> ObtenerPorPermiso(int idPermiso)
+        {
+            try
+            {
+                var adjuntos = await _context.T_Adjuntos
+                    .Where(a => _context.T_Adjuntos_X_Permisos
+                        .Any(ap => ap.CN_Id_adjuntos == a.CN_Id_adjuntos && ap.CN_Id_permiso == idPermiso))
+                    .Select(a => new
+                    {
+                        id = a.CN_Id_adjuntos,
+                        nombre = Path.GetFileName(a.CT_Archivo_ruta),
+                        ruta = a.CT_Archivo_ruta,
+                        fecha = a.CF_Fecha_registro
+                    })
                     .ToListAsync();
 
                 return Ok(adjuntos);
@@ -148,11 +197,17 @@ namespace IntelTask.API.Controllers
                 if (System.IO.File.Exists(rutaCompleta))
                     System.IO.File.Delete(rutaCompleta);
 
-                // Eliminar relaciones
-                var relaciones = await _context.T_Adjuntos_X_Tareas
+                // Eliminar relaciones con tareas
+                var relacionesTareas = await _context.T_Adjuntos_X_Tareas
                     .Where(ax => ax.CN_Id_adjuntos == id)
                     .ToListAsync();
-                _context.T_Adjuntos_X_Tareas.RemoveRange(relaciones);
+                _context.T_Adjuntos_X_Tareas.RemoveRange(relacionesTareas);
+
+                // Eliminar relaciones con permisos
+                var relacionesPermisos = await _context.T_Adjuntos_X_Permisos
+                    .Where(ap => ap.CN_Id_adjuntos == id)
+                    .ToListAsync();
+                _context.T_Adjuntos_X_Permisos.RemoveRange(relacionesPermisos);
 
                 // Eliminar registro
                 _context.T_Adjuntos.Remove(adjunto);
