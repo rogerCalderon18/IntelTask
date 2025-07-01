@@ -28,6 +28,8 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IBitacoraCambioEstadoService, BitacoraCambioEstadoService>();
 builder.Services.AddScoped<IBitacoraCambioEstadoRepository, BitacoraCambioEstadoRepository>();
 builder.Services.AddScoped<ITipoDocumentoRepository, TipoDocumentoRepository>(); // Registrar el repositorio de tipo documento
+builder.Services.AddScoped<INotificacionesRepository, NotificacionesRepository>();
+builder.Services.AddScoped<INotificacionesService, NotificacionesService>();
 
 
 // Configurar EmailSettings

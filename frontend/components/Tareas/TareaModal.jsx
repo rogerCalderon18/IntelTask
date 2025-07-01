@@ -8,12 +8,13 @@ import {
     SelectItem,
     Button,
     ModalContent,
-    Textarea,
+    DatePicker,
     Form,
     Spinner
 } from "@heroui/react";
 import { catalogosService } from "../../services/catalogosService";
 import { useSession } from "next-auth/react";
+import { parseZonedDateTime, getLocalTimeZone, now } from "@internationalized/date";
 
 const TareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tareaPadre = null }) => {
     console.log("tarea", tarea);
@@ -67,7 +68,7 @@ const TareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tareaPadre
                 cN_Id_complejidad: parseInt(formData.get('complejidad')),
                 cN_Id_prioridad: parseInt(formData.get('prioridad')),
                 cN_Id_estado: tarea ? parseInt(formData.get('estado')) : 1,
-                cF_Fecha_limite: formData.get('fechaLimite'),
+                cF_Fecha_limite: tareaLocal.cF_Fecha_limite || formData.get('fechaLimite'),
                 cN_Numero_GIS: formData.get('numeroGIS'),
                 cN_Usuario_creador: session?.user?.id,
                 cN_Usuario_asignado: responsableValue ? parseInt(responsableValue) : null,
@@ -168,18 +169,39 @@ const TareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tareaPadre
                                         isDisabled={isSubmitting}
                                     />
 
-                                    <Input
+                                    <DatePicker
                                         isRequired
-                                        name="fechaLimite"
-                                        label="Fecha límite"
+                                        label="Fecha y hora límite"
                                         labelPlacement="outside"
-                                        type="date"
-                                        defaultValue={tarea?.cF_Fecha_limite ? new Date(tarea.cF_Fecha_limite).toISOString().split('T')[0] : ""}
+                                        showMonthAndYearPickers
+                                        hideTimeZone
                                         variant="bordered"
-                                        errorMessage={"La fecha límite es obligatoria"}
+                                        granularity="minute"
+                                        value={
+                                            tareaLocal.cF_Fecha_limite
+                                                ? parseZonedDateTime(tareaLocal.cF_Fecha_limite.replace('.000Z', '') + `[${getLocalTimeZone()}]`)
+                                                : tarea?.cF_Fecha_limite
+                                                    ? parseZonedDateTime(tarea.cF_Fecha_limite.replace('.000Z', '') + `[${getLocalTimeZone()}]`)
+                                                    : null
+                                        }
+                                        onChange={(date) => {
+                                            if (date) {
+                                                const isoString = date.toDate().toISOString();
+                                                setTareaLocal(prev => ({
+                                                    ...prev,
+                                                    cF_Fecha_limite: isoString
+                                                }));
+                                            } else {
+                                                setTareaLocal(prev => ({
+                                                    ...prev,
+                                                    cF_Fecha_limite: ""
+                                                }));
+                                            }
+                                        }}
+                                        minValue={now(getLocalTimeZone())}
+                                        maxValue={tareaPadre?.cF_Fecha_limite ? parseZonedDateTime(tareaPadre.cF_Fecha_limite.replace('.000Z', '') + `[${getLocalTimeZone()}]`) : undefined}
+                                        errorMessage="La fecha y hora límite son requeridas"
                                         isDisabled={isSubmitting}
-                                        min={new Date().toISOString().split("T")[0]}
-                                        max={tareaPadre?.cF_Fecha_limite ? tareaPadre.cF_Fecha_limite.split("T")[0] : undefined}
                                     />
 
                                     <Select

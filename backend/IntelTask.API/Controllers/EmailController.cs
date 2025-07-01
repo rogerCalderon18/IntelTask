@@ -5,6 +5,7 @@ using MailKit.Security;
 using MimeKit;
 using IntelTask.Domain.Configuration;
 using IntelTask.Domain.DTOs;
+using IntelTask.Domain.Interfaces;
 
 namespace IntelTask.API.Controllers
 {
@@ -14,13 +15,16 @@ namespace IntelTask.API.Controllers
     {
         private readonly ILogger<EmailController> _logger;
         private readonly EmailSettings _emailSettings;
+        private readonly INotificacionesService _notificacionesService;
 
         public EmailController(
             ILogger<EmailController> logger,
-            IOptions<EmailSettings> emailSettings)
+            IOptions<EmailSettings> emailSettings,
+            INotificacionesService notificacionesService)
         {
             _logger = logger;
             _emailSettings = emailSettings.Value;
+            _notificacionesService = notificacionesService;
         }
 
         [HttpPost("enviar-notificacion")]
@@ -57,6 +61,19 @@ namespace IntelTask.API.Controllers
                 await smtp.DisconnectAsync(true);
 
                 _logger.LogInformation("✅ Email enviado exitosamente");
+
+                // Guardar la notificación en la base de datos
+                try
+                {
+                    await _notificacionesService.M_PUB_GuardarNotificacion(request);
+                    _logger.LogInformation("✅ Notificación guardada en base de datos");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "❌ Error al guardar notificación en base de datos, pero email fue enviado");
+                    // No fallar la operación si el email se envió correctamente
+                }
+
                 return Ok(new { success = true, mensaje = "Notificación enviada correctamente" });
             }
             catch (Exception ex)

@@ -11,7 +11,9 @@ import {
     Form,
     Spinner,
     Textarea,
+    DatePicker,
 } from "@heroui/react";
+import { parseZonedDateTime, getLocalTimeZone, now } from "@internationalized/date";
 import { catalogosService } from "../../services/catalogosService";
 import { agregarRechazo } from "../../services/rechazoService";
 import GestorAdjuntos from "./GestorAdjuntos";
@@ -24,9 +26,11 @@ import { useSession } from "next-auth/react";
 const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tareaPadre = null, restricciones = {}, restriccionesAcciones = {} }) => {
     const { data: session, status } = useSession();
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [scrollBehavior, setScrollBehavior] = React.useState("inside");    const [selectedEstado, setSelectedEstado] = useState(null);
+    const [scrollBehavior, setScrollBehavior] = React.useState("inside");
+    const [selectedEstado, setSelectedEstado] = useState(null);
     const [mostrarJustificacionRechazo, setMostrarJustificacionRechazo] = useState(false);
     const [justificacionRechazo, setJustificacionRechazo] = useState("");
+    const [tareaLocal, setTareaLocal] = useState(tarea || {});
     const [catalogos, setCatalogos] = useState({
         estados: [],
         prioridades: [],
@@ -48,6 +52,10 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
             setSelectedEstado(null);
         }
     }, [isOpen]);
+
+    useEffect(() => {
+        setTareaLocal(tarea || {});
+    }, [tarea]);
 
     const cargarCatalogos = async () => {
         try {
@@ -81,7 +89,7 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
                 cN_Id_complejidad: restricciones.complejidad ? tarea?.cN_Id_complejidad : parseInt(formData.get('complejidad')),
                 cN_Id_prioridad: restricciones.prioridad ? tarea?.cN_Id_prioridad : parseInt(formData.get('prioridad')),
                 cN_Id_estado: restricciones.estado ? tarea?.cN_Id_estado : estadoSeleccionado,
-                cF_Fecha_limite: restricciones.fechaLimite ? tarea?.cF_Fecha_limite : formData.get('fechaLimite'),
+                cF_Fecha_limite: restricciones.fechaLimite ? tarea?.cF_Fecha_limite : (tareaLocal.cF_Fecha_limite || formData.get('fechaLimite')),
                 cN_Numero_GIS: restricciones.numeroGIS ? tarea?.cN_Numero_GIS : formData.get('numeroGIS'),
                 cN_Usuario_asignado: restricciones.usuarioAsignado ? tarea?.cN_Usuario_asignado : (responsableValue ? parseInt(responsableValue) : null),
                 cN_Tarea_origen: tareaPadre ? (tareaPadre.cN_Id_tarea || tareaPadre.id) : null,
@@ -138,7 +146,7 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
 
         return transiciones[estadoActual] || [];
     };
-      const obtenerEstadosFiltrados = () => {
+    const obtenerEstadosFiltrados = () => {
         if (!tarea?.cN_Id_estado || catalogos.estados.length === 0) {
             return catalogos.estados;
         }
@@ -146,17 +154,17 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
         // Obtener estados permitidos basándose en el estado actual y si es el creador
         const esCreador = parseInt(session?.user?.id) === tarea?.cN_Usuario_creador;
         const estadosPermitidos = obtenerEstadosPermitidos(tarea.cN_Id_estado, esCreador);
-        
+
         // Filtrar los estados del catálogo para mostrar solo los permitidos
-        const estadosFiltrados = catalogos.estados.filter(estado => 
+        const estadosFiltrados = catalogos.estados.filter(estado =>
             estadosPermitidos.includes(estado.cN_Id_estado)
         );
 
         // Siempre incluir el estado actual al inicio de la lista (será no seleccionable)
-        const estadoActual = catalogos.estados.find(estado => 
+        const estadoActual = catalogos.estados.find(estado =>
             estado.cN_Id_estado === tarea.cN_Id_estado
         );
-        
+
         if (estadoActual) {
             // Si el estado actual no está en los filtrados, agregarlo al inicio
             if (!estadosFiltrados.some(estado => estado.cN_Id_estado === tarea.cN_Id_estado)) {
@@ -182,12 +190,12 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
                                 </h2>
 
                                 <div className="grid grid-cols-2 gap-4 w-full overflow-hidden">
-                                    {/* Campo de Tarea Padre para subtareas */}
                                     {tareaPadre && (
                                         <div className="col-span-2">
-                                            <label className="text-sm text-gray-700 mb-1 block">Tarea Padre:</label>
                                             <Input
                                                 name="tareaPadre"
+                                                label="Tarea Origen:"
+                                                labelPlacement="outside"
                                                 value={`Tarea #${String(tareaPadre.cN_Id_tarea || tareaPadre.id).padStart(2, '0')}: ${tareaPadre.cT_Titulo_tarea || tareaPadre.titulo || ''}`}
                                                 variant="bordered"
                                                 isDisabled={true}
@@ -200,10 +208,11 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
                                     )}
 
                                     <div className="col-span-2">
-                                        <label className="text-sm text-gray-700 mb-1 block">Título:</label>
                                         <Input
                                             isRequired
                                             name="titulo"
+                                            label="Título de la tarea:"
+                                            labelPlacement="outside"
                                             placeholder="Título de la tarea"
                                             defaultValue={tarea?.cT_Titulo_tarea || ""}
                                             variant="bordered"
@@ -222,7 +231,7 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
                                             placeholder="Descripción de la tarea..."
                                             defaultValue={tarea?.cT_Descripcion_tarea || ""}
                                             rows={3}
-                                            className="w-full px-3 py-2 rounded-medium border-2 border-default-200 hover:border-default-300 focus:border-black transition-all duration-150 ease-in-out focus:outline-none resize-none text-sm overflow-hidden"
+                                            className="w-full px-3 py-2 rounded-medium border-2 border-default-200 hover:border-default-300 focus:border-black transition-all duration-150 ease-in-out focus:outline-none resize-none text-sm overflow-hidden disabled:bg-gray-50"
                                             readOnly={restricciones.descripcion}
                                             disabled={isSubmitting}
                                             required
@@ -231,8 +240,9 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
                                     </div>
 
                                     <div>
-                                        <label className="text-sm text-gray-700 mb-1 block">Número GIS:</label>
                                         <Input
+                                            label="Número GIS:"
+                                            labelPlacement="outside"
                                             name="numeroGIS"
                                             placeholder="Número GIS"
                                             defaultValue={tarea?.cN_Numero_GIS || ""}
@@ -243,24 +253,49 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
                                     </div>
 
                                     <div>
-                                        <label className="text-sm text-gray-700 mb-1 block">Fecha límite:</label>
-                                        <Input
+                                        <DatePicker
                                             isRequired
+                                            label="Fecha y hora límite:"
                                             name="fechaLimite"
-                                            type="date"
-                                            defaultValue={formatearFecha(tarea?.cF_Fecha_limite)}
+                                            labelPlacement="outside"
+                                            showMonthAndYearPickers
+                                            hideTimeZone
                                             variant="bordered"
+                                            granularity="minute"
                                             readOnly={restricciones.fechaLimite}
-                                            isDisabled={isSubmitting}
-                                            min={new Date().toISOString().split("T")[0]}
-                                            max={tareaPadre?.cF_Fecha_limite ? tareaPadre.cF_Fecha_limite.split("T")[0] : undefined}
+                                            value={
+                                                tareaLocal.cF_Fecha_limite
+                                                    ? parseZonedDateTime(tareaLocal.cF_Fecha_limite.replace('.000Z', '') + `[${getLocalTimeZone()}]`)
+                                                    : tarea?.cF_Fecha_limite
+                                                        ? parseZonedDateTime(tarea.cF_Fecha_limite.replace('.000Z', '') + `[${getLocalTimeZone()}]`)
+                                                        : null
+                                            }
+                                            onChange={(date) => {
+                                                if (date && !restricciones.fechaLimite) {
+                                                    const isoString = date.toDate().toISOString();
+                                                    setTareaLocal(prev => ({
+                                                        ...prev,
+                                                        cF_Fecha_limite: isoString
+                                                    }));
+                                                } else if (!date && !restricciones.fechaLimite) {
+                                                    setTareaLocal(prev => ({
+                                                        ...prev,
+                                                        cF_Fecha_limite: ""
+                                                    }));
+                                                }
+                                            }}
+                                            minValue={now(getLocalTimeZone())}
+                                            maxValue={tareaPadre?.cF_Fecha_limite ? parseZonedDateTime(tareaPadre.cF_Fecha_limite.replace('.000Z', '') + `[${getLocalTimeZone()}]`) : undefined}
+                                            errorMessage="La fecha y hora límite son requeridas"
+                                            isDisabled={isSubmitting || restricciones.fechaLimite}
                                         />
                                     </div>
 
                                     <div>
-                                        <label className="text-sm text-gray-700 mb-1 block">Prioridad:</label>
                                         <Select
                                             isRequired
+                                            label="Prioridad:"
+                                            labelPlacement="outside"
                                             name="prioridad"
                                             placeholder="Selecciona prioridad"
                                             defaultSelectedKeys={tarea?.cN_Id_prioridad ? [tarea.cN_Id_prioridad.toString()] : []}
@@ -279,9 +314,10 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
                                     </div>
 
                                     <div>
-                                        <label className="text-sm text-gray-700 mb-1 block">Complejidad:</label>
                                         <Select
                                             isRequired
+                                            label="Complejidad:"
+                                            labelPlacement="outside"
                                             name="complejidad"
                                             placeholder="Selecciona complejidad"
                                             defaultSelectedKeys={tarea?.cN_Id_complejidad ? [tarea.cN_Id_complejidad.toString()] : []}
@@ -299,9 +335,10 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
                                         </Select>
                                     </div>
                                     <div>
-                                        <label className="text-sm text-gray-700 mb-1 block">Responsable (Opcional):</label>
                                         <Select
                                             name="responsable"
+                                            label="Responsable:"
+                                            labelPlacement="outside"
                                             placeholder="Selecciona un usuario"
                                             defaultSelectedKeys={tarea?.cN_Usuario_asignado ? [tarea.cN_Usuario_asignado.toString()] : []}
                                             variant="bordered"
@@ -316,9 +353,12 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
                                                 </SelectItem>
                                             ))}
                                         </Select>
-                                    </div>                                    <div>
-                                        <label className="text-sm text-gray-700 mb-1 block">Estado:</label>                                        <Select
+                                    </div>
+                                    <div>
+                                        <Select
                                             isRequired
+                                            label="Estado"
+                                            labelPlacement="outside"
                                             name="estado"
                                             placeholder="Selecciona estado"
                                             defaultSelectedKeys={tarea?.cN_Id_estado ? [tarea.cN_Id_estado.toString()] : []}
@@ -342,8 +382,8 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
                                                     isDisabled={estado.cN_Id_estado === tarea?.cN_Id_estado}
                                                     className={estado.cN_Id_estado === tarea?.cN_Id_estado ? "text-gray-500 bg-gray-100" : ""}
                                                 >
-                                                    {estado.cN_Id_estado === tarea?.cN_Id_estado 
-                                                        ? `${estado.cT_Estado}` 
+                                                    {estado.cN_Id_estado === tarea?.cN_Id_estado
+                                                        ? `${estado.cT_Estado}`
                                                         : estado.cT_Estado
                                                     }
                                                 </SelectItem>
@@ -354,10 +394,9 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
                                     {/* Campo de justificación de rechazo */}
                                     {mostrarJustificacionRechazo && (
                                         <div className="col-span-2">
-                                            <label className="text-sm text-gray-700 mb-1 block text-red-600">
-                                                Justificación de rechazo *
-                                            </label>
                                             <Textarea
+                                                label="Justificación de rechazo"
+                                                labelPlacement="outside"
                                                 value={justificacionRechazo}
                                                 onChange={(e) => setJustificacionRechazo(e.target.value)}
                                                 placeholder="Explica por qué se rechaza esta tarea..."
