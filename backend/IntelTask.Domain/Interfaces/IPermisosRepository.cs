@@ -7,6 +7,7 @@ namespace IntelTask.Domain.Interfaces
     {
         Task<IEnumerable<EPermisos>> F_PUB_ObtenerTodosLosPermisos();
         Task<IEnumerable<EPermisos>> F_PUB_ObtenerPermisosPorUsuario(int usuarioId);
+        Task<IEnumerable<EPermisos>> F_PUB_ObtenerPermisosParaRevisar(int usuarioId);
         Task<EPermisos?> F_PUB_ObtenerPermisoPorId(int id);
         Task M_PUB_AgregarPermiso(EPermisos permiso);
         Task<EPermisos> M_PUB_ActualizarPermiso(int id, PermisoUpdateRequest request);

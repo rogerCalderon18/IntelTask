@@ -170,6 +170,102 @@ namespace IntelTask.Infrastructure.Repositories
             }
         }
 
+        public async Task<IEnumerable<EPermisos>> F_PUB_ObtenerPermisosParaRevisar(int usuarioId)
+        {
+            try
+            {
+                // 1. Obtener usuario, rol y oficina
+                var usuario = await _context.T_Usuarios
+                    .Include(u => u.Rol)
+                    .FirstOrDefaultAsync(u => u.CN_Id_usuario == usuarioId);
+                
+                if (usuario == null)
+                {
+                    return new List<EPermisos>();
+                }
+
+                var rolUsuario = usuario.CN_Id_rol;
+                var oficinaUsuario = await _context.TI_Usuario_X_Oficina
+                    .Where(x => x.CN_Id_usuario == usuarioId)
+                    .Select(x => x.CN_Codigo_oficina)
+                    .FirstOrDefaultAsync();
+
+                List<int> usuariosQueReviso = new List<int>();
+
+                // 2. Lógica según el rol para determinar qué usuarios puedo revisar
+                // Jerarquía de aprobación: Director -> Subdirector -> Jefe -> Coordinador -> Roles menores
+                switch (rolUsuario)
+                {
+                    case 1: // Director revisa las solicitudes del Subdirector
+                        var subdirectores = await _context.T_Usuarios
+                            .Where(u => u.CN_Id_rol == 2)
+                            .Select(u => u.CN_Id_usuario)
+                            .ToListAsync();
+                        usuariosQueReviso.AddRange(subdirectores);
+                        break;
+
+                    case 2: // Subdirector revisa las solicitudes de los Jefes
+                        var jefes = await _context.T_Usuarios
+                            .Where(u => u.CN_Id_rol == 3)
+                            .Select(u => u.CN_Id_usuario)
+                            .ToListAsync();
+                        usuariosQueReviso.AddRange(jefes);
+                        break;
+
+                    case 3: // Jefe revisa solicitudes de Coordinadores en oficinas dependientes
+                        var oficinasDependientes = await _context.T_Oficinas
+                            .Where(o => o.CN_Oficina_encargada == oficinaUsuario)
+                            .Select(o => o.CN_Codigo_oficina)
+                            .ToListAsync();
+
+                        if (oficinasDependientes.Any())
+                        {
+                            var coordinadoresEnOficinasDependientes = await _context.TI_Usuario_X_Oficina
+                                .Where(x => oficinasDependientes.Contains(x.CN_Codigo_oficina))
+                                .Include(x => x.Usuario!)
+                                .Where(x => x.Usuario != null && x.Usuario.CN_Id_rol == 4) // Solo Coordinadores
+                                .Select(x => x.CN_Id_usuario)
+                                .ToListAsync();
+
+                            usuariosQueReviso.AddRange(coordinadoresEnOficinasDependientes);
+                        }
+                        break;
+
+                    case 4: // Coordinador revisa usuarios con roles menores en su oficina
+                        var usuariosEnMismaOficina = await _context.TI_Usuario_X_Oficina
+                            .Where(x => x.CN_Codigo_oficina == oficinaUsuario && x.CN_Id_usuario != usuarioId)
+                            .Include(x => x.Usuario!)
+                            .Where(x => x.Usuario != null && new[] { 5, 6, 7, 8 }.Contains(x.Usuario.CN_Id_rol))
+                            .Select(x => x.CN_Id_usuario)
+                            .ToListAsync();
+
+                        usuariosQueReviso.AddRange(usuariosEnMismaOficina);
+                        break;
+
+                    default:
+                        // Otros roles no revisan permisos
+                        break;
+                }
+
+                // 3. Obtener permisos de los usuarios que puedo revisar
+                if (usuariosQueReviso.Any())
+                {
+                    return await _context.T_Permisos
+                        .Include(p => p.Estado)
+                        .Include(p => p.UsuarioCreador)
+                            .ThenInclude(u => u!.Rol)
+                        .Where(p => usuariosQueReviso.Contains(p.CN_Usuario_creador))
+                        .ToListAsync();
+                }
+
+                return new List<EPermisos>();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"DB_ERROR: Error al obtener permisos para revisar: {ex.Message}", ex);
+            }
+        }
+
         private async Task ValidarRelaciones(EPermisos permiso)
         {
             // Validar que exista el usuario creador

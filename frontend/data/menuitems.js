@@ -2,6 +2,7 @@ import { FaChalkboardTeacher, FaBookReader } from "react-icons/fa";
 import { GiLockers } from "react-icons/gi";
 import { BsPersonFillExclamation, BsPersonFillGear } from "react-icons/bs";
 import { BiSolidReport } from "react-icons/bi";
+import { FiCalendar } from "react-icons/fi";
 import { link } from "@heroui/react";
 
 export const menuItems = [
@@ -18,5 +19,11 @@ export const menuItems = [
     label: "Tareas",
     icon: FaChalkboardTeacher,
     link: "/tareas",
+  },
+  {
+    id: 3,
+    label: "Permisos",
+    icon: FiCalendar,
+    link: "/permisos",
   }
 ];

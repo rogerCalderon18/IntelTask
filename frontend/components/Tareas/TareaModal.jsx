@@ -14,8 +14,8 @@ import {
 } from "@heroui/react";
 import { catalogosService } from "../../services/catalogosService";
 import { useSession } from "next-auth/react";
-import { parseZonedDateTime, getLocalTimeZone, now } from "@internationalized/date";
 import {I18nProvider} from "@react-aria/i18n";
+import { datePickerUtils } from "../../utils/datePickerUtils";
 
 const TareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tareaPadre = null }) => {
     console.log("tarea", tarea);
@@ -179,53 +179,13 @@ const TareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tareaPadre
                                             hideTimeZone
                                             variant="bordered"
                                             granularity="minute"
-                                            value={
-                                                tareaLocal.cF_Fecha_limite
-                                                    ? parseZonedDateTime(tareaLocal.cF_Fecha_limite.replace('.000Z', '') + `[${getLocalTimeZone()}]`)
-                                                    : tarea?.cF_Fecha_limite
-                                                        ? parseZonedDateTime(tarea.cF_Fecha_limite.replace('.000Z', '') + `[${getLocalTimeZone()}]`)
-                                                        : null
-                                            }
-                                            onChange={(date) => {
-                                                if (date) {
-                                                    // Validar que no sea fin de semana
-                                                    const dayOfWeek = date.toDate().getDay();
-                                                    if (dayOfWeek === 0 || dayOfWeek === 6) {
-                                                        // Es domingo (0) o sábado (6)
-                                                        return;
-                                                    }
-
-                                                    // Validar horas de trabajo (7:00 AM - 4:30 PM)
-                                                    const hour = date.hour;
-                                                    const minute = date.minute;
-                                                    const totalMinutes = hour * 60 + minute;
-                                                    const startWork = 7 * 60; // 7:00 AM
-                                                    const endWork = 16 * 60 + 30; // 4:30 PM
-
-                                                    if (totalMinutes < startWork || totalMinutes > endWork) {
-                                                        return;
-                                                    }
-
-                                                    const isoString = date.toDate().toISOString();
-                                                    setTareaLocal(prev => ({
-                                                        ...prev,
-                                                        cF_Fecha_limite: isoString
-                                                    }));
-                                                } else {
-                                                    setTareaLocal(prev => ({
-                                                        ...prev,
-                                                        cF_Fecha_limite: ""
-                                                    }));
-                                                }
-                                            }}
-                                            minValue={now(getLocalTimeZone())}
-                                            maxValue={tareaPadre?.cF_Fecha_limite ? parseZonedDateTime(tareaPadre.cF_Fecha_limite.replace('.000Z', '') + `[${getLocalTimeZone()}]`) : undefined}
-                                            isDateUnavailable={(date) => {
-                                                // Deshabilitar fines de semana
-                                                const dayOfWeek = date.toDate(getLocalTimeZone()).getDay();
-                                                return dayOfWeek === 0 || dayOfWeek === 6; // Domingo o Sábado
-                                            }}
-                                            errorMessage="La fecha y hora límite son requeridas (Lunes a Viernes, 7:00 AM - 4:30 PM)"
+                                            hourCycle={12}
+                                            {...datePickerUtils.getDatePickerProps({
+                                                currentValue: tareaLocal.cF_Fecha_limite || tarea?.cF_Fecha_limite,
+                                                onChange: setTareaLocal,
+                                                maxDateISO: tareaPadre?.cF_Fecha_limite,
+                                                fieldName: 'cF_Fecha_limite'
+                                            })}
                                             isDisabled={isSubmitting}
                                         />
                                     </I18nProvider>

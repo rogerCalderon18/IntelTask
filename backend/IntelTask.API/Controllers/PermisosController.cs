@@ -31,6 +31,13 @@ public class PermisosController : ControllerBase
         return Ok(permisos);
     }
 
+    [HttpGet("revisar/{usuarioId}")]
+    public async Task<ActionResult<IEnumerable<EPermisos>>> F_PUB_ObtenerPermisosParaRevisar(int usuarioId)
+    {
+        var permisos = await _permisosRepository.F_PUB_ObtenerPermisosParaRevisar(usuarioId);
+        return Ok(permisos);
+    }
+
     [HttpGet("{id}")]
     public async Task<ActionResult<EPermisos>> F_PUB_ObtenerPermiso(int id)
     {
