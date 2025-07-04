@@ -240,4 +240,29 @@ public class TareasController : ControllerBase
         await _tareasRepository.M_PUB_AgregarRechazo(entity);
         return Ok();
     }
+
+    [HttpPost("verificar-incumplimientos")]
+    public async Task<ActionResult> M_PUB_VerificarIncumplimientos()
+    {
+        try
+        {
+            // Obtener el servicio de vencimientos desde el contenedor de dependencias
+            var tareasVencimientoService = HttpContext.RequestServices.GetRequiredService<ITareasVencimientoService>();
+            
+            await tareasVencimientoService.VerificarYNotificarTareasVencidas();
+            
+            return Ok(new { 
+                mensaje = "✅ Verificación de tareas completada exitosamente",
+                fecha = DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss")
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { 
+                error = "❌ Error durante la verificación",
+                detalle = ex.Message,
+                fecha = DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss")
+            });
+        }
+    }
 }

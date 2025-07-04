@@ -182,7 +182,7 @@ export const RESTRICCIONES_ACCIONES_CONFIG = {
             agregarComentarios: true, subirAdjuntos: false, verDetalles: true
         },
         asignado: {
-            eliminar: false, editar: false, asignar: false, cambiarEstado: false,
+            eliminar: false, editar: true, asignar: false, cambiarEstado: false,
             agregarComentarios: true, subirAdjuntos: false, verDetalles: true
         }
     },

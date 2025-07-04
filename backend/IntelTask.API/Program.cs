@@ -66,6 +66,10 @@ app.UseStaticFiles();
 
 app.UseCors("AllowFrontend");
 
+// Inicializar el servicio de verificación automática de tareas vencidas
+var tareasVencimientoService = app.Services.GetRequiredService<TareasVencimientoBackgroundService>();
+tareasVencimientoService.Start();
+
 app.UseAuthentication();
 app.UseAuthorization();
 

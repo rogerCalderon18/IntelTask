@@ -10,5 +10,6 @@ namespace IntelTask.Domain.Interfaces
         Task<IEnumerable<ENotificaciones>> F_PUB_ObtenerNotificacionesPorUsuario(int usuarioId);
         Task<ENotificaciones?> F_PUB_ObtenerNotificacionPorId(int notificacionId);
         Task<IEnumerable<ENotificaciones>> F_PUB_ObtenerTodasLasNotificaciones();
+        Task<bool> F_PUB_ExisteNotificacionReciente(int usuarioId, string tipoNotificacion, string tituloContiene, int horasAtras = 24);
     }
 }

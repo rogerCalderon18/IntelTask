@@ -67,5 +67,20 @@ namespace IntelTask.Infrastructure.Repositories
                 .OrderByDescending(n => n.CF_Fecha_registro)
                 .ToListAsync();
         }
+
+        public async Task<bool> F_PUB_ExisteNotificacionReciente(int usuarioId, string tipoNotificacion, string tituloContiene, int horasAtras = 24)
+        {
+            var fechaLimite = DateTime.Now.AddHours(-horasAtras);
+            
+            // Buscar notificaciones que contengan el ID de la tarea específica
+            var existe = await _context.T_Notificaciones
+                .Include(n => n.NotificacionesXUsuarios)
+                .Where(n => n.NotificacionesXUsuarios.Any(nu => nu.CN_Id_usuario == usuarioId) &&
+                           n.CF_Fecha_registro >= fechaLimite &&
+                           n.CT_Titulo_notificacion.Contains(tituloContiene))
+                .AnyAsync();
+                
+            return existe;
+        }
     }
 }
