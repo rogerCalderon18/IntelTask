@@ -124,7 +124,8 @@ namespace IntelTask.API.Controllers
                             id = a.CN_Id_adjuntos,
                             nombre = Path.GetFileName(a.CT_Archivo_ruta), // Extraer nombre del archivo
                             ruta = a.CT_Archivo_ruta,
-                            fecha = a.CF_Fecha_registro
+                            fecha = a.CF_Fecha_registro,
+                            usuarioId = a.CN_Usuario_accion // Agregar usuario que subió el archivo
                         })
                     .ToListAsync();
 

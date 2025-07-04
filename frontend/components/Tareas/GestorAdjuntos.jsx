@@ -5,12 +5,48 @@ import { adjuntosService } from '../../services/adjuntosService';
 import { useSession } from 'next-auth/react';
 import useConfirmation from '@/hooks/useConfirmation';
 
-const GestorAdjuntos = ({ idTarea, adjuntos: adjuntosIniciales = [], onAdjuntosChange }) => {
+const GestorAdjuntos = ({ idTarea, adjuntos: adjuntosIniciales = [], onAdjuntosChange, tarea, isDisabled = false }) => {
     const { data: session } = useSession();
     const [adjuntos, setAdjuntos] = useState(adjuntosIniciales);
     const [cargando, setCargando] = useState(false);
     const [subiendo, setSubiendo] = useState(false);
     const { showConfirmation } = useConfirmation();
+
+    // Estados permitidos para eliminar adjuntos: registrado, asignado, en proceso, en espera
+    const estadosPermitidosEliminar = [1, 2, 3, 4];
+    
+    // Estados permitidos para subir adjuntos: registrado, asignado, en proceso, en espera
+    const estadosPermitidosSubir = [1, 2, 3, 4];
+
+    // Función para validar si se puede subir archivos
+    const puedeSubirArchivos = () => {
+        if (!tarea) return true; // Si no hay tarea, permitir (para casos de creación)
+        
+        const estadoTarea = tarea.cN_Id_estado || tarea.estado;
+        return estadosPermitidosSubir.includes(estadoTarea);
+    };
+
+    // Función para validar si se puede eliminar un adjunto
+    const puedeEliminarAdjunto = (adjunto) => {
+        if (!session?.user?.id || !tarea) {
+            return false;
+        }
+
+        const usuarioActual = parseInt(session.user.id);
+        const estadoTarea = tarea.cN_Id_estado || tarea.estado;
+        
+        // Validar estado de la tarea
+        if (!estadosPermitidosEliminar.includes(estadoTarea)) {
+            return false;
+        }
+
+        // Validar que el usuario actual sea quien subió el archivo
+        if (adjunto.usuarioId && adjunto.usuarioId !== usuarioActual) {
+            return false;
+        }
+
+        return true;
+    };
 
    
     useEffect(() => {
@@ -39,32 +75,105 @@ const GestorAdjuntos = ({ idTarea, adjuntos: adjuntosIniciales = [], onAdjuntosC
         const archivo = event.target.files[0];
         if (!archivo || !session?.user?.id || !idTarea) {
             if (!idTarea) {
-                alert('Debe guardar la tarea antes de poder adjuntar archivos');
+                showConfirmation({
+                    title: "Error",
+                    description: "Debe guardar la tarea antes de poder adjuntar archivos",
+                    type: "warning",
+                    confirmText: "Entendido",
+                    showCancelButton: false,
+                    onConfirm: () => {}
+                });
             }
+            event.target.value = ''; // Limpiar input
+            return;
+        }
+
+        // Validar si se puede subir archivos en el estado actual
+        if (!puedeSubirArchivos()) {
+            const estadoTarea = tarea?.cN_Id_estado || tarea?.estado;
+            const nombresEstados = {
+                1: "Registrado", 2: "Asignado", 3: "En Proceso", 4: "En Espera",
+                5: "Terminado", 14: "Incumplido", 15: "Rechazado", 17: "En Revisión"
+            };
+            showConfirmation({
+                title: "No se pueden subir archivos",
+                description: `Solo se pueden subir adjuntos cuando la tarea está en estado: Registrado, Asignado, En Proceso o En Espera.\n\nEstado actual: ${nombresEstados[estadoTarea] || `Estado ${estadoTarea}`}`,
+                type: "warning",
+                confirmText: "Entendido",
+                showCancelButton: false,
+                onConfirm: () => {}
+            });
             event.target.value = ''; // Limpiar input
             return;
         }
 
         try {
             setSubiendo(true);
-            const resultado = await adjuntosService.subirArchivo(
-                archivo,
-                session.user.id,
-                idTarea
-            );
+            
+            // Crear FormData para enviar el archivo
+            const formData = new FormData();
+            formData.append('archivo', archivo);
+            formData.append('idTarea', idTarea);
+            formData.append('usuarioId', session.user.id);
+
+            const resultado = await adjuntosService.subirArchivo(formData);
 
             // Recargar adjuntos
             await cargarAdjuntos();
         } catch (error) {
             console.error('Error al subir archivo:', error);
-            alert('Error al subir el archivo');
+            showConfirmation({
+                title: "Error al subir archivo",
+                description: "Ocurrió un error al subir el archivo. Por favor, inténtalo de nuevo.",
+                type: "danger",
+                confirmText: "Entendido",
+                showCancelButton: false,
+                onConfirm: () => {}
+            });
         } finally {
             setSubiendo(false);
             event.target.value = ''; // Limpiar input
         }
     };
 
-    const handleEliminar = (id) => {
+    const handleEliminar = (adjunto) => {
+        // Validar si puede eliminar el adjunto
+        if (!puedeEliminarAdjunto(adjunto)) {
+            const estadoTarea = tarea?.cN_Id_estado || tarea?.estado;
+            const usuarioActual = parseInt(session?.user?.id);
+            
+            let titulo = "No se puede eliminar el adjunto";
+            let mensaje = "";
+            
+            if (!estadosPermitidosEliminar.includes(estadoTarea)) {
+                const nombresEstados = {
+                    1: "Registrado",
+                    2: "Asignado", 
+                    3: "En Proceso",
+                    4: "En Espera",
+                    5: "Terminado",
+                    14: "Incumplido",
+                    15: "Rechazado",
+                    17: "En Revisión"
+                };
+                mensaje = `Solo se pueden eliminar adjuntos cuando la tarea está en estado: Registrado, Asignado, En Proceso o En Espera.\n\nEstado actual: ${nombresEstados[estadoTarea] || `Estado ${estadoTarea}`}`;
+            } else if (adjunto.usuarioId && adjunto.usuarioId !== usuarioActual) {
+                mensaje = "Solo puedes eliminar adjuntos que tú hayas subido.";
+            } else {
+                mensaje = "No tienes permisos para eliminar este adjunto.";
+            }
+            
+            showConfirmation({
+                title: titulo,
+                description: mensaje,
+                type: "warning",
+                confirmText: "Entendido",
+                showCancelButton: false,
+                onConfirm: () => {}
+            });
+            return;
+        }
+
         showConfirmation({
             title: "¿Está seguro de eliminar este archivo?",
             description: "Esta acción no se puede deshacer.",
@@ -73,11 +182,18 @@ const GestorAdjuntos = ({ idTarea, adjuntos: adjuntosIniciales = [], onAdjuntosC
             cancelText: "Cancelar",
             onConfirm: async () => {
                 try {
-                    await adjuntosService.eliminarArchivo(id);
+                    await adjuntosService.eliminarArchivo(adjunto.id);
                     await cargarAdjuntos();
                 } catch (error) {
                     console.error('Error al eliminar archivo:', error);
-                    alert('Error al eliminar el archivo');
+                    showConfirmation({
+                        title: "Error al eliminar",
+                        description: "Ocurrió un error al eliminar el archivo. Por favor, inténtalo de nuevo.",
+                        type: "danger",
+                        confirmText: "Entendido",
+                        showCancelButton: false,
+                        onConfirm: () => {}
+                    });
                 }
             }
         });
@@ -104,10 +220,35 @@ const GestorAdjuntos = ({ idTarea, adjuntos: adjuntosIniciales = [], onAdjuntosC
                         variant="flat"
                         size="sm"
                         className="bg-sky-100 text-sky-700"
-                        onPress={() => document.getElementById('file-input').click()}
+                        onPress={() => {
+                            if (!puedeSubirArchivos()) {
+                                const estadoTarea = tarea?.cN_Id_estado || tarea?.estado;
+                                const nombresEstados = {
+                                    1: "Registrado", 2: "Asignado", 3: "En Proceso", 4: "En Espera",
+                                    5: "Terminado", 14: "Incumplido", 15: "Rechazado", 17: "En Revisión"
+                                };
+                                showConfirmation({
+                                    title: "No se pueden subir archivos",
+                                    description: `Solo se pueden subir adjuntos cuando la tarea está en estado: Registrado, Asignado, En Proceso o En Espera.\n\nEstado actual: ${nombresEstados[estadoTarea] || `Estado ${estadoTarea}`}`,
+                                    type: "warning",
+                                    confirmText: "Entendido",
+                                    showCancelButton: false,
+                                    onConfirm: () => {}
+                                });
+                                return;
+                            }
+                            document.getElementById('file-input').click();
+                        }}
                         isLoading={subiendo}
-                        isDisabled={!idTarea || subiendo}
+                        isDisabled={!idTarea || subiendo || !puedeSubirArchivos()}
                         spinner={<Spinner size="sm" />}
+                        title={
+                            !idTarea 
+                                ? "Debe guardar la tarea antes de adjuntar archivos"
+                                : !puedeSubirArchivos()
+                                    ? "No se pueden subir archivos en el estado actual de la tarea"
+                                    : "Adjuntar archivo"
+                        }
                     >
                         <FaPaperclip className="mr-1" />
                         {subiendo ? 'Subiendo...' : 'Adjuntar'}
@@ -124,31 +265,55 @@ const GestorAdjuntos = ({ idTarea, adjuntos: adjuntosIniciales = [], onAdjuntosC
                     {adjuntos.length === 0 ? (
                         <p className="text-sm text-gray-500">No hay adjuntos...</p>
                     ) : (
-                        adjuntos.map((adjunto) => (
-                            <div key={adjunto.id} className="flex items-center justify-between bg-gray-50 p-2 rounded">
-                                <span className="text-sm truncate flex-1">{adjunto.nombre}</span>
-                                <div className="flex gap-1">
-                                    <Button
-                                        type="button"
-                                        variant="light"
-                                        size="sm"
-                                        className="text-blue-600 min-w-unit-8 h-unit-8"
-                                        onPress={() => handleDescargar(adjunto.id)}
-                                    >
-                                        <FaDownload />
-                                    </Button>
-                                    <Button
-                                        type="button"
-                                        variant="light"
-                                        size="sm"
-                                        className="text-red-600 min-w-unit-8 h-unit-8"
-                                        onPress={() => handleEliminar(adjunto.id)}
-                                    >
-                                        <FaTrash />
-                                    </Button>
+                        adjuntos.map((adjunto) => {
+                            const puedeEliminar = puedeEliminarAdjunto(adjunto);
+                            const esPropio = adjunto.usuarioId && adjunto.usuarioId === parseInt(session?.user?.id);
+                            
+                            return (
+                                <div key={adjunto.id} className="flex items-center justify-between bg-gray-50 p-2 rounded">
+                                    <div className="flex items-center gap-2 flex-1">
+                                        <span className="text-sm truncate">{adjunto.nombre}</span>
+                                        {esPropio && (
+                                            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+                                                Tuyo
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="flex gap-1">
+                                        <Button
+                                            type="button"
+                                            variant="light"
+                                            size="sm"
+                                            className="text-blue-600 min-w-unit-8 h-unit-8"
+                                            onPress={() => handleDescargar(adjunto.id)}
+                                        >
+                                            <FaDownload />
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            variant="light"
+                                            size="sm"
+                                            className={`min-w-unit-8 h-unit-8 ${
+                                                puedeEliminar 
+                                                    ? "text-red-600 hover:text-red-700" 
+                                                    : "text-gray-400 cursor-not-allowed"
+                                            }`}
+                                            onPress={() => handleEliminar(adjunto)}
+                                            isDisabled={!puedeEliminar}
+                                            title={
+                                                !puedeEliminar 
+                                                    ? (esPropio 
+                                                        ? "No se puede eliminar en el estado actual de la tarea" 
+                                                        : "Solo puedes eliminar adjuntos que tú hayas subido")
+                                                    : "Eliminar adjunto"
+                                            }
+                                        >
+                                            <FaTrash />
+                                        </Button>
+                                    </div>
                                 </div>
-                            </div>
-                        ))
+                            );
+                        })
                     )}
                 </div>
             )}

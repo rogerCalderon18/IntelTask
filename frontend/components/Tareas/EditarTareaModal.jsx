@@ -405,6 +405,7 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
                                     <div className="col-span-2">
                                         <GestorAdjuntos
                                             idTarea={tarea?.cN_Id_tarea}
+                                            tarea={tarea}
                                             onAdjuntosChange={(adjuntos) => console.log('Adjuntos actualizados:', adjuntos)}
                                             isDisabled={restricciones.adjuntos}
                                         />                                    </div>

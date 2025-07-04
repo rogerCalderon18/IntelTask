@@ -20,7 +20,7 @@ export const RESTRICCIONES_CONFIG = {
             estado: true, numeroGIS: true, fechaLimite: true
         },
         asignado: {
-            titulo: true, descripcion: true, adjuntos: true, complejidad: true,
+            titulo: true, descripcion: true, adjuntos: false, complejidad: true,
             prioridad: true, usuarioAsignado: true, descripcionEspera: true,
             estado: true, numeroGIS: true, fechaLimite: true
         }
@@ -28,12 +28,12 @@ export const RESTRICCIONES_CONFIG = {
     // ASIGNADO - Caso especial: Director creador + Subdirector asignado
     [ESTADOS.ASIGNADO]: {
         creador: {
-            titulo: true, descripcion: true, adjuntos: true, complejidad: true,
+            titulo: true, descripcion: true, adjuntos: false, complejidad: true,
             prioridad: true, usuarioAsignado: false, descripcionEspera: true,
             estado: true, numeroGIS: true, fechaLimite: true
         },
         asignado: {
-            titulo: true, descripcion: true, adjuntos: true, complejidad: true,
+            titulo: true, descripcion: true, adjuntos: false, complejidad: true,
             prioridad: true, usuarioAsignado: true, descripcionEspera: true,
             estado: false, numeroGIS: true, fechaLimite: true
         }
@@ -41,12 +41,12 @@ export const RESTRICCIONES_CONFIG = {
     // EN_PROCESO
     [ESTADOS.EN_PROCESO]: {
         creador: {
-            titulo: true, descripcion: true, adjuntos: true, complejidad: true,
+            titulo: true, descripcion: true, adjuntos: false, complejidad: true,
             prioridad: true, usuarioAsignado: false, descripcionEspera: true,
             estado: true, numeroGIS: true, fechaLimite: true
         },
         asignado: {
-            titulo: true, descripcion: true, adjuntos: true, complejidad: true,
+            titulo: true, descripcion: true, adjuntos: false, complejidad: true,
             prioridad: true, usuarioAsignado: true, descripcionEspera: true,
             estado: false, numeroGIS: true, fechaLimite: true
         }
@@ -54,12 +54,12 @@ export const RESTRICCIONES_CONFIG = {
     // EN_ESPERA
     [ESTADOS.EN_ESPERA]: {
         creador: {
-            titulo: true, descripcion: true, adjuntos: true, complejidad: true,
+            titulo: true, descripcion: true, adjuntos: false, complejidad: true,
             prioridad: true, usuarioAsignado: false, descripcionEspera: true,
             estado: true, numeroGIS: true, fechaLimite: true
         },
         asignado: {
-            titulo: true, descripcion: true, adjuntos: true, complejidad: true,
+            titulo: true, descripcion: true, adjuntos: false, complejidad: true,
             prioridad: true, usuarioAsignado: true, descripcionEspera: true,
             estado: false, numeroGIS: true, fechaLimite: true
         }
