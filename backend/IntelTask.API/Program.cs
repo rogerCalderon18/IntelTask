@@ -32,6 +32,9 @@ builder.Services.AddScoped<ITipoDocumentoRepository, TipoDocumentoRepository>();
 builder.Services.AddScoped<INotificacionesRepository, NotificacionesRepository>();
 builder.Services.AddScoped<INotificacionesService, NotificacionesService>();
 
+// Servicios para verificación automática de tareas vencidas
+builder.Services.AddScoped<ITareasVencimientoService, TareasVencimientoService>();
+builder.Services.AddSingleton<TareasVencimientoBackgroundService>();
 
 // Configurar EmailSettings
 builder.Services.Configure<EmailSettings>(

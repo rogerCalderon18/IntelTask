@@ -25,6 +25,7 @@ const GestorAdjuntos = ({ idTarea, adjuntos: adjuntosIniciales = [], onAdjuntosC
         try {
             setCargando(true);
             const adjuntosData = await adjuntosService.obtenerPorTarea(idTarea);
+            console.log('Adjuntos cargados:', adjuntosData);
             setAdjuntos(adjuntosData);
             onAdjuntosChange?.(adjuntosData);
         } catch (error) {

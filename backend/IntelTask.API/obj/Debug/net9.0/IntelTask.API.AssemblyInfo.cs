@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("IntelTask.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d23021425b36ebee9fb9e2c38bbe0eca01180f53")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6ad39439912d221b437103f59571a83fe07d61ee")]
 [assembly: System.Reflection.AssemblyProductAttribute("IntelTask.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("IntelTask.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
