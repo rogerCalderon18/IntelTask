@@ -12,7 +12,7 @@ import {
     Form,
 } from "@heroui/react";
 import { I18nProvider } from "@react-aria/i18n";
-import {datePickerUtils} from "../../utils/datePickerUtils";
+import { datePickerUtils } from "../../utils/datePickerUtils";
 
 const PermisoModal = ({ isOpen, onOpenChange, onClose, onSave, permiso }) => {
     const [isLoading, setIsLoading] = useState(false);
@@ -49,12 +49,12 @@ const PermisoModal = ({ isOpen, onOpenChange, onClose, onSave, permiso }) => {
 
             // Si las fechas son objetos Date o ZonedDateTime, convertirlas a ISO string
             if (fechaInicio && typeof fechaInicio === 'object') {
-                fechaInicio = fechaInicio.toISOString ? fechaInicio.toISOString() : 
-                             fechaInicio.toString ? fechaInicio.toString() : fechaInicio;
+                fechaInicio = fechaInicio.toISOString ? fechaInicio.toISOString() :
+                    fechaInicio.toString ? fechaInicio.toString() : fechaInicio;
             }
             if (fechaFin && typeof fechaFin === 'object') {
-                fechaFin = fechaFin.toISOString ? fechaFin.toISOString() : 
-                          fechaFin.toString ? fechaFin.toString() : fechaFin;
+                fechaFin = fechaFin.toISOString ? fechaFin.toISOString() :
+                    fechaFin.toString ? fechaFin.toString() : fechaFin;
             }
 
             // Asegurar que las fechas sean strings válidos
@@ -108,44 +108,42 @@ const PermisoModal = ({ isOpen, onOpenChange, onClose, onSave, permiso }) => {
                             validationBehavior="native"
                             onSubmit={handleSubmit}
                         >
-                            <ModalBody  className="px-6 pt-6 w-full">
+                            <ModalBody className="px-6 pt-6 w-full">
                                 {/* Título */}
                                 <Input
                                     name="titulo"
                                     label="Título del Permiso"
-                                    placeholder="Ej: Permiso médico, Vacaciones, etc."
+                                    labelPlacement="outside"
+                                    variant="bordered"
+                                    placeholder="Ej: Permiso médico, etc."
                                     value={permisoLocal.cT_Titulo_permiso}
                                     onChange={(e) => setPermisoLocal(prev => ({
                                         ...prev,
                                         cT_Titulo_permiso: e.target.value
                                     }))}
                                     isRequired
+                                    isDisabled={isLoading}
                                     validate={(value) => {
                                         if (!value || !value.trim()) {
                                             return "El título es requerido";
                                         }
                                     }}
                                 />
-
-                                {/* Descripción */}
-                                <Textarea
-                                    name="descripcion"
-                                    label="Descripción"
-                                    placeholder="Describe el motivo y detalles del permiso"
-                                    value={permisoLocal.cT_Descripcion_permiso}
-                                    onChange={(e) => setPermisoLocal(prev => ({
-                                        ...prev,
-                                        cT_Descripcion_permiso: e.target.value
-                                    }))}
-                                    minRows={3}
-                                    maxRows={6}
-                                    isRequired
-                                    validate={(value) => {
-                                        if (!value || !value.trim()) {
-                                            return "La descripción es requerida";
-                                        }
-                                    }}
-                                />
+                                <div className="col-span-2 flex flex-col gap-1">
+                                    <label className="text-sm font-medium text-foreground">
+                                        Descripción del Permiso <span className="text-danger">*</span>
+                                    </label>
+                                    <textarea
+                                        name="descripcion"
+                                        placeholder="Describa el motivo y detalles del permiso"
+                                        defaultValue={permisoLocal.cT_Descripcion_permiso || ""}
+                                        rows={3}
+                                        className="w-full px-3 py-2 rounded-medium border-2 border-default-200 hover:border-default-300 focus:border-black transition-all duration-150 ease-in-out focus:outline-none resize-none text-sm overflow-hidden"
+                                        disabled={isLoading}
+                                        required
+                                        style={{ minHeight: '80px', maxHeight: '120px' }}
+                                    />
+                                </div>
 
                                 {/* Fechas */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -159,6 +157,7 @@ const PermisoModal = ({ isOpen, onOpenChange, onClose, onSave, permiso }) => {
                                             variant="bordered"
                                             granularity="minute"
                                             hourCycle={12}
+                                            isDisabled={isLoading}
                                             {...datePickerUtils.getPermissionDatePickerPropsComplete({
                                                 currentValue: permisoLocal.cF_Fecha_hora_inicio_permiso,
                                                 onChange: setPermisoLocal,
@@ -182,6 +181,7 @@ const PermisoModal = ({ isOpen, onOpenChange, onClose, onSave, permiso }) => {
                                             variant="bordered"
                                             granularity="minute"
                                             hourCycle={12}
+                                            isDisabled={isLoading}
                                             {...datePickerUtils.getPermissionDatePickerPropsComplete({
                                                 currentValue: permisoLocal.cF_Fecha_hora_fin_permiso,
                                                 onChange: setPermisoLocal,

@@ -21,6 +21,7 @@ const EditarPermisoModal = ({ isOpen, onOpenChange, onClose, onSave, permiso, es
   const [estadoSeleccionado, setEstadoSeleccionado] = useState(
     String(permiso?.cN_Id_estado || permiso?.estado || "1")
   );
+  const [mostrarJustificacionRechazo, setMostrarJustificacionRechazo] = useState(false);
   const [permisoLocal, setPermisoLocal] = useState({
     cT_Titulo_permiso: "",
     cT_Descripcion_permiso: "",
@@ -32,14 +33,20 @@ const EditarPermisoModal = ({ isOpen, onOpenChange, onClose, onSave, permiso, es
   // Estados permitidos para permisos
   const estadosPermiso = [
     { key: "1", label: "Registrado" },
-    { key: "2", label: "Aprobado" },
+    { key: "6", label: "Aprobado" },
     { key: "15", label: "Rechazado" }
   ];
+
+  // Determinar si es solo revisión (solo puede cambiar estado)
+  const esSoloRevision = tipoSeccion === "solicitudes";
 
   // Actualizar estado seleccionado y datos locales cuando cambie el permiso
   useEffect(() => {
     if (isOpen && permiso) {
-      setEstadoSeleccionado(String(permiso?.cN_Id_estado || permiso?.estado || "1"));
+      const estadoActual = String(permiso?.cN_Id_estado || permiso?.estado || "1");
+      setEstadoSeleccionado(estadoActual);
+      setMostrarJustificacionRechazo(estadoActual === "15");
+      
       setPermisoLocal({
         cT_Titulo_permiso: permiso?.cT_Titulo_permiso || permiso?.titulo || "",
         cT_Descripcion_permiso: permiso?.cT_Descripcion_permiso || permiso?.descripcion || "",
@@ -49,6 +56,13 @@ const EditarPermisoModal = ({ isOpen, onOpenChange, onClose, onSave, permiso, es
       });
     }
   }, [isOpen, permiso]);
+
+  // Manejar cambio de estado
+  const handleEstadoChange = (keys) => {
+    const nuevoEstado = Array.from(keys)[0];
+    setEstadoSeleccionado(nuevoEstado);
+    setMostrarJustificacionRechazo(nuevoEstado === "15");
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -81,12 +95,12 @@ const EditarPermisoModal = ({ isOpen, onOpenChange, onClose, onSave, permiso, es
       }
 
       const permisoData = {
-        cT_Titulo_permiso: data.titulo?.trim(),
-        cT_Descripcion_permiso: data.descripcion?.trim(),
+        cT_Titulo_permiso: esSoloRevision ? permisoLocal.cT_Titulo_permiso : (data.titulo?.trim() || permisoLocal.cT_Titulo_permiso),
+        cT_Descripcion_permiso: esSoloRevision ? permisoLocal.cT_Descripcion_permiso : (data.descripcion?.trim() || permisoLocal.cT_Descripcion_permiso),
         cN_Id_estado: parseInt(data.estado),
         cT_Descripcion_rechazo: data.estado === "15" ? data.descripcionRechazo?.trim() : null,
-        cF_Fecha_hora_inicio_permiso: fechaInicio,
-        cF_Fecha_hora_fin_permiso: fechaFin,
+        cF_Fecha_hora_inicio_permiso: esSoloRevision ? permisoLocal.cF_Fecha_hora_inicio_permiso : fechaInicio,
+        cF_Fecha_hora_fin_permiso: esSoloRevision ? permisoLocal.cF_Fecha_hora_fin_permiso : fechaFin,
       };
 
       console.log('Datos del permiso a enviar:', permisoData);
@@ -124,159 +138,174 @@ const EditarPermisoModal = ({ isOpen, onOpenChange, onClose, onSave, permiso, es
               </p>
             </ModalHeader>
             
-            <ModalBody>
-              <Form 
-                id="editarPermisoForm"
-                className="space-y-4"
-                validationBehavior="native"
-                onSubmit={handleSubmit}
-              >
+        <Form
+            className="w-full space-y-4"
+            validationBehavior="native"
+            onSubmit={handleSubmit}
+        >
+            <ModalBody className="px-6 pt-6 w-full">
                 {/* Título */}
                 <Input
-                  name="titulo"
-                  label="Título del Permiso"
-                  placeholder="Ej: Permiso médico, Vacaciones, etc."
-                  defaultValue={permiso?.cT_Titulo_permiso || permiso?.titulo || ""}
-                  isRequired
-                  validate={(value) => {
-                    if (!value || !value.trim()) {
-                      return "El título es requerido";
-                    }
-                  }}
+                    name="titulo"
+                    label="Título del Permiso"
+                    labelPlacement="outside"
+                    variant="bordered"
+                    placeholder="Ej: Permiso médico, etc."
+                    value={permisoLocal.cT_Titulo_permiso}
+                    onChange={(e) => setPermisoLocal(prev => ({
+                        ...prev,
+                        cT_Titulo_permiso: e.target.value
+                    }))}
+                    isRequired
+                    isDisabled={isLoading || esSoloRevision}
+                    validate={(value) => {
+                        if (!value || !value.trim()) {
+                            return "El título es requerido";
+                        }
+                    }}
                 />
-
-                {/* Descripción */}
-                <Textarea
-                  name="descripcion"
-                  label="Descripción"
-                  placeholder="Describe el motivo y detalles del permiso"
-                  defaultValue={permiso?.cT_Descripcion_permiso || permiso?.descripcion || ""}
-                  minRows={3}
-                  maxRows={6}
-                  isRequired
-                  validate={(value) => {
-                    if (!value || !value.trim()) {
-                      return "La descripción es requerida";
-                    }
-                  }}
-                />
+                
+                <div className="col-span-2 flex flex-col gap-1">
+                    <label className="text-sm font-medium text-foreground">
+                        Descripción del Permiso <span className="text-danger">*</span>
+                    </label>
+                    <textarea
+                        name="descripcion"
+                        placeholder="Describa el motivo y detalles del permiso"
+                        defaultValue={permisoLocal.cT_Descripcion_permiso || ""}
+                        rows={3}
+                        className="w-full px-3 py-2 rounded-medium border-2 border-default-200 hover:border-default-300 focus:border-black transition-all duration-150 ease-in-out focus:outline-none resize-none text-sm overflow-hidden"
+                        disabled={isLoading || esSoloRevision}
+                        required
+                        readOnly={esSoloRevision}
+                        style={{ minHeight: '80px', maxHeight: '120px' }}
+                    />
+                </div>
 
                 {/* Estado */}
                 <Select
-                  name="estado"
-                  label="Estado"
-                  placeholder="Selecciona el estado del permiso"
-                  defaultSelectedKeys={[String(permiso?.cN_Id_estado || permiso?.estado || "1")]}
-                  isRequired
-                  validate={(value) => {
-                    if (!value) {
-                      return "El estado es requerido";
-                    }
-                  }}
+                    name="estado"
+                    label="Estado del Permiso"
+                    labelPlacement="outside"
+                    variant="bordered"
+                    placeholder="Selecciona el estado del permiso"
+                    selectedKeys={[estadoSeleccionado]}
+                    onSelectionChange={handleEstadoChange}
+                    isRequired
+                    isDisabled={isLoading}
+                    validate={(value) => {
+                        if (!value) {
+                            return "El estado es requerido";
+                        }
+                    }}
                 >
-                  {estadosPermiso.map((estado) => (
-                    <SelectItem key={estado.key} value={estado.key}>
-                      {estado.label}
-                    </SelectItem>
-                  ))}
+                    {estadosPermiso.map((estado) => (
+                        <SelectItem key={estado.key} value={estado.key}>
+                            {estado.label}
+                        </SelectItem>
+                    ))}
                 </Select>
 
-                {/* Descripción de Rechazo - Se mostrará condicionalmente */}
-                <Textarea
-                  name="descripcionRechazo"
-                  label="Motivo de Rechazo"
-                  placeholder="Explica el motivo por el cual se rechaza el permiso"
-                  defaultValue={permiso?.cT_Descripcion_rechazo || permiso?.descripcionRechazo || ""}
-                  minRows={2}
-                  maxRows={4}
-                  className="[&]:data-[state=rejected]:block hidden"
-                  validate={(value) => {
-                    // Esta validación se aplicará solo cuando sea visible
-                    const estadoSelect = document.querySelector('select[name="estado"]');
-                    if (estadoSelect?.value === "15" && (!value || !value.trim())) {
-                      return "La descripción de rechazo es requerida cuando el estado es 'Rechazado'";
-                    }
-                  }}
-                />
+                {/* Descripción de Rechazo - Solo cuando estado es rechazado */}
+                {mostrarJustificacionRechazo && (
+                    <div className="col-span-2 flex flex-col gap-1 animate-in slide-in-from-top-2 duration-200">
+                        <label className="text-sm font-medium text-foreground">
+                            Motivo de Rechazo <span className="text-danger">*</span>
+                        </label>
+                        <textarea
+                            name="descripcionRechazo"
+                            placeholder="Explica el motivo por el cual se rechaza el permiso"
+                            defaultValue={permisoLocal.cT_Descripcion_rechazo || ""}
+                            rows={3}
+                            className="w-full px-3 py-2 rounded-medium border-2 border-red-200 hover:border-red-300 focus:border-red-500 transition-all duration-150 ease-in-out focus:outline-none resize-none text-sm overflow-hidden bg-red-50"
+                            disabled={isLoading}
+                            required
+                            style={{ minHeight: '80px', maxHeight: '120px' }}
+                        />
+                    </div>
+                )}
 
                 {/* Fechas */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <I18nProvider locale="es-ES">
-                    <DatePicker
-                      isRequired
-                      label="Fecha y Hora de Inicio"
-                      labelPlacement="outside"
-                      showMonthAndYearPickers
-                      hideTimeZone
-                      variant="bordered"
-                      granularity="minute"
-                      hourCycle={12}
-                      {...datePickerUtils.getPermissionDatePickerPropsComplete({
-                        currentValue: permisoLocal.cF_Fecha_hora_inicio_permiso,
-                        onChange: setPermisoLocal,
-                        fieldName: 'cF_Fecha_hora_inicio_permiso'
-                      })}
-                      validate={(value) => {
-                        if (!value) {
-                          return "La fecha de inicio es requerida";
-                        }
-                      }}
-                    />
-                  </I18nProvider>
+                    <I18nProvider locale="es-ES">
+                        <DatePicker
+                            isRequired
+                            label="Fecha y Hora de Inicio"
+                            labelPlacement="outside"
+                            showMonthAndYearPickers
+                            hideTimeZone
+                            variant="bordered"
+                            granularity="minute"
+                            hourCycle={12}
+                            isDisabled={isLoading || esSoloRevision}
+                            {...datePickerUtils.getPermissionDatePickerPropsComplete({
+                                currentValue: permisoLocal.cF_Fecha_hora_inicio_permiso,
+                                onChange: setPermisoLocal,
+                                fieldName: 'cF_Fecha_hora_inicio_permiso'
+                            })}
+                            validate={(value) => {
+                                if (!value) {
+                                    return "La fecha de inicio es requerida";
+                                }
+                            }}
+                        />
+                    </I18nProvider>
 
-                  <I18nProvider locale="es-ES">
-                    <DatePicker
-                      isRequired
-                      label="Fecha y Hora de Fin"
-                      labelPlacement="outside"
-                      showMonthAndYearPickers
-                      hideTimeZone
-                      variant="bordered"
-                      granularity="minute"
-                      hourCycle={12}
-                      {...datePickerUtils.getPermissionDatePickerPropsComplete({
-                        currentValue: permisoLocal.cF_Fecha_hora_fin_permiso,
-                        onChange: setPermisoLocal,
-                        maxDateISO: permisoLocal.cF_Fecha_hora_inicio_permiso,
-                        fieldName: 'cF_Fecha_hora_fin_permiso'
-                      })}
-                      validate={(value) => {
-                        if (!value) {
-                          return "La fecha de fin es requerida";
-                        }
-                        // Validar que la fecha de fin sea posterior a la de inicio
-                        if (permisoLocal.cF_Fecha_hora_inicio_permiso && value) {
-                          const fechaInicio = new Date(permisoLocal.cF_Fecha_hora_inicio_permiso);
-                          const fechaFin = new Date(value.toDate());
-                          if (fechaFin <= fechaInicio) {
-                            return "La fecha de fin debe ser posterior a la fecha de inicio";
-                          }
-                        }
-                      }}
-                    />
-                  </I18nProvider>
+                    <I18nProvider locale="es-ES">
+                        <DatePicker
+                            isRequired
+                            label="Fecha y Hora de Fin"
+                            labelPlacement="outside"
+                            showMonthAndYearPickers
+                            hideTimeZone
+                            variant="bordered"
+                            granularity="minute"
+                            hourCycle={12}
+                            isDisabled={isLoading || esSoloRevision}
+                            {...datePickerUtils.getPermissionDatePickerPropsComplete({
+                                currentValue: permisoLocal.cF_Fecha_hora_fin_permiso,
+                                onChange: setPermisoLocal,
+                                maxDateISO: permisoLocal.cF_Fecha_hora_inicio_permiso,
+                                fieldName: 'cF_Fecha_hora_fin_permiso'
+                            })}
+                            validate={(value) => {
+                                if (!value) {
+                                    return "La fecha de fin es requerida";
+                                }
+                                // Validar que la fecha de fin sea posterior a la de inicio
+                                if (permisoLocal.cF_Fecha_hora_inicio_permiso && value) {
+                                    const fechaInicio = new Date(permisoLocal.cF_Fecha_hora_inicio_permiso);
+                                    const fechaFin = new Date(value.toDate());
+                                    if (fechaFin <= fechaInicio) {
+                                        return "La fecha de fin debe ser posterior a la fecha de inicio";
+                                    }
+                                }
+                            }}
+                        />
+                    </I18nProvider>
                 </div>
-              </Form>
             </ModalBody>
-            
-            <ModalFooter>
-              <Button 
-                color="danger" 
-                variant="light" 
-                onPress={handleClose}
-                isDisabled={isLoading}
-              >
-                Cancelar
-              </Button>
-              <Button 
-                color="primary" 
-                form="editarPermisoForm"
-                type="submit"
-                isLoading={isLoading}
-              >
-                Actualizar Permiso
-              </Button>
+
+            <ModalFooter className="px-6 pb-6 items-center justify-end w-full">
+                <div className="flex justify-end gap-2 pt-4">
+                    <Button
+                        color="danger"
+                        variant="light"
+                        onPress={handleClose}
+                        isDisabled={isLoading}
+                    >
+                        Cancelar
+                    </Button>
+                    <Button
+                        color="primary"
+                        type="submit"
+                        isLoading={isLoading}
+                    >
+                        {esSoloRevision ? "Guardar Decisión" : "Actualizar Permiso"}
+                    </Button>
+                </div>
             </ModalFooter>
+        </Form>
           </>
         )}
       </ModalContent>

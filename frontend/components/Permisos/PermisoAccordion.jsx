@@ -8,7 +8,7 @@ const PermisoAccordion = ({ permisos, onEdit, onDelete, tipoSeccion, currentUser
   const obtenerNombreEstado = (estadoId) => {
     const estados = {
       1: "Registrado",
-      2: "Aprobado", 
+      6: "Aprobado", 
       15: "Rechazado"
     };
     return estados[estadoId] || `Estado ${estadoId}`;
@@ -20,7 +20,7 @@ const PermisoAccordion = ({ permisos, onEdit, onDelete, tipoSeccion, currentUser
   const obtenerColorEstado = (estadoId) => {
     const colores = {
       1: "default",      // Registrado
-      2: "success",      // Aprobado
+      6: "success",      // Aprobado
       15: "danger",      // Rechazado
     };
     return colores[estadoId] || "default";

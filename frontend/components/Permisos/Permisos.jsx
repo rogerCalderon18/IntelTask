@@ -49,7 +49,7 @@ const Permisos = () => {
     const estadosPermiso = [
         { key: "todos", label: "Todos los estados" },
         { key: "1", label: "Registrado" },
-        { key: "2", label: "Aprobado" },
+        { key: "6", label: "Aprobado" },
         { key: "15", label: "Rechazado" }
     ];
 
@@ -266,7 +266,7 @@ const Permisos = () => {
                                                     {tabActivo === "misSolicitudes" && (
                                                         <div className="bg-green-50 px-3 py-1 rounded-full">
                                                             <span className="text-xs font-medium text-green-700">
-                                                                Aprobados: {permisosFiltrados.filter(p => (p.cN_Id_estado || p.estado) === 2).length}
+                                                                Aprobados: {permisosFiltrados.filter(p => (p.cN_Id_estado || p.estado) === 6).length}
                                                             </span>
                                                         </div>
                                                     )}

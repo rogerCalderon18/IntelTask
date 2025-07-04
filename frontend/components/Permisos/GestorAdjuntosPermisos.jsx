@@ -40,8 +40,8 @@ const GestorAdjuntosPermisos = ({
     const esCreador = currentUserId && usuarioCreadorId && 
                      parseInt(currentUserId) === parseInt(usuarioCreadorId);
     
-    // El estado debe ser "Aprobado" (ID 2)
-    const estaAprobado = estadoPermiso === 2;
+    // El estado debe ser "Aprobado" (ID 6)
+    const estaAprobado = estadoPermiso === 6;
     
     // Log para depuración (se puede eliminar en producción)
     console.log('Verificando permisos adjuntos:', {
@@ -224,29 +224,40 @@ const GestorAdjuntosPermisos = ({
       <ModalContent>
         {(onClose) => (
           <>
-            <ModalHeader className="flex flex-col gap-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-t-2xl -m-6 mb-6 p-6">
+            <ModalHeader className="flex flex-col gap-2 rounded-t-2xl">
               <h2 className="text-2xl font-bold flex items-center gap-3">
-                <span className="text-3xl">📎</span>
                 Gestión de Adjuntos
               </h2>
-              <p className="text-blue-100 text-lg">
+              <p className="text-gray-500 text-md">
                 {permisoTitulo || `Permiso #${permisoId}`}
               </p>
               {!puedeAgregarAdjuntos() && (
-                <div className="bg-yellow-500/20 border border-yellow-300 rounded-lg p-3 mt-2">
-                  <p className="text-yellow-100 text-sm font-medium">
-                    ℹ️ Solo el creador puede agregar adjuntos a permisos aprobados
-                  </p>
+                <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-4 mt-3 shadow-sm">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0">
+                      <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center">
+                        <span className="text-amber-600 text-lg">ℹ️</span>
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-amber-800 font-semibold text-sm mb-1">
+                        Acceso restringido
+                      </h4>
+                      <p className="text-amber-700 text-sm leading-relaxed font-normal">
+                        Solo el creador del permiso puede agregar adjuntos cuando el estado es Aprobado
+                      </p>
+                    </div>
+                  </div>
                 </div>
               )}
             </ModalHeader>
             
             <ModalBody>
               <div className="space-y-6">
-                {/* Zona de carga mejorada */}
-                <Card className="border-2 border-dashed border-gray-200 hover:border-blue-300 transition-colors">
-                  <CardBody className="p-0">
-                    {puedeAgregarAdjuntos() ? (
+                {/* Zona de carga mejorada - Solo mostrar si puede agregar adjuntos */}
+                {puedeAgregarAdjuntos() && (
+                  <Card className="border-2 border-dashed border-gray-200 hover:border-blue-300 transition-colors">
+                    <CardBody className="p-0">
                       <div
                         className={`rounded-xl p-8 text-center transition-all duration-300 ${
                           dragActive
@@ -259,9 +270,6 @@ const GestorAdjuntosPermisos = ({
                         onDrop={handleDrop}
                       >
                         <div className="mb-6">
-                          <div className={`text-6xl mb-4 ${dragActive ? 'animate-bounce' : ''}`}>
-                            📤
-                          </div>
                           <FiUpload className={`w-12 h-12 text-blue-500 mx-auto mb-4 ${dragActive ? 'animate-pulse' : ''}`} />
                         </div>
                         <h3 className="text-xl font-bold text-gray-800 mb-3">
@@ -287,46 +295,29 @@ const GestorAdjuntosPermisos = ({
                           startContent={<FiUpload className="w-5 h-5" />}
                           onPress={() => document.getElementById('file-upload').click()}
                           isDisabled={uploading}
-                          className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
                         >
-                          📁 Seleccionar Archivo
+                          Seleccionar Archivo
                         </Button>
-                        <p className="text-xs text-gray-500 mt-4 bg-gray-100 rounded-full px-4 py-2 inline-block">
-                          📏 Tamaño máximo: 10MB
+                        <p className="ml-2 text-xs text-gray-500 mt-4 bg-gray-100 rounded-full px-4 py-2 inline-block">
+                          Tamaño máximo: 10MB
                         </p>
                       </div>
-                    ) : (
-                      <div className="rounded-xl p-8 text-center bg-gradient-to-br from-gray-100 to-gray-200">
-                        <div className="text-6xl mb-4">🔒</div>
-                        <FiUpload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                        <h3 className="text-xl font-bold text-gray-500 mb-3">
-                          Subida de archivos restringida
-                        </h3>
-                        <p className="text-gray-600 text-sm bg-white rounded-lg p-4 border border-gray-200">
-                          {!currentUserId || !usuarioCreadorId || parseInt(currentUserId) !== parseInt(usuarioCreadorId)
-                            ? "🚫 Solo el creador del permiso puede agregar adjuntos"
-                            : estadoPermiso !== 2
-                            ? "⏳ Solo se pueden agregar adjuntos a permisos aprobados"
-                            : "❌ No tienes permisos para agregar adjuntos"
-                          }
-                        </p>
-                      </div>
-                    )}
 
-                    {/* Barra de progreso de carga */}
-                    {uploading && (
-                      <div className="mt-4">
-                        <div className="flex justify-between text-sm text-gray-600 mb-2">
-                          <span>Subiendo archivo...</span>
-                          <span>{uploadProgress}%</span>
+                      {uploading && (
+                        <div className="mt-4">
+                          <div className="flex justify-between text-sm text-gray-600 mb-2">
+                            <span>Subiendo archivo...</span>
+                            <span>{uploadProgress}%</span>
+                          </div>
+                          <Progress value={uploadProgress} color="primary" />
                         </div>
-                        <Progress value={uploadProgress} color="primary" />
-                      </div>
-                    )}
-                  </CardBody>
-                </Card>
+                      )}
+                    </CardBody>
+                  </Card>
+                )}
 
-                <Divider />
+                {/* Divider solo si hay zona de carga */}
+                {puedeAgregarAdjuntos() && <Divider />}
 
                 {/* Lista de adjuntos */}
                 <div>
@@ -386,8 +377,8 @@ const GestorAdjuntosPermisos = ({
             
             <ModalFooter>
               <Button 
-                color="primary" 
-                variant="light" 
+                color="danger" 
+                className="bg-danger text-white" 
                 onPress={onClose}
               >
                 Cerrar

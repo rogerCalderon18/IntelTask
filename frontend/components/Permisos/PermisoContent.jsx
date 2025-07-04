@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import { Button, Chip, Divider, Tooltip, useDisclosure } from "@heroui/react";
-import { FiEdit2, FiTrash2, FiCalendar, FiUser, FiClock, FiFileText } from "react-icons/fi";
+import { FiEdit2, FiTrash2, FiCalendar, FiUser, FiClock, FiFileText, FiPaperclip, FiAlertCircle, FiInfo } from "react-icons/fi";
 import GestorAdjuntosPermisos from "./GestorAdjuntosPermisos";
 
 const PermisoContent = ({ permiso, onEdit, onDelete, tipoSeccion, currentUserId }) => {
   const [expandirDescripcion, setExpandirDescripcion] = useState(false);
   const { isOpen: isAdjuntosOpen, onOpen: onAdjuntosOpen, onOpenChange: onAdjuntosOpenChange } = useDisclosure();
 
-  // Función para formatear fecha y hora
+  // Función para formatear fecha y hora en formato de 12 horas
   const formatearFechaHora = (fecha) => {
     if (!fecha) return '';
     return new Date(fecha).toLocaleString('es-ES', {
@@ -15,28 +15,45 @@ const PermisoContent = ({ permiso, onEdit, onDelete, tipoSeccion, currentUserId 
       month: '2-digit',
       year: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
+      hour12: true
     });
   };
 
-  // Función para calcular duración del permiso
+  // Función para calcular duración del permiso en días y horas
   const calcularDuracion = (fechaInicio, fechaFin) => {
     if (!fechaInicio || !fechaFin) return '';
     const inicio = new Date(fechaInicio);
     const fin = new Date(fechaFin);
     const diferencia = fin - inicio;
-    const dias = Math.ceil(diferencia / (1000 * 60 * 60 * 24));
     
-    if (dias === 1) return '1 día';
-    if (dias < 1) return 'Menos de 1 día';
-    return `${dias} días`;
+    // Calcular días y horas totales
+    const totalHoras = Math.floor(diferencia / (1000 * 60 * 60));
+    const dias = Math.floor(totalHoras / 24);
+    const horas = totalHoras % 24;
+    
+    // Formatear el resultado de forma más compacta
+    if (dias === 0 && horas === 0) {
+      return 'Menos de 1h';
+    } else if (dias === 0) {
+      return horas === 1 ? '1 hora' : `${horas}h`;
+    } else if (horas === 0) {
+      return dias === 1 ? '1 día' : `${dias} días`;
+    } else {
+      // Formato compacto para evitar descuadre
+      if (dias === 1) {
+        return `1d ${horas}h`;
+      } else {
+        return `${dias}d ${horas}h`;
+      }
+    }
   };
 
   // Función para obtener el color del estado
   const obtenerColorEstado = (estadoId) => {
     const colores = {
       1: "default",     // Registrado
-      2: "success",     // Aprobado
+      6: "success",     // Aprobado
       15: "danger",     // Rechazado
     };
     return colores[estadoId] || "default";
@@ -46,7 +63,7 @@ const PermisoContent = ({ permiso, onEdit, onDelete, tipoSeccion, currentUserId 
   const obtenerNombreEstado = (estadoId) => {
     const estados = {
       1: "Registrado",
-      2: "Aprobado",
+      6: "Aprobado",
       15: "Rechazado"
     };
     return estados[estadoId] || `Estado ${estadoId}`;
@@ -91,14 +108,18 @@ const PermisoContent = ({ permiso, onEdit, onDelete, tipoSeccion, currentUserId 
             <FiCalendar className="w-5 h-5" />
             <span>Período del Permiso</span>
           </div>
-          <div className="space-y-2 text-sm text-gray-700">
-            <div className="flex items-center gap-2">
-              <span className="font-medium text-green-600">Inicio:</span>
-              <span>{formatearFechaHora(permiso.cF_Fecha_hora_inicio_permiso || permiso.fechaInicio)}</span>
+          <div className="space-y-3 text-sm">
+            <div>
+              <div className="font-medium text-green-600 mb-1">Inicio:</div>
+              <div className="text-gray-700 font-medium">
+                {formatearFechaHora(permiso.cF_Fecha_hora_inicio_permiso || permiso.fechaInicio)}
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="font-medium text-red-600">Fin:</span>
-              <span>{formatearFechaHora(permiso.cF_Fecha_hora_fin_permiso || permiso.fechaFin)}</span>
+            <div>
+              <div className="font-medium text-red-600 mb-1">Fin:</div>
+              <div className="text-gray-700 font-medium">
+                {formatearFechaHora(permiso.cF_Fecha_hora_fin_permiso || permiso.fechaFin)}
+              </div>
             </div>
           </div>
         </div>
@@ -153,38 +174,88 @@ const PermisoContent = ({ permiso, onEdit, onDelete, tipoSeccion, currentUserId 
 
       <Divider className="my-6" />
 
-      {/* Descripción mejorada */}
-      <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl p-6 border border-gray-100">
-        <div className="flex items-center gap-2 text-lg font-semibold text-gray-800 mb-4">
-          <FiFileText className="w-5 h-5 text-blue-600" />
-          <span>Descripción del Permiso</span>
-        </div>
-        <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
-          <p className="text-gray-700 leading-relaxed">
-            {descripcionMostrada}
-            {mostrarBotonExpandir && !expandirDescripcion && '...'}
-          </p>
-          {mostrarBotonExpandir && (
-            <button
-              onClick={() => setExpandirDescripcion(!expandirDescripcion)}
-              className="mt-3 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition-colors duration-200"
-            >
-              {expandirDescripcion ? 'Ver menos' : 'Ver más'}
-            </button>
-          )}
+      {/* Descripción con diseño renovado */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-slate-50 via-blue-50 to-indigo-50 rounded-2xl border border-slate-200 shadow-lg">
+        {/* Decoración de fondo */}
+        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-100 rounded-full opacity-20 -translate-y-16 translate-x-16"></div>
+        <div className="absolute bottom-0 left-0 w-24 h-24 bg-indigo-100 rounded-full opacity-30 translate-y-12 -translate-x-12"></div>
+        
+        <div className="relative p-6">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="flex items-center justify-center w-10 h-10 bg-blue-500 rounded-xl shadow-md">
+              <FiFileText className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-slate-800">Descripción del Permiso</h3>
+              <p className="text-sm text-slate-500">Detalles de la solicitud</p>
+            </div>
+          </div>
+          
+          <div className="relative bg-white/80 backdrop-blur-sm rounded-xl p-5 border border-white/50 shadow-sm">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/90 to-blue-50/30 rounded-xl"></div>
+            <div className="relative">
+              <p className="text-slate-700 leading-relaxed text-base font-medium">
+                {descripcionMostrada}
+                {mostrarBotonExpandir && !expandirDescripcion && (
+                  <span className="text-blue-500 font-semibold">...</span>
+                )}
+              </p>
+              {mostrarBotonExpandir && (
+                <div className="mt-4 flex justify-center">
+                  <button
+                    onClick={() => setExpandirDescripcion(!expandirDescripcion)}
+                    className="group px-6 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white text-sm font-semibold rounded-full shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105"
+                  >
+                    <span className="flex items-center gap-2">
+                      {expandirDescripcion ? 'Ver menos' : 'Ver más'}
+                      <div className={`transition-transform duration-300 ${expandirDescripcion ? 'rotate-180' : ''}`}>
+                        ↓
+                      </div>
+                    </span>
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Motivo de rechazo mejorado */}
+      {/* Motivo de rechazo con diseño distintivo */}
       {(permiso.cN_Id_estado || permiso.estado) === 15 && (permiso.cT_Descripcion_rechazo || permiso.descripcionRechazo) && (
-        <div className="bg-gradient-to-br from-red-50 to-pink-50 rounded-xl p-6 border border-red-200">
-          <div className="flex items-center gap-2 text-lg font-semibold text-red-700 mb-3">
-            <span>Motivo de Rechazo</span>
+        <div className="relative overflow-hidden bg-gradient-to-r from-red-50 via-rose-50 to-pink-50 rounded-2xl border-2 border-red-200 shadow-lg">
+          {/* Patrón de fondo decorativo */}
+          <div className="absolute inset-0 opacity-5">
+            <div className="absolute top-4 left-4 w-16 h-16 border-2 border-red-300 rounded-full"></div>
+            <div className="absolute top-8 right-8 w-12 h-12 border-2 border-rose-300 rounded-full"></div>
+            <div className="absolute bottom-6 left-1/2 w-20 h-20 border-2 border-pink-300 rounded-full transform -translate-x-1/2"></div>
           </div>
-          <div className="bg-white rounded-lg p-4 border-l-4 border-red-500 shadow-sm">
-            <p className="text-red-700 leading-relaxed">
-              {permiso.cT_Descripcion_rechazo || permiso.descripcionRechazo}
-            </p>
+          
+          {/* Banda superior decorativa */}
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-400 via-rose-400 to-pink-400"></div>
+          
+          <div className="relative p-6">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="flex items-center justify-center w-11 h-11 bg-gradient-to-br from-red-500 to-rose-500 rounded-xl shadow-lg">
+                <FiAlertCircle className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-red-800">Motivo del Rechazo</h3>
+                <p className="text-sm text-red-600 font-medium">Detalles de la observación</p>
+              </div>
+            </div>
+            
+            <div className="relative bg-white/90 backdrop-blur-sm rounded-xl p-6 border-2 border-red-100 shadow-sm">
+              {/* Icono de alerta en la esquina */}
+              <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center shadow-md">
+                <span className="text-white text-xs font-bold">!</span>
+              </div>
+              
+              <div className="bg-red-50 border-l-4 border-red-400 p-5 rounded-r-lg">
+                <p className="text-red-800 leading-relaxed text-base font-medium">
+                  {permiso.cT_Descripcion_rechazo || permiso.descripcionRechazo}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -199,8 +270,8 @@ const PermisoContent = ({ permiso, onEdit, onDelete, tipoSeccion, currentUserId 
           variant="flat"
           color="default"
           onPress={onAdjuntosOpen}
-          className="bg-white border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all duration-200"
-          startContent={<span className="text-lg">📎</span>}
+          className="bg-success text-white border-none hover:shadow-lg transition-all duration-200"
+          startContent={<FiPaperclip className="w-4 h-4" />}
         >
           Adjuntos
         </Button>
@@ -214,7 +285,7 @@ const PermisoContent = ({ permiso, onEdit, onDelete, tipoSeccion, currentUserId 
               variant="flat"
               startContent={<FiEdit2 className="w-4 h-4" />}
               onPress={() => onEdit(permiso)}
-              className="bg-blue-500 hover:bg-blue-600 text-white border-none hover:shadow-lg transition-all duration-200"
+              className="bg-blue-500 text-white border-none hover:shadow-lg transition-all duration-200"
             >
               {tipoSeccion === "solicitudes" ? "Revisar" : "Editar"}
             </Button>

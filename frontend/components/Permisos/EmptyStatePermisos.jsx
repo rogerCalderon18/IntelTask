@@ -7,18 +7,18 @@ const EmptyStatePermisos = ({ tabActivo, onNuevoPermiso }) => {
     switch (tabActivo) {
       case "misSolicitudes":
         return {
-          emoji: "📝",
+          emoji: "",
           title: "¡Tu lista de permisos está vacía!",
-          description: "Parece que aún no has solicitado ningún permiso. ¡Es el momento perfecto para crear tu primera solicitud!",
+          description: "Parece que aún no has solicitado ningún permiso.",
           action: {
-            label: "✨ Solicitar mi Primer Permiso",
+            label: "Solicitar mi Primer Permiso",
             icon: <FiPlus className="w-4 h-4" />,
             show: true
           }
         };
       case "solicitudes":
         return {
-          emoji: "🎯",
+          emoji: "",
           title: "¡Todo al día!",
           description: "Excelente trabajo. No hay solicitudes de permiso pendientes de revisión en este momento.",
           action: {
@@ -27,7 +27,7 @@ const EmptyStatePermisos = ({ tabActivo, onNuevoPermiso }) => {
         };
       default:
         return {
-          emoji: "📅",
+          emoji: "",
           title: "Sin permisos para mostrar",
           description: "No se encontraron permisos que coincidan con los filtros seleccionados.",
           action: {
@@ -49,7 +49,7 @@ const EmptyStatePermisos = ({ tabActivo, onNuevoPermiso }) => {
       </div>
       
       {/* Título con gradiente */}
-      <h3 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4 text-center">
+      <h3 className="text-3xl font-bold bg-primary bg-clip-text text-transparent mb-4 text-center">
         {content.title}
       </h3>
       
@@ -65,18 +65,11 @@ const EmptyStatePermisos = ({ tabActivo, onNuevoPermiso }) => {
           size="lg"
           startContent={content.action.icon}
           onPress={onNuevoPermiso}
-          className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-semibold px-8 py-3 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+          className="hover:from-blue-600 hover:to-purple-600 text-white font-semibold px-8 py-3 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
         >
           {content.action.label}
         </Button>
       )}
-      
-      {/* Elementos decorativos */}
-      <div className="mt-12 flex justify-center space-x-2">
-        <div className="w-2 h-2 bg-blue-300 rounded-full animate-pulse"></div>
-        <div className="w-2 h-2 bg-purple-300 rounded-full animate-pulse delay-100"></div>
-        <div className="w-2 h-2 bg-indigo-300 rounded-full animate-pulse delay-200"></div>
-      </div>
     </div>
   );
 };
