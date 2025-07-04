@@ -18,7 +18,6 @@ import {I18nProvider} from "@react-aria/i18n";
 import { datePickerUtils } from "../../utils/datePickerUtils";
 
 const TareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tareaPadre = null }) => {
-    console.log("tarea", tarea);
     const { data: session, status } = useSession();
     const [tareaLocal, setTareaLocal] = useState(tarea || {});
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -40,9 +39,6 @@ const TareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tareaPadre
         setTareaLocal(tarea || {});
         console.log("Tarea local actualizada:", tareaLocal);
     }, [tarea]);
-
-    console.log("tareas Padre", tareaPadre);
-
 
     const cargarCatalogos = async () => {
         try {

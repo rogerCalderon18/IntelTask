@@ -7,29 +7,29 @@ const EmptyStatePermisos = ({ tabActivo, onNuevoPermiso }) => {
     switch (tabActivo) {
       case "misSolicitudes":
         return {
-          icon: <FiCalendar className="w-16 h-16 text-gray-400" />,
-          title: "No tienes solicitudes de permiso",
-          description: "Aún no has solicitado ningún permiso. Crea tu primera solicitud para comenzar.",
+          emoji: "📝",
+          title: "¡Tu lista de permisos está vacía!",
+          description: "Parece que aún no has solicitado ningún permiso. ¡Es el momento perfecto para crear tu primera solicitud!",
           action: {
-            label: "Solicitar Permiso",
+            label: "✨ Solicitar mi Primer Permiso",
             icon: <FiPlus className="w-4 h-4" />,
             show: true
           }
         };
       case "solicitudes":
         return {
-          icon: <FiClock className="w-16 h-16 text-gray-400" />,
-          title: "No hay solicitudes pendientes",
-          description: "No hay solicitudes de permiso para revisar en este momento.",
+          emoji: "🎯",
+          title: "¡Todo al día!",
+          description: "Excelente trabajo. No hay solicitudes de permiso pendientes de revisión en este momento.",
           action: {
             show: false
           }
         };
       default:
         return {
-          icon: <FiCalendar className="w-16 h-16 text-gray-400" />,
-          title: "No hay permisos",
-          description: "No se encontraron permisos para mostrar.",
+          emoji: "📅",
+          title: "Sin permisos para mostrar",
+          description: "No se encontraron permisos que coincidan con los filtros seleccionados.",
           action: {
             show: false
           }
@@ -40,30 +40,43 @@ const EmptyStatePermisos = ({ tabActivo, onNuevoPermiso }) => {
   const content = getEmptyStateContent();
 
   return (
-    <div className="flex flex-col items-center justify-center py-16 px-4">
-      <div className="bg-gray-50 rounded-full p-6 mb-6">
-        {content.icon}
+    <div className="flex flex-col items-center justify-center py-20 px-6">
+      {/* Animación de rebote suave */}
+      <div className="animate-bounce mb-8">
+        <div className="text-8xl mb-4">
+          {content.emoji}
+        </div>
       </div>
       
-      <h3 className="text-xl font-semibold text-gray-900 mb-2 text-center">
+      {/* Título con gradiente */}
+      <h3 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4 text-center">
         {content.title}
       </h3>
       
-      <p className="text-gray-600 text-center max-w-md mb-8">
+      {/* Descripción mejorada */}
+      <p className="text-lg text-gray-600 text-center max-w-2xl mb-10 leading-relaxed">
         {content.description}
       </p>
       
+      {/* Botón de acción mejorado */}
       {content.action.show && (
         <Button
           color="primary"
           size="lg"
           startContent={content.action.icon}
           onPress={onNuevoPermiso}
-          className="font-medium"
+          className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-semibold px-8 py-3 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
         >
           {content.action.label}
         </Button>
       )}
+      
+      {/* Elementos decorativos */}
+      <div className="mt-12 flex justify-center space-x-2">
+        <div className="w-2 h-2 bg-blue-300 rounded-full animate-pulse"></div>
+        <div className="w-2 h-2 bg-purple-300 rounded-full animate-pulse delay-100"></div>
+        <div className="w-2 h-2 bg-indigo-300 rounded-full animate-pulse delay-200"></div>
+      </div>
     </div>
   );
 };

@@ -81,7 +81,6 @@ const Permisos = () => {
                     fechaFin: permiso.cF_Fecha_hora_fin_permiso || permiso.fechaFin,
                     fechaRegistro: permiso.cF_Fecha_hora_registro || permiso.fechaRegistro,
                     descripcionRechazo: permiso.cT_Descripcion_rechazo || permiso.descripcionRechazo,
-                    usuarioCreador: permiso.cN_Usuario_creador || permiso.usuarioCreador
                 }));
             };
 
@@ -122,12 +121,13 @@ const Permisos = () => {
     const handleOpenEditModal = (permiso) => {
         setSelectedPermiso(permiso);
         setIsEditing(true);
-        onEditOpen(true);
+        onEditOpen();
     };
 
     const handleCloseModal = () => {
         setSelectedPermiso(null);
         setIsEditing(false);
+        onOpenChange(false);
     };
 
     const handleCloseEditModal = () => {
@@ -144,17 +144,17 @@ const Permisos = () => {
                     cN_Usuario_editor: session.user.id
                 });
                 toast.success('Permiso actualizado exitosamente');
+                handleCloseEditModal(); // Solo cerrar modal de editar
             } else {
                 await permisosService.crearPermiso({
                     ...permisoData,
                     cN_Usuario_creador: session.user.id
                 });
                 toast.success('Permiso creado exitosamente');
+                handleCloseModal(); // Solo cerrar modal de crear
             }
             
             await cargarDatos();
-            handleCloseModal();
-            handleCloseEditModal();
             
         } catch (error) {
             console.error('Error al guardar permiso:', error);
@@ -193,19 +193,26 @@ const Permisos = () => {
     }
 
     return (
-        <Container className="max-w-4xl mx-auto mt-10 h-[calc(100vh-120px)] flex flex-col">
+        <Container className="max-w-6xl mx-auto mt-6 h-[calc(100vh-120px)] flex flex-col">
             {loading ? (
-                <div className="flex justify-center items-center h-64">
-                    <Spinner
-                        size="lg"
-                        color="primary"
-                        label="Cargando permisos..."
-                        labelColor="primary"
-                    />
+                <div className="flex justify-center items-center h-64 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-2xl shadow-lg">
+                    <div className="text-center">
+                        <Spinner
+                            size="lg"
+                            color="primary"
+                            classNames={{
+                                circle1: "border-b-primary",
+                                circle2: "border-b-secondary",
+                            }}
+                        />
+                        <p className="mt-4 text-lg font-medium text-gray-700 animate-pulse">
+                            Cargando permisos...
+                        </p>
+                    </div>
                 </div>
             ) : (
                 <div className="flex flex-col h-full">
-                    <div className="flex-shrink-0 mb-4">
+                    <div className="flex-shrink-0 mb-6">
                         <Tabs
                             aria-label="Categorías de permisos"
                             variant="underlined"
@@ -214,59 +221,89 @@ const Permisos = () => {
                             onSelectionChange={(key) => {
                                 setTabActivo(key);
                             }}
-                            classNames={{
-                                tabList: "gap-6 w-full relative rounded-none p-0 border-b border-divider",
-                                cursor: "w-full bg-[#22d3ee]",
-                                tab: "max-w-fit px-0 h-12",
-                                tabContent: "group-data-[selected=true]:text-[#06b6d4]",
-                            }}
                         >
                             {tabs.map(tab => (
-                                <Tab key={tab.id} title={tab.label}>
-                                    <div className="flex justify-between items-center mb-4 ml-2 bg-white sticky top-0 z-10 py-2">
-                                        <div className="flex gap-4 w-1/2">
-                                            <Select
-                                                placeholder="Filtrar por estado"
-                                                className="w-1/2"
-                                                onSelectionChange={(keys) => {
-                                                    const selectedKey = Array.from(keys)[0];
-                                                    setFiltroEstado(selectedKey || 'todos');
-                                                }}
-                                                selectionMode="single"
-                                                selectedKeys={[filtroEstado]}
-                                            >
-                                                {estadosPermiso.map((estado) => (
-                                                    <SelectItem key={estado.key} value={estado.key}>
-                                                        {estado.label}
-                                                    </SelectItem>
-                                                ))}
-                                            </Select>
-                                        </div>
+                                <Tab key={tab.id} title={
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-3 h-3 rounded-full ${tab.id === 'misSolicitudes' ? 'bg-blue-400' : 'bg-purple-400'}`} />
+                                        <span className="text-sm font-medium">{tab.label}</span>
+                                    </div>
+                                }>
+                                    <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-4 mb-6 sticky top-0 z-10">
+                                        <div className="flex justify-between items-center">
+                                            <div className="flex gap-4 items-center flex-1">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-sm font-medium text-gray-700">Filtrar:</span>
+                                                    <Select
+                                                        placeholder="Todos los estados"
+                                                        className="w-48"
+                                                        size="md"
+                                                        variant="bordered"
+                                                        onSelectionChange={(keys) => {
+                                                            const selectedKey = Array.from(keys)[0];
+                                                            setFiltroEstado(selectedKey || 'todos');
+                                                        }}
+                                                        selectionMode="single"
+                                                        selectedKeys={[filtroEstado]}
+                                                        classNames={{
+                                                            trigger: "bg-gray-50 border-gray-200 hover:bg-gray-100 transition-colors",
+                                                        }}
+                                                    >
+                                                        {estadosPermiso.map((estado) => (
+                                                            <SelectItem key={estado.key} value={estado.key}>
+                                                                {estado.label}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </Select>
+                                                </div>
+                                                
+                                                <div className="hidden lg:flex items-center gap-4 ml-6">
+                                                    <div className="bg-blue-50 px-3 py-1 rounded-full">
+                                                        <span className="text-xs font-medium text-blue-700">
+                                                            Total: {permisosFiltrados.length}
+                                                        </span>
+                                                    </div>
+                                                    {tabActivo === "misSolicitudes" && (
+                                                        <div className="bg-green-50 px-3 py-1 rounded-full">
+                                                            <span className="text-xs font-medium text-green-700">
+                                                                Aprobados: {permisosFiltrados.filter(p => (p.cN_Id_estado || p.estado) === 2).length}
+                                                            </span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
 
-                                        <Button
-                                            color="primary"
-                                            endContent={<FiPlus className="w-4 h-4" />}
-                                            className="flex items-center mr-2"
-                                            onPress={() => handleOpenModal()}
-                                        >
-                                            Agregar
-                                        </Button>
+                                            <Button
+                                                color="primary"
+                                                endContent={<FiPlus className="w-4 h-4" />}
+                                                className="hover:from-blue-600 hover:to-purple-600 text-white font-semibold px-6 py-2 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                                                onPress={() => handleOpenModal()}
+                                                size="md"
+                                            >
+                                                <span className="hidden sm:inline">Nuevo Permiso</span>
+                                                <span className="sm:hidden">Agregar</span>
+                                            </Button>
+                                        </div>
                                     </div>
 
-                                    <div className="flex-1 overflow-y-auto max-h-[calc(100vh-300px)] pr-2 py-10">
+                                    <div className="flex-1 overflow-y-auto max-h-[calc(100vh-400px)] pr-2">
                                         {permisosFiltrados.length === 0 ? (
-                                            <EmptyStatePermisos 
-                                                tabActivo={tabActivo}
-                                                onNuevoPermiso={() => handleOpenModal()}
-                                            />
+                                            <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl p-8 border-2 border-dashed border-gray-200">
+                                                <EmptyStatePermisos 
+                                                    tabActivo={tabActivo}
+                                                    onNuevoPermiso={() => handleOpenModal()}
+                                                />
+                                            </div>
                                         ) : (
-                                            <PermisoAccordion
-                                                permisos={permisosFiltrados}
-                                                onEdit={handleOpenEditModal}
-                                                onDelete={handleDeletePermiso}
-                                                tipoSeccion={tabActivo}
-                                                currentUserId={session?.user?.id}
-                                            />
+                                            <div className="space-y-4">
+                                                <PermisoAccordion
+                                                    permisos={permisosFiltrados}
+                                                    onEdit={handleOpenEditModal}
+                                                    onDelete={handleDeletePermiso}
+                                                    tipoSeccion={tabActivo}
+                                                    currentUserId={session?.user?.id}
+                                                />
+                                            </div>
                                         )}
                                     </div>
                                 </Tab>

@@ -13,7 +13,6 @@ import {
     Textarea,
     DatePicker,
 } from "@heroui/react";
-import { parseZonedDateTime, getLocalTimeZone, now } from "@internationalized/date";
 import { catalogosService } from "../../services/catalogosService";
 import { agregarRechazo } from "../../services/rechazoService";
 import GestorAdjuntos from "./GestorAdjuntos";
@@ -23,6 +22,7 @@ import IncumplimientoInput from "./IncumplimientoInput";
 import HistorialRechazos from "./HistorialRechazos";
 import { useSession } from "next-auth/react";
 import { I18nProvider } from "@react-aria/i18n";
+import { datePickerUtils } from "../../utils/datePickerUtils";
 
 const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tareaPadre = null, restricciones = {}, restriccionesAcciones = {} }) => {
     const { data: session, status } = useSession();
@@ -264,54 +264,18 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
                                                 hideTimeZone
                                                 variant="bordered"
                                                 granularity="minute"
+                                                hourCycle={12}
                                                 readOnly={restricciones.fechaLimite}
-                                                value={
-                                                    tareaLocal.cF_Fecha_limite
-                                                        ? parseZonedDateTime(tareaLocal.cF_Fecha_limite.replace('.000Z', '') + `[${getLocalTimeZone()}]`)
-                                                        : tarea?.cF_Fecha_limite
-                                                            ? parseZonedDateTime(tarea.cF_Fecha_limite.replace('.000Z', '') + `[${getLocalTimeZone()}]`)
-                                                            : null
-                                                }
-                                                onChange={(date) => {
-                                                    if (date && !restricciones.fechaLimite) {
-                                                        // Validar que no sea fin de semana
-                                                        const dayOfWeek = date.toDate().getDay();
-                                                        if (dayOfWeek === 0 || dayOfWeek === 6) {
-                                                            // Es domingo (0) o sábado (6)
-                                                            return;
+                                                {...datePickerUtils.getDatePickerProps({
+                                                    currentValue: tareaLocal.cF_Fecha_limite || tarea?.cF_Fecha_limite,
+                                                    onChange: (date) => {
+                                                        if (!restricciones.fechaLimite) {
+                                                            return datePickerUtils.handleDateChange(date, setTareaLocal, 'cF_Fecha_limite');
                                                         }
-
-                                                        // Validar horas de trabajo (7:00 AM - 4:30 PM)
-                                                        const hour = date.hour;
-                                                        const minute = date.minute;
-                                                        const totalMinutes = hour * 60 + minute;
-                                                        const startWork = 7 * 60; // 7:00 AM
-                                                        const endWork = 16 * 60 + 30; // 4:30 PM
-
-                                                        if (totalMinutes < startWork || totalMinutes > endWork) {
-                                                            return;
-                                                        }
-
-                                                        const isoString = date.toDate().toISOString();
-                                                        setTareaLocal(prev => ({
-                                                            ...prev,
-                                                            cF_Fecha_limite: isoString
-                                                        }));
-                                                    } else if (!date && !restricciones.fechaLimite) {
-                                                        setTareaLocal(prev => ({
-                                                            ...prev,
-                                                            cF_Fecha_limite: ""
-                                                        }));
-                                                    }
-                                                }}
-                                                minValue={now(getLocalTimeZone())}
-                                                maxValue={tareaPadre?.cF_Fecha_limite ? parseZonedDateTime(tareaPadre.cF_Fecha_limite.replace('.000Z', '') + `[${getLocalTimeZone()}]`) : undefined}
-                                                errorMessage="La fecha y hora límite son requeridas"
-                                                isDateUnavailable={(date) => {
-                                                    // Deshabilitar fines de semana
-                                                    const dayOfWeek = date.toDate(getLocalTimeZone()).getDay();
-                                                    return dayOfWeek === 0 || dayOfWeek === 6; // Domingo o Sábado
-                                                }}
+                                                    },
+                                                    maxDateISO: tareaPadre?.cF_Fecha_limite,
+                                                    fieldName: 'cF_Fecha_limite'
+                                                })}
                                                 isDisabled={isSubmitting || restricciones.fechaLimite}
                                             />
                                         </I18nProvider>

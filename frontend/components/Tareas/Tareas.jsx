@@ -121,7 +121,7 @@ const Tareas = () => {
         setSelectedTarea(tarea);
         setOriginalUsuarioAsignado(tarea.cN_Usuario_asignado);
         setIsEditing(true);
-        onEditOpen(true);
+        onEditOpenChange(true);
     };
 
     const handleCloseModal = () => {
@@ -355,8 +355,22 @@ const Tareas = () => {
         }));
     }, [tareasFiltradas, tabActivo, session]);
 
+    // Función para obtener el color del indicador de cada tab
+    const getTabColor = (tabId) => {
+        const colors = {
+            pendientes: 'bg-yellow-400',
+            enProceso: 'bg-blue-400', 
+            enEspera: 'bg-orange-400',
+            enRevision: 'bg-purple-400',
+            rechazadas: 'bg-red-400',
+            incumplidas: 'bg-pink-400',
+            terminadas: 'bg-green-400'
+        };
+        return colors[tabId] || 'bg-gray-400';
+    };
+
     return (
-        <Container className="max-w-4xl mx-auto mt-10 h-[calc(100vh-120px)] flex flex-col">
+        <Container className="max-w-6xl mx-auto mt-6 h-[calc(100vh-120px)] flex flex-col">
             {loading ? (
                 <div className="flex justify-center items-center h-64">
                     <Spinner
@@ -368,7 +382,7 @@ const Tareas = () => {
                 </div>
             ) : (
                 <div className="flex flex-col h-full">
-                    <div className="flex-shrink-0 mb-4">
+                    <div className="flex-shrink-0 mb-6">
                         <Tabs
                             aria-label="Categorías de tareas"
                             variant="underlined"
@@ -377,63 +391,86 @@ const Tareas = () => {
                             onSelectionChange={(key) => {
                                 setTabActivo(key);
                             }}
-                            classNames={{
-                                tabList: "gap-6 w-full relative rounded-none p-0 border-b border-divider",
-                                cursor: "w-full bg-[#22d3ee]",
-                                tab: "max-w-fit px-0 h-12",
-                                tabContent: "group-data-[selected=true]:text-[#06b6d4]",
-                            }}
                         >
                             {tabs.map(tab => (
-                                <Tab key={tab.id} title={tab.label}>
-                                    <div className="flex justify-between items-center mb-4 ml-2 bg-white sticky top-0 z-10 py-2">
-                                        <div className="flex gap-4 w-1/2">
-                                            <Select
-                                                placeholder="Filtrar por perspectiva"
-                                                className="w-1/2"
-                                                onSelectionChange={(keys) => {
-                                                    const selectedKey = Array.from(keys)[0];
-                                                    setFiltroRol(selectedKey || 'todos');
-                                                }}
-                                                selectionMode="single"
-                                                selectedKeys={[filtroRol]}
-                                            >
-                                                <SelectItem key="todos" value="todos">
-                                                    Todas las tareas
-                                                </SelectItem>
-                                                <SelectItem key="creador" value="creador">
-                                                    Tareas que creé
-                                                </SelectItem>
-                                                <SelectItem key="asignado" value="asignado">
-                                                    Tareas asignadas a mí
-                                                </SelectItem>
-                                            </Select>
-                                        </div>
+                                <Tab key={tab.id} title={
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-3 h-3 rounded-full ${getTabColor(tab.id)}`} />
+                                        <span className="text-sm font-medium">{tab.label}</span>
+                                    </div>
+                                }>
+                                    <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-4 mb-6 sticky top-0 z-10">
+                                        <div className="flex justify-between items-center">
+                                            <div className="flex gap-4 items-center flex-1">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-sm font-medium text-gray-700">Filtrar:</span>
+                                                    <Select
+                                                        placeholder="Todos los roles"
+                                                        className="w-48"
+                                                        size="md"
+                                                        variant="bordered"
+                                                        onSelectionChange={(keys) => {
+                                                            const selectedKey = Array.from(keys)[0];
+                                                            setFiltroRol(selectedKey || 'todos');
+                                                        }}
+                                                        selectionMode="single"
+                                                        selectedKeys={[filtroRol]}
+                                                        classNames={{
+                                                            trigger: "bg-gray-50 border-gray-200 hover:bg-gray-100 transition-colors",
+                                                        }}
+                                                    >
+                                                        <SelectItem key="todos" value="todos">
+                                                            Todas las tareas
+                                                        </SelectItem>
+                                                        <SelectItem key="creador" value="creador">
+                                                            Tareas que creé
+                                                        </SelectItem>
+                                                        <SelectItem key="asignado" value="asignado">
+                                                            Tareas asignadas a mí
+                                                        </SelectItem>
+                                                    </Select>
+                                                </div>
+                                                
+                                                <div className="hidden lg:flex items-center gap-4 ml-6">
+                                                    <div className="bg-blue-50 px-3 py-1 rounded-full">
+                                                        <span className="text-xs font-medium text-blue-700">
+                                                            Total: {tareasConRestricciones.length}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
 
-                                        <Button
-                                            color="primary"
-                                            endContent={<FiPlus className="w-4 h-4" />}
-                                            className="flex items-center mr-2"
-                                            onPress={() => handleOpenModal()}
-                                        >
-                                            Agregar
-                                        </Button>
+                                            <Button
+                                                color="primary"
+                                                endContent={<FiPlus className="w-4 h-4" />}
+                                                className="hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                                                onPress={() => handleOpenModal()}
+                                                size="md"
+                                            >
+                                                <span className="hidden sm:inline">Nueva Tarea</span>
+                                                <span className="sm:hidden">Agregar</span>
+                                            </Button>
+                                        </div>
                                     </div>
 
-                                    <div className="flex-1 overflow-y-auto max-h-[calc(100vh-300px)] pr-2 py-10">
+                                    <div className="flex-1 overflow-y-auto max-h-[calc(100vh-400px)] pr-2">
                                         {tareasConRestricciones.length === 0 ? (
-                                            <EmptyState
-                                                tabId={tab.id}
-                                                onAddTask={() => handleOpenModal()}
-                                            />
+                                            <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl p-8 border-2 border-dashed border-gray-200">
+                                                <EmptyState
+                                                    tabId={tab.id}
+                                                    onAddTask={() => handleOpenModal()}
+                                                />
+                                            </div>
                                         ) : (
-                                            <TareaAccordion
-                                                key={`${tabActivo}-${filtroRol}`}
-                                                tareas={tareasConRestricciones}
-                                                onEdit={handleOpenEditModal}
-                                                onDelete={handleEliminarTarea}
-                                                tipoSeccion={tabActivo}
-                                            />
+                                            <div className="py-5">
+                                                <TareaAccordion
+                                                    key={`${tabActivo}-${filtroRol}`}
+                                                    tareas={tareasConRestricciones}
+                                                    onEdit={handleOpenEditModal}
+                                                    onDelete={handleEliminarTarea}
+                                                    tipoSeccion={tabActivo}
+                                                />
+                                            </div>
                                         )}
                                     </div>
                                 </Tab>

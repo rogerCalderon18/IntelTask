@@ -13,20 +13,48 @@ import {
   Spinner,
   Progress
 } from "@heroui/react";
-import { FiUpload, FiDownload, FiTrash2, FiFile, FiX } from "react-icons/fi";
+import { FiUpload, FiDownload, FiFile, FiX } from "react-icons/fi";
 import { toast } from "react-toastify";
 import { adjuntosService } from "../../services/adjuntosService";
 import { useSession } from 'next-auth/react';
-import useConfirmation from '@/hooks/useConfirmation';
 
-const GestorAdjuntosPermisos = ({ isOpen, onOpenChange, permisoId, permisoTitulo }) => {
+const GestorAdjuntosPermisos = ({ 
+  isOpen, 
+  onOpenChange, 
+  permisoId, 
+  permisoTitulo, 
+  currentUserId, 
+  estadoPermiso, 
+  usuarioCreadorId 
+}) => {
   const { data: session } = useSession();
-  const { showConfirmation } = useConfirmation();
   const [adjuntos, setAdjuntos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [dragActive, setDragActive] = useState(false);
+
+  // Verificar si el usuario puede agregar adjuntos
+  const puedeAgregarAdjuntos = () => {
+    // El usuario debe ser el creador del permiso
+    const esCreador = currentUserId && usuarioCreadorId && 
+                     parseInt(currentUserId) === parseInt(usuarioCreadorId);
+    
+    // El estado debe ser "Aprobado" (ID 2)
+    const estaAprobado = estadoPermiso === 2;
+    
+    // Log para depuración (se puede eliminar en producción)
+    console.log('Verificando permisos adjuntos:', {
+      currentUserId,
+      usuarioCreadorId,
+      estadoPermiso,
+      esCreador,
+      estaAprobado,
+      puedeAgregar: esCreador && estaAprobado
+    });
+    
+    return esCreador && estaAprobado;
+  };
 
   const cargarAdjuntos = useCallback(async () => {
     if (!permisoId) return;
@@ -51,6 +79,18 @@ const GestorAdjuntosPermisos = ({ isOpen, onOpenChange, permisoId, permisoTitulo
 
   const handleFileUpload = async (files) => {
     if (!files || files.length === 0 || !session?.user?.id) return;
+
+    // Verificar permisos antes de proceder
+    if (!puedeAgregarAdjuntos()) {
+      if (!currentUserId || !usuarioCreadorId || parseInt(currentUserId) !== parseInt(usuarioCreadorId)) {
+        toast.error('Solo el creador del permiso puede agregar adjuntos.');
+      } else if (estadoPermiso !== 2) {
+        toast.error('Solo se pueden agregar adjuntos a permisos aprobados.');
+      } else {
+        toast.error('No tienes permisos para agregar adjuntos a este permiso.');
+      }
+      return;
+    }
 
     const file = files[0];
     
@@ -107,28 +147,20 @@ const GestorAdjuntosPermisos = ({ isOpen, onOpenChange, permisoId, permisoTitulo
   };
 
   const handleDelete = async (adjunto) => {
-    const confirmed = await showConfirmation({
-      title: '¿Eliminar archivo?',
-      message: `¿Estás seguro de que deseas eliminar "${adjunto.nombre}"? Esta acción no se puede deshacer.`,
-      confirmText: 'Eliminar',
-      cancelText: 'Cancelar'
-    });
-
-    if (confirmed) {
-      try {
-        await adjuntosService.eliminarArchivo(adjunto.id);
-        toast.success('Archivo eliminado exitosamente');
-        await cargarAdjuntos();
-      } catch (error) {
-        console.error('Error al eliminar archivo:', error);
-        toast.error('Error al eliminar el archivo');
-      }
-    }
+    // Los adjuntos no se pueden eliminar una vez subidos
+    toast.error('Los adjuntos no se pueden eliminar una vez subidos.');
+    return;
   };
 
   const handleDrag = (e) => {
     e.preventDefault();
     e.stopPropagation();
+    
+    // Solo permitir drag si se tienen permisos
+    if (!puedeAgregarAdjuntos()) {
+      return;
+    }
+    
     if (e.type === "dragenter" || e.type === "dragover") {
       setDragActive(true);
     } else if (e.type === "dragleave") {
@@ -140,6 +172,11 @@ const GestorAdjuntosPermisos = ({ isOpen, onOpenChange, permisoId, permisoTitulo
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
+    
+    // Verificar permisos antes de proceder
+    if (!puedeAgregarAdjuntos()) {
+      return;
+    }
     
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFileUpload(e.dataTransfer.files);
@@ -187,56 +224,94 @@ const GestorAdjuntosPermisos = ({ isOpen, onOpenChange, permisoId, permisoTitulo
       <ModalContent>
         {(onClose) => (
           <>
-            <ModalHeader className="flex flex-col gap-1">
-              <h2 className="text-xl font-semibold">Adjuntos del Permiso</h2>
-              <p className="text-sm text-gray-600">
+            <ModalHeader className="flex flex-col gap-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-t-2xl -m-6 mb-6 p-6">
+              <h2 className="text-2xl font-bold flex items-center gap-3">
+                <span className="text-3xl">📎</span>
+                Gestión de Adjuntos
+              </h2>
+              <p className="text-blue-100 text-lg">
                 {permisoTitulo || `Permiso #${permisoId}`}
               </p>
+              {!puedeAgregarAdjuntos() && (
+                <div className="bg-yellow-500/20 border border-yellow-300 rounded-lg p-3 mt-2">
+                  <p className="text-yellow-100 text-sm font-medium">
+                    ℹ️ Solo el creador puede agregar adjuntos a permisos aprobados
+                  </p>
+                </div>
+              )}
             </ModalHeader>
             
             <ModalBody>
               <div className="space-y-6">
-                {/* Zona de carga */}
-                <Card>
-                  <CardBody>
-                    <div
-                      className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-                        dragActive
-                          ? 'border-primary bg-primary/5'
-                          : 'border-gray-300 hover:border-gray-400'
-                      }`}
-                      onDragEnter={handleDrag}
-                      onDragLeave={handleDrag}
-                      onDragOver={handleDrag}
-                      onDrop={handleDrop}
-                    >
-                      <FiUpload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">
-                        Subir archivo
-                      </h3>
-                      <p className="text-gray-600 mb-4">
-                        Arrastra y suelta un archivo aquí, o haz clic para seleccionar
-                      </p>
-                      <input
-                        type="file"
-                        id="file-upload"
-                        className="hidden"
-                        onChange={(e) => handleFileUpload(e.target.files)}
-                        disabled={uploading}
-                      />
-                      <Button
-                        color="primary"
-                        variant="flat"
-                        startContent={<FiUpload />}
-                        onPress={() => document.getElementById('file-upload').click()}
-                        isDisabled={uploading}
+                {/* Zona de carga mejorada */}
+                <Card className="border-2 border-dashed border-gray-200 hover:border-blue-300 transition-colors">
+                  <CardBody className="p-0">
+                    {puedeAgregarAdjuntos() ? (
+                      <div
+                        className={`rounded-xl p-8 text-center transition-all duration-300 ${
+                          dragActive
+                            ? 'bg-gradient-to-br from-blue-50 to-purple-50 border-blue-400 scale-105'
+                            : 'bg-gradient-to-br from-gray-50 to-blue-50 hover:from-blue-50 hover:to-purple-50'
+                        }`}
+                        onDragEnter={handleDrag}
+                        onDragLeave={handleDrag}
+                        onDragOver={handleDrag}
+                        onDrop={handleDrop}
                       >
-                        Seleccionar archivo
-                      </Button>
-                      <p className="text-xs text-gray-500 mt-2">
-                        Tamaño máximo: 10MB
-                      </p>
-                    </div>
+                        <div className="mb-6">
+                          <div className={`text-6xl mb-4 ${dragActive ? 'animate-bounce' : ''}`}>
+                            📤
+                          </div>
+                          <FiUpload className={`w-12 h-12 text-blue-500 mx-auto mb-4 ${dragActive ? 'animate-pulse' : ''}`} />
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-800 mb-3">
+                          {dragActive ? '¡Suelta el archivo aquí!' : 'Subir Archivo'}
+                        </h3>
+                        <p className="text-gray-600 mb-6 text-lg">
+                          {dragActive 
+                            ? 'Perfecto, suelta tu archivo para subirlo' 
+                            : 'Arrastra y suelta un archivo aquí, o haz clic para seleccionar'
+                          }
+                        </p>
+                        <input
+                          type="file"
+                          id="file-upload"
+                          className="hidden"
+                          onChange={(e) => handleFileUpload(e.target.files)}
+                          disabled={uploading}
+                        />
+                        <Button
+                          color="primary"
+                          size="lg"
+                          variant="flat"
+                          startContent={<FiUpload className="w-5 h-5" />}
+                          onPress={() => document.getElementById('file-upload').click()}
+                          isDisabled={uploading}
+                          className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                        >
+                          📁 Seleccionar Archivo
+                        </Button>
+                        <p className="text-xs text-gray-500 mt-4 bg-gray-100 rounded-full px-4 py-2 inline-block">
+                          📏 Tamaño máximo: 10MB
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="rounded-xl p-8 text-center bg-gradient-to-br from-gray-100 to-gray-200">
+                        <div className="text-6xl mb-4">🔒</div>
+                        <FiUpload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                        <h3 className="text-xl font-bold text-gray-500 mb-3">
+                          Subida de archivos restringida
+                        </h3>
+                        <p className="text-gray-600 text-sm bg-white rounded-lg p-4 border border-gray-200">
+                          {!currentUserId || !usuarioCreadorId || parseInt(currentUserId) !== parseInt(usuarioCreadorId)
+                            ? "🚫 Solo el creador del permiso puede agregar adjuntos"
+                            : estadoPermiso !== 2
+                            ? "⏳ Solo se pueden agregar adjuntos a permisos aprobados"
+                            : "❌ No tienes permisos para agregar adjuntos"
+                          }
+                        </p>
+                      </div>
+                    )}
 
                     {/* Barra de progreso de carga */}
                     {uploading && (
@@ -297,15 +372,6 @@ const GestorAdjuntosPermisos = ({ isOpen, onOpenChange, permisoId, permisoTitulo
                                   onPress={() => handleDownload(adjunto)}
                                 >
                                   Descargar
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="light"
-                                  color="danger"
-                                  startContent={<FiTrash2 className="w-4 h-4" />}
-                                  onPress={() => handleDelete(adjunto)}
-                                >
-                                  Eliminar
                                 </Button>
                               </div>
                             </div>

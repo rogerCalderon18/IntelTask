@@ -40,6 +40,7 @@ const TareaAccordion = ({ tareas, onEdit, onDelete, tipoSeccion }) => {
         <AccordionItem
           key={tarea.id}
           aria-label={tarea.titulo}
+          className="space-y-2 bg-white rounded-2xl border border-gray-100 shadow-lg hover:shadow-xl transition-all duration-300"
           title={
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center gap-2 flex-1">

@@ -1,5 +1,6 @@
 import React from "react";
-import { Accordion, AccordionItem, Tooltip } from "@heroui/react";
+import { Accordion, AccordionItem, Tooltip, Chip } from "@heroui/react";
+import { FiCalendar, FiClock, FiUser, FiFileText } from "react-icons/fi";
 import PermisoContent from "./PermisoContent";
 
 const PermisoAccordion = ({ permisos, onEdit, onDelete, tipoSeccion, currentUserId }) => {
@@ -13,14 +14,16 @@ const PermisoAccordion = ({ permisos, onEdit, onDelete, tipoSeccion, currentUser
     return estados[estadoId] || `Estado ${estadoId}`;
   };
 
-  // Función para obtener el color del badge del estado
-  const obtenerEstiloEstado = (estadoId) => {
-    const estilos = {
-      1: "bg-gray-100 text-gray-700 border-gray-300",      // Registrado
-      2: "bg-green-100 text-green-700 border-green-300",   // Aprobado
-      15: "bg-red-100 text-red-600 border-red-300",        // Rechazado
+  console.log("Permisos:", permisos);
+
+  // Función para obtener el color del chip del estado
+  const obtenerColorEstado = (estadoId) => {
+    const colores = {
+      1: "default",      // Registrado
+      2: "success",      // Aprobado
+      15: "danger",      // Rechazado
     };
-    return estilos[estadoId] || "bg-gray-100 text-gray-600 border-gray-300";
+    return colores[estadoId] || "default";
   };
 
   // Función para obtener el indicador de urgencia basado en las fechas
@@ -54,7 +57,17 @@ const PermisoAccordion = ({ permisos, onEdit, onDelete, tipoSeccion, currentUser
   };
 
   return (
-    <Accordion variant="splitted">
+    <Accordion 
+      variant="splitted"
+      selectionMode="multiple"
+      className="px-2 gap-4 py-5"
+      itemClasses={{
+        base: "bg-white rounded-2xl border border-gray-100 shadow-lg hover:shadow-xl transition-all duration-300",
+        title: "font-medium text-gray-800",
+        trigger: "px-6 py-4 rounded-2xl transition-colors",
+        content: "px-6 pb-6",
+      }}
+    >
       {permisos.map((permiso) => {
         const urgencia = obtenerUrgencia(
           permiso.cF_Fecha_hora_inicio_permiso || permiso.fechaInicio,
@@ -68,29 +81,47 @@ const PermisoAccordion = ({ permisos, onEdit, onDelete, tipoSeccion, currentUser
             aria-label={permiso.titulo || permiso.cT_Titulo_permiso}
             title={
               <div className="flex items-center justify-between w-full">
-                <div className="flex items-center gap-3 flex-1">
-                  <Tooltip content={urgencia.tooltip}>
+                <div className="flex items-center gap-4 flex-1">
+                  <Tooltip content={urgencia.tooltip} placement="top">
                     <span className={`w-3 h-3 rounded-full ${urgencia.color}`}></span>
                   </Tooltip>
-                  <div className="flex-1">
-                    <div className="font-medium truncate">
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-gray-800 truncate text-lg mb-1">
                       {permiso.cT_Titulo_permiso || permiso.titulo || 'Sin título'}
                     </div>
-                    <div className="text-sm text-gray-500">
-                      {formatearFecha(permiso.cF_Fecha_hora_inicio_permiso || permiso.fechaInicio)} - {formatearFecha(permiso.cF_Fecha_hora_fin_permiso || permiso.fechaFin)}
+                    <div className="flex items-center gap-4 text-sm text-gray-500">
+                      <div className="flex items-center gap-1">
+                        <FiCalendar className="w-3 h-3" />
+                        <span>{formatearFecha(permiso.cF_Fecha_hora_inicio_permiso || permiso.fechaInicio)}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <FiClock className="w-3 h-3" />
+                        <span>{formatearFecha(permiso.cF_Fecha_hora_fin_permiso || permiso.fechaFin)}</span>
+                      </div>
+                      {tipoSeccion === "solicitudes" && (
+                        <div className="flex items-center gap-1">
+                          <FiUser className="w-3 h-3" />
+                          <span>{permiso.usuarioCreador?.cT_Nombre_usuario || 'Usuario desconocido'}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Tooltip content={obtenerNombreEstado(estadoId)}>
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full border ${obtenerEstiloEstado(estadoId)}`}>
-                      {obtenerNombreEstado(estadoId)}
-                    </span>
-                  </Tooltip>
+                
+                {/* Estado mejorado */}
+                <div className="flex items-center gap-3">
+                  <Chip
+                    color={obtenerColorEstado(estadoId)}
+                    variant="flat"
+                    size="sm"
+                    className="font-medium"
+                  >
+                    {obtenerNombreEstado(estadoId)}
+                  </Chip>
                 </div>
               </div>
             }
-            className="shadow-xl"
           >
             <PermisoContent
               permiso={permiso}

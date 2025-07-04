@@ -82,28 +82,34 @@ const PermisoContent = ({ permiso, onEdit, onDelete, tipoSeccion, currentUserId 
   const descripcionMostrada = expandirDescripcion ? descripcion : descripcion.substring(0, 150);
 
   return (
-    <div className="space-y-4 p-1">
-      {/* Información Principal */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="space-y-6 p-1">
+      {/* Información Principal con diseño mejorado */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Fechas del Permiso */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
-            <FiCalendar className="w-4 h-4" />
-            <span>Período</span>
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100">
+          <div className="flex items-center gap-2 text-sm font-semibold text-blue-700 mb-3">
+            <FiCalendar className="w-5 h-5" />
+            <span>Período del Permiso</span>
           </div>
-          <div className="text-sm text-gray-600">
-            <div><strong>Inicio:</strong> {formatearFechaHora(permiso.cF_Fecha_hora_inicio_permiso || permiso.fechaInicio)}</div>
-            <div><strong>Fin:</strong> {formatearFechaHora(permiso.cF_Fecha_hora_fin_permiso || permiso.fechaFin)}</div>
+          <div className="space-y-2 text-sm text-gray-700">
+            <div className="flex items-center gap-2">
+              <span className="font-medium text-green-600">Inicio:</span>
+              <span>{formatearFechaHora(permiso.cF_Fecha_hora_inicio_permiso || permiso.fechaInicio)}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="font-medium text-red-600">Fin:</span>
+              <span>{formatearFechaHora(permiso.cF_Fecha_hora_fin_permiso || permiso.fechaFin)}</span>
+            </div>
           </div>
         </div>
 
         {/* Duración */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
-            <FiClock className="w-4 h-4" />
+        <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-100">
+          <div className="flex items-center gap-2 text-sm font-semibold text-purple-700 mb-3">
+            <FiClock className="w-5 h-5" />
             <span>Duración</span>
           </div>
-          <div className="text-sm text-gray-600">
+          <div className="text-2xl font-bold text-purple-600">
             {calcularDuracion(
               permiso.cF_Fecha_hora_inicio_permiso || permiso.fechaInicio,
               permiso.cF_Fecha_hora_fin_permiso || permiso.fechaFin
@@ -112,26 +118,32 @@ const PermisoContent = ({ permiso, onEdit, onDelete, tipoSeccion, currentUserId 
         </div>
 
         {/* Usuario Creador */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
-            <FiUser className="w-4 h-4" />
+        <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 border border-green-100">
+          <div className="flex items-center gap-2 text-sm font-semibold text-green-700 mb-3">
+            <FiUser className="w-5 h-5" />
             <span>Solicitante</span>
           </div>
-          <div className="text-sm text-gray-600">
-            {permiso.usuarioCreador?.cT_Nombre_usuario || 'Usuario desconocido'}
+          <div className="text-sm font-medium text-gray-700 flex items-center gap-2">
+            <div className="w-8 h-8 bg-green-200 rounded-full flex items-center justify-center">
+              <span className="text-green-700 font-bold text-xs">
+                {(permiso.usuarioCreador?.cT_Nombre_usuario || 'U').charAt(0).toUpperCase()}
+              </span>
+            </div>
+            <span>{permiso.usuarioCreador?.cT_Nombre_usuario || 'Usuario desconocido'}</span>
           </div>
         </div>
 
         {/* Estado */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
-            <span>Estado</span>
+        <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl p-4 border border-yellow-100">
+          <div className="flex items-center gap-2 text-sm font-semibold text-yellow-700 mb-3">
+            <span>Estado Actual</span>
           </div>
-          <div>
+          <div className="flex items-center gap-2">
             <Chip
               color={obtenerColorEstado(permiso.cN_Id_estado || permiso.estado)}
               variant="flat"
-              size="sm"
+              size="md"
+              className="font-semibold"
             >
               {obtenerNombreEstado(permiso.cN_Id_estado || permiso.estado)}
             </Chip>
@@ -139,21 +151,23 @@ const PermisoContent = ({ permiso, onEdit, onDelete, tipoSeccion, currentUserId 
         </div>
       </div>
 
-      <Divider />
+      <Divider className="my-6" />
 
-      {/* Descripción */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
-          <FiFileText className="w-4 h-4" />
-          <span>Descripción</span>
+      {/* Descripción mejorada */}
+      <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl p-6 border border-gray-100">
+        <div className="flex items-center gap-2 text-lg font-semibold text-gray-800 mb-4">
+          <FiFileText className="w-5 h-5 text-blue-600" />
+          <span>Descripción del Permiso</span>
         </div>
-        <div className="text-sm text-gray-600">
-          {descripcionMostrada}
-          {mostrarBotonExpandir && !expandirDescripcion && '...'}
+        <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
+          <p className="text-gray-700 leading-relaxed">
+            {descripcionMostrada}
+            {mostrarBotonExpandir && !expandirDescripcion && '...'}
+          </p>
           {mostrarBotonExpandir && (
             <button
               onClick={() => setExpandirDescripcion(!expandirDescripcion)}
-              className="ml-2 text-blue-600 hover:text-blue-800 font-medium"
+              className="mt-3 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition-colors duration-200"
             >
               {expandirDescripcion ? 'Ver menos' : 'Ver más'}
             </button>
@@ -161,31 +175,32 @@ const PermisoContent = ({ permiso, onEdit, onDelete, tipoSeccion, currentUserId 
         </div>
       </div>
 
-      {/* Motivo de Rechazo (si aplica) */}
+      {/* Motivo de rechazo mejorado */}
       {(permiso.cN_Id_estado || permiso.estado) === 15 && (permiso.cT_Descripcion_rechazo || permiso.descripcionRechazo) && (
-        <>
-          <Divider />
-          <div className="space-y-2">
-            <div className="text-sm font-medium text-red-700">
-              Motivo de Rechazo
-            </div>
-            <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg">
-              {permiso.cT_Descripcion_rechazo || permiso.descripcionRechazo}
-            </div>
+        <div className="bg-gradient-to-br from-red-50 to-pink-50 rounded-xl p-6 border border-red-200">
+          <div className="flex items-center gap-2 text-lg font-semibold text-red-700 mb-3">
+            <span>Motivo de Rechazo</span>
           </div>
-        </>
+          <div className="bg-white rounded-lg p-4 border-l-4 border-red-500 shadow-sm">
+            <p className="text-red-700 leading-relaxed">
+              {permiso.cT_Descripcion_rechazo || permiso.descripcionRechazo}
+            </p>
+          </div>
+        </div>
       )}
 
-      <Divider />
+      <Divider className="my-6" />
 
-      {/* Acciones */}
-      <div className="flex flex-wrap gap-2 justify-end">
+      {/* Acciones mejoradas */}
+      <div className="flex flex-wrap gap-3 justify-end bg-gray-50 rounded-xl p-4">
         {/* Botón de Adjuntos */}
         <Button
-          size="sm"
-          variant="light"
+          size="md"
+          variant="flat"
           color="default"
           onPress={onAdjuntosOpen}
+          className="bg-white border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all duration-200"
+          startContent={<span className="text-lg">📎</span>}
         >
           Adjuntos
         </Button>
@@ -194,11 +209,12 @@ const PermisoContent = ({ permiso, onEdit, onDelete, tipoSeccion, currentUserId 
         {puedeEditar() && (
           <Tooltip content={tipoSeccion === "solicitudes" ? "Aprobar/Rechazar permiso" : "Editar permiso"}>
             <Button
-              size="sm"
+              size="md"
               color="primary"
-              variant="light"
+              variant="flat"
               startContent={<FiEdit2 className="w-4 h-4" />}
               onPress={() => onEdit(permiso)}
+              className="bg-blue-500 hover:bg-blue-600 text-white border-none hover:shadow-lg transition-all duration-200"
             >
               {tipoSeccion === "solicitudes" ? "Revisar" : "Editar"}
             </Button>
@@ -209,11 +225,12 @@ const PermisoContent = ({ permiso, onEdit, onDelete, tipoSeccion, currentUserId 
         {puedeEliminar() && (
           <Tooltip content="Eliminar permiso">
             <Button
-              size="sm"
+              size="md"
               color="danger"
-              variant="light"
+              variant="flat"
               startContent={<FiTrash2 className="w-4 h-4" />}
               onPress={() => onDelete(permiso.id || permiso.cN_Id_permiso)}
+              className="bg-red-500 hover:bg-red-600 text-white border-none hover:shadow-lg transition-all duration-200"
             >
               Eliminar
             </Button>
@@ -227,6 +244,9 @@ const PermisoContent = ({ permiso, onEdit, onDelete, tipoSeccion, currentUserId 
         onOpenChange={onAdjuntosOpenChange}
         permisoId={permiso.id || permiso.cN_Id_permiso}
         permisoTitulo={permiso.cT_Titulo_permiso || permiso.titulo}
+        currentUserId={currentUserId}
+        estadoPermiso={permiso.cN_Id_estado || permiso.estado}
+        usuarioCreadorId={permiso.cN_Usuario_creador || permiso.usuarioCreador}
       />
     </div>
   );
