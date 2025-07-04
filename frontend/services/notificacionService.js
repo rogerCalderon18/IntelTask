@@ -7,6 +7,7 @@ export const notificacionService = {
    * @returns {Promise<Object>} Respuesta del servidor
    */
   async enviarNotificacion(notificacionData) {
+    console.log('Enviando notificación:', notificacionData);
     try {
       const response = await fetch(`${API_URL}/api/Email/enviar-notificacion`, {
         method: 'POST',
@@ -70,6 +71,96 @@ export const notificacionService = {
       cT_Mensaje_adicional: tipoNotificacion === 'NUEVA_ASIGNACION'
         ? 'Se te ha asignado una nueva tarea en IntelTask. Por favor, revisa los detalles y comienza a trabajar en ella.'
         : 'Se te ha reasignado una tarea en IntelTask. Por favor, revisa los detalles actualizados.',
+      campos: campos
+    };
+
+    return await this.enviarNotificacion(notificacionData);
+  },
+
+  async enviarNotificacionCambioEstadoPermiso(usuario, permiso, nuevoEstado, motivoRechazo = null) {
+    const estadosMap = {
+      6: 'Aprobado',
+      15: 'Rechazado'
+    };
+
+    const estadoTexto = estadosMap[nuevoEstado] || 'Actualizado';
+    const esAprobado = nuevoEstado === 6;
+    const esRechazado = nuevoEstado === 15;
+
+    const campos = {
+      'ID Permiso': permiso.cN_Id_permiso?.toString() || permiso.id?.toString() || 'N/A',
+      'Título': permiso.cT_Titulo_permiso || permiso.titulo || 'Sin título',
+      'Descripción': permiso.cT_Descripcion_permiso || permiso.descripcion || 'Sin descripción',
+      'Fecha de Inicio': permiso.cF_Fecha_hora_inicio_permiso 
+        ? new Date(permiso.cF_Fecha_hora_inicio_permiso).toLocaleDateString('es-ES', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+          })
+        : permiso.fechaInicio 
+        ? new Date(permiso.fechaInicio).toLocaleDateString('es-ES', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+          })
+        : 'No especificada',
+      'Fecha de Fin': permiso.cF_Fecha_hora_fin_permiso 
+        ? new Date(permiso.cF_Fecha_hora_fin_permiso).toLocaleDateString('es-ES', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+          })
+        : permiso.fechaFin 
+        ? new Date(permiso.fechaFin).toLocaleDateString('es-ES', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+          })
+        : 'No especificada',
+      'Nuevo Estado': estadoTexto,
+      'Fecha de Decisión': new Date().toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    };
+
+    // Agregar motivo de rechazo si es aplicable
+    if (esRechazado && motivoRechazo) {
+      campos['Motivo de Rechazo'] = motivoRechazo;
+    }
+
+    const iconos = {
+      6: '✅',
+      15: '❌'
+    };
+
+    const colores = {
+      6: 'success',
+      15: 'error'
+    };
+
+    const mensajes = {
+      6: 'Tu solicitud de permiso ha sido aprobada. Ya puedes proceder según lo solicitado.',
+      15: 'Tu solicitud de permiso ha sido rechazada. Revisa los comentarios y consideraciones mencionadas.'
+    };
+
+    const notificacionData = {
+      cT_Email_destino: usuario.cT_Correo_usuario || usuario.email,
+      cT_Asunto: `${iconos[nuevoEstado]} Permiso ${estadoTexto.toLowerCase()}: ${permiso.cT_Titulo_permiso || permiso.titulo}`,
+      cT_Titulo: `${iconos[nuevoEstado]} Tu permiso ha sido ${estadoTexto.toLowerCase()}`,
+      cT_Tipo_notificacion: colores[nuevoEstado] || 'info',
+      cT_Mensaje_adicional: mensajes[nuevoEstado] || 'El estado de tu permiso ha sido actualizado.',
       campos: campos
     };
 

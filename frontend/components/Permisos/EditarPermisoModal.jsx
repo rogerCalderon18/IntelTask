@@ -15,6 +15,8 @@ import {
 } from "@heroui/react";
 import { I18nProvider } from "@react-aria/i18n";
 import {datePickerUtils} from "../../utils/datePickerUtils";
+import { notificacionService } from "../../services/notificacionService";
+import { toast } from "react-toastify";
 
 const EditarPermisoModal = ({ isOpen, onOpenChange, onClose, onSave, permiso, estados, tipoSeccion }) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -104,7 +106,64 @@ const EditarPermisoModal = ({ isOpen, onOpenChange, onClose, onSave, permiso, es
       };
 
       console.log('Datos del permiso a enviar:', permisoData);
+      
+      // Guardar el permiso
       await onSave(permisoData);
+
+      // Enviar notificación si hay cambio de estado y es una revisión
+      const estadoOriginal = permiso?.cN_Id_estado || permiso?.estado;
+      const nuevoEstado = parseInt(data.estado);
+      
+      if (esSoloRevision && estadoOriginal !== nuevoEstado) {
+        // Solo notificar si el estado cambió a Aprobado (6) o Rechazado (15)
+        if (nuevoEstado === 6 || nuevoEstado === 15) {
+          try {
+            // Obtener información del usuario creador
+            const usuarioCreador = permiso.usuarioCreador || {
+              cT_Correo_usuario: permiso.correoCreador,
+              cT_Nombre_usuario: permiso.nombreCreador
+            };
+
+            if (usuarioCreador && usuarioCreador.cT_Correo_usuario) {
+              const motivoRechazo = nuevoEstado === 15 ? data.descripcionRechazo?.trim() : null;
+              
+              await notificacionService.enviarNotificacionCambioEstadoPermiso(
+                usuarioCreador,
+                permiso,
+                nuevoEstado,
+                motivoRechazo
+              );
+              
+              // Mostrar toast de éxito
+              const estadoTexto = nuevoEstado === 6 ? 'aprobado' : 'rechazado';
+              toast.success(`✉️ Notificación enviada: Permiso ${estadoTexto}`, {
+                position: "top-right",
+                autoClose: 4000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+              });
+              
+              console.log('Notificación de cambio de estado enviada correctamente');
+            } else {
+              console.warn('No se pudo enviar la notificación: información del usuario creador incompleta');
+              toast.warning('⚠️ Permiso actualizado, pero no se pudo enviar la notificación', {
+                position: "top-right",
+                autoClose: 4000,
+              });
+            }
+          } catch (notificationError) {
+            console.error('Error al enviar la notificación de cambio de estado:', notificationError);
+            toast.warning('⚠️ Permiso actualizado, pero falló el envío de la notificación', {
+              position: "top-right",
+              autoClose: 4000,
+            });
+            // No interrumpir el flujo principal si falla la notificación
+          }
+        }
+      }
+
     } catch (error) {
       console.error("Error al actualizar permiso:", error);
     } finally {
