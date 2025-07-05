@@ -17,6 +17,7 @@ import { I18nProvider } from "@react-aria/i18n";
 import {datePickerUtils} from "../../utils/datePickerUtils";
 import { notificacionService } from "../../services/notificacionService";
 import { toast } from "react-toastify";
+import { getLocalTimeZone, now, parseZonedDateTime } from "@internationalized/date";
 
 const EditarPermisoModal = ({ isOpen, onOpenChange, onClose, onSave, permiso, estados, tipoSeccion }) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -24,6 +25,7 @@ const EditarPermisoModal = ({ isOpen, onOpenChange, onClose, onSave, permiso, es
     String(permiso?.cN_Id_estado || permiso?.estado || "1")
   );
   const [mostrarJustificacionRechazo, setMostrarJustificacionRechazo] = useState(false);
+  const [timeValidationErrors, setTimeValidationErrors] = useState({});
   const [permisoLocal, setPermisoLocal] = useState({
     cT_Titulo_permiso: "",
     cT_Descripcion_permiso: "",
@@ -64,6 +66,202 @@ const EditarPermisoModal = ({ isOpen, onOpenChange, onClose, onSave, permiso, es
     const nuevoEstado = Array.from(keys)[0];
     setEstadoSeleccionado(nuevoEstado);
     setMostrarJustificacionRechazo(nuevoEstado === "15");
+  };
+
+  // Función para convertir ISO string a ZonedDateTime
+  const parseToZonedDateTime = (isoString) => {
+    if (!isoString) return null;
+    try {
+      const date = new Date(isoString);
+      const localTimeZone = getLocalTimeZone();
+
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+
+      const zonedDateTimeString = `${year}-${month}-${day}T${hours}:${minutes}[${localTimeZone}]`;
+      return parseZonedDateTime(zonedDateTimeString);
+    } catch (error) {
+      console.error('Error parsing date:', error);
+      return null;
+    }
+  };
+
+  // Función para validar horarios de trabajo
+  const validateWorkingHours = (date, fieldName) => {
+    if (!date) return;
+
+    const hour = date.hour;
+    const minute = date.minute;
+
+    // Validar horas de trabajo (7:00 AM - 4:30 PM)
+    if (hour < 7 || hour > 16 || (hour === 16 && minute > 30)) {
+      setTimeValidationErrors(prev => ({
+        ...prev,
+        [fieldName]: "Horario permitido: 7:00 AM - 4:30 PM"
+      }));
+      return false;
+    } else {
+      setTimeValidationErrors(prev => ({
+        ...prev,
+        [fieldName]: null
+      }));
+      return true;
+    }
+  };
+
+  // Manejar cambio en fecha de inicio
+  const handleFechaInicioChange = (date) => {
+    if (date) {
+      // Validar que no sea fin de semana
+      if (isDateUnavailable(date)) {
+        setTimeValidationErrors(prev => ({
+          ...prev,
+          fechaInicio: "No se pueden seleccionar fines de semana"
+        }));
+        return;
+      }
+
+      const isoString = date.toDate().toISOString();
+      
+      // Actualizar fecha de inicio
+      setPermisoLocal(prev => ({
+        ...prev,
+        cF_Fecha_hora_inicio_permiso: isoString
+      }));
+
+      // Validar horario
+      validateWorkingHours(date, 'fechaInicio');
+
+      // Si hay fecha de fin, actualizarla para que sea el mismo día
+      if (permisoLocal.cF_Fecha_hora_fin_permiso) {
+        const fechaFinActual = parseToZonedDateTime(permisoLocal.cF_Fecha_hora_fin_permiso);
+        if (fechaFinActual) {
+          // Mantener la hora de la fecha de fin pero cambiar el día
+          const nuevaFechaFin = date.set({ 
+            hour: fechaFinActual.hour, 
+            minute: fechaFinActual.minute 
+          });
+          const nuevaFechaFinISO = nuevaFechaFin.toDate().toISOString();
+          
+          setPermisoLocal(prev => ({
+            ...prev,
+            cF_Fecha_hora_fin_permiso: nuevaFechaFinISO
+          }));
+
+          // Validar la nueva fecha de fin
+          validateWorkingHours(nuevaFechaFin, 'fechaFin');
+          validateFechaOrder(date, nuevaFechaFin);
+        }
+      } else {
+        // Si no hay fecha de fin, establecer una hora por defecto (por ejemplo, 1 hora después)
+        const fechaFinPorDefecto = date.add({ hours: 1 });
+        // Asegurar que no exceda el horario laboral
+        if (fechaFinPorDefecto.hour > 16 || (fechaFinPorDefecto.hour === 16 && fechaFinPorDefecto.minute > 30)) {
+          // Si excede, poner 4:30 PM
+          const fechaFinLimite = date.set({ hour: 16, minute: 30 });
+          const fechaFinLimiteISO = fechaFinLimite.toDate().toISOString();
+          setPermisoLocal(prev => ({
+            ...prev,
+            cF_Fecha_hora_fin_permiso: fechaFinLimiteISO
+          }));
+          validateWorkingHours(fechaFinLimite, 'fechaFin');
+          validateFechaOrder(date, fechaFinLimite);
+        } else {
+          const fechaFinPorDefectoISO = fechaFinPorDefecto.toDate().toISOString();
+          setPermisoLocal(prev => ({
+            ...prev,
+            cF_Fecha_hora_fin_permiso: fechaFinPorDefectoISO
+          }));
+          validateWorkingHours(fechaFinPorDefecto, 'fechaFin');
+          validateFechaOrder(date, fechaFinPorDefecto);
+        }
+      }
+    } else {
+      setPermisoLocal(prev => ({
+        ...prev,
+        cF_Fecha_hora_inicio_permiso: ""
+      }));
+      setTimeValidationErrors(prev => ({
+        ...prev,
+        fechaInicio: null
+      }));
+    }
+  };
+
+  // Manejar cambio en fecha de fin
+  const handleFechaFinChange = (date) => {
+    if (date && permisoLocal.cF_Fecha_hora_inicio_permiso) {
+      const fechaInicio = parseToZonedDateTime(permisoLocal.cF_Fecha_hora_inicio_permiso);
+      
+      if (fechaInicio) {
+        // Forzar que sea el mismo día que la fecha de inicio, solo cambiar la hora
+        const fechaFinMismoDia = fechaInicio.set({ 
+          hour: date.hour, 
+          minute: date.minute 
+        });
+        
+        const isoString = fechaFinMismoDia.toDate().toISOString();
+        
+        setPermisoLocal(prev => ({
+          ...prev,
+          cF_Fecha_hora_fin_permiso: isoString
+        }));
+
+        // Validar horario y orden
+        validateWorkingHours(fechaFinMismoDia, 'fechaFin');
+        validateFechaOrder(fechaInicio, fechaFinMismoDia);
+      }
+    } else if (date) {
+      // Si no hay fecha de inicio, usar la fecha seleccionada
+      const isoString = date.toDate().toISOString();
+      setPermisoLocal(prev => ({
+        ...prev,
+        cF_Fecha_hora_fin_permiso: isoString
+      }));
+      validateWorkingHours(date, 'fechaFin');
+    } else {
+      setPermisoLocal(prev => ({
+        ...prev,
+        cF_Fecha_hora_fin_permiso: ""
+      }));
+      setTimeValidationErrors(prev => ({
+        ...prev,
+        fechaFin: null
+      }));
+    }
+  };
+
+  // Validar que fecha de fin sea posterior a fecha de inicio
+  const validateFechaOrder = (fechaInicio, fechaFin) => {
+    if (fechaInicio && fechaFin) {
+      const inicioTime = fechaInicio.hour * 60 + fechaInicio.minute;
+      const finTime = fechaFin.hour * 60 + fechaFin.minute;
+
+      if (finTime <= inicioTime) {
+        setTimeValidationErrors(prev => ({
+          ...prev,
+          fechaFin: "La hora de fin debe ser posterior a la hora de inicio"
+        }));
+        return false;
+      } else {
+        setTimeValidationErrors(prev => ({
+          ...prev,
+          fechaFin: prev.fechaFin === "La hora de fin debe ser posterior a la hora de inicio" ? null : prev.fechaFin
+        }));
+        return true;
+      }
+    }
+    return true;
+  };
+
+  // Función para deshabilitar fines de semana
+  const isDateUnavailable = (date) => {
+    // Deshabilitar fines de semana (sábado = 6, domingo = 0)
+    const dayOfWeek = date.toDate(getLocalTimeZone()).getDay();
+    return dayOfWeek === 0 || dayOfWeek === 6;
   };
 
   const handleSubmit = async (e) => {
@@ -286,62 +484,53 @@ const EditarPermisoModal = ({ isOpen, onOpenChange, onClose, onSave, permiso, es
 
                 {/* Fechas */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <I18nProvider locale="es-ES">
+                    <div>
                         <DatePicker
                             isRequired
                             label="Fecha y Hora de Inicio"
                             labelPlacement="outside"
                             showMonthAndYearPickers
                             hideTimeZone
+                            hourCycle={12}
                             variant="bordered"
                             granularity="minute"
-                            hourCycle={12}
+                            value={parseToZonedDateTime(permisoLocal.cF_Fecha_hora_inicio_permiso)}
+                            onChange={esSoloRevision ? undefined : handleFechaInicioChange}
+                            isDateUnavailable={isDateUnavailable}
+                            minValue={now(getLocalTimeZone())}
+                            errorMessage={timeValidationErrors.fechaInicio || "La fecha de inicio es requerida (Lunes a Viernes, 7:00 AM - 4:30 PM)"}
+                            isInvalid={!!timeValidationErrors.fechaInicio}
                             isDisabled={isLoading || esSoloRevision}
-                            {...datePickerUtils.getPermissionDatePickerPropsComplete({
-                                currentValue: permisoLocal.cF_Fecha_hora_inicio_permiso,
-                                onChange: setPermisoLocal,
-                                fieldName: 'cF_Fecha_hora_inicio_permiso'
-                            })}
-                            validate={(value) => {
-                                if (!value) {
-                                    return "La fecha de inicio es requerida";
-                                }
-                            }}
                         />
-                    </I18nProvider>
+                    </div>
 
-                    <I18nProvider locale="es-ES">
+                    <div>
                         <DatePicker
                             isRequired
                             label="Fecha y Hora de Fin"
                             labelPlacement="outside"
-                            showMonthAndYearPickers
+                            showMonthAndYearPickers={!permisoLocal.cF_Fecha_hora_inicio_permiso}
                             hideTimeZone
+                            hourCycle={12}
                             variant="bordered"
                             granularity="minute"
-                            hourCycle={12}
-                            isDisabled={isLoading || esSoloRevision}
-                            {...datePickerUtils.getPermissionDatePickerPropsComplete({
-                                currentValue: permisoLocal.cF_Fecha_hora_fin_permiso,
-                                onChange: setPermisoLocal,
-                                maxDateISO: permisoLocal.cF_Fecha_hora_inicio_permiso,
-                                fieldName: 'cF_Fecha_hora_fin_permiso'
-                            })}
-                            validate={(value) => {
-                                if (!value) {
-                                    return "La fecha de fin es requerida";
-                                }
-                                // Validar que la fecha de fin sea posterior a la de inicio
-                                if (permisoLocal.cF_Fecha_hora_inicio_permiso && value) {
-                                    const fechaInicio = new Date(permisoLocal.cF_Fecha_hora_inicio_permiso);
-                                    const fechaFin = new Date(value.toDate());
-                                    if (fechaFin <= fechaInicio) {
-                                        return "La fecha de fin debe ser posterior a la fecha de inicio";
-                                    }
-                                }
-                            }}
+                            value={parseToZonedDateTime(permisoLocal.cF_Fecha_hora_fin_permiso)}
+                            onChange={esSoloRevision ? undefined : handleFechaFinChange}
+                            isDateUnavailable={isDateUnavailable}
+                            minValue={permisoLocal.cF_Fecha_hora_inicio_permiso ? 
+                                parseToZonedDateTime(permisoLocal.cF_Fecha_hora_inicio_permiso)?.set({ hour: 7, minute: 0 }) : 
+                                now(getLocalTimeZone())
+                            }
+                            maxValue={permisoLocal.cF_Fecha_hora_inicio_permiso ? 
+                                parseToZonedDateTime(permisoLocal.cF_Fecha_hora_inicio_permiso)?.set({ hour: 16, minute: 30 }) : 
+                                undefined
+                            }
+                            errorMessage={timeValidationErrors.fechaFin || "La fecha de fin es requerida (Lunes a Viernes, 7:00 AM - 4:30 PM)"}
+                            isInvalid={!!timeValidationErrors.fechaFin}
+                            isDisabled={isLoading || esSoloRevision || !permisoLocal.cF_Fecha_hora_inicio_permiso}
+                            placeholder={!permisoLocal.cF_Fecha_hora_inicio_permiso ? "Seleccione primero la fecha de inicio" : "Seleccione la hora de fin"}
                         />
-                    </I18nProvider>
+                    </div>
                 </div>
             </ModalBody>
 

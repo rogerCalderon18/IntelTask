@@ -271,6 +271,7 @@ const TareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tareaPadre
                                         isInvalid={!!timeValidationErrors.fechaLimite}
                                         isDisabled={isSubmitting}
                                     />
+                                    
                                     <Select
                                         isRequired
                                         name="prioridad"

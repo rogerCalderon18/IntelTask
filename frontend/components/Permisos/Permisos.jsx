@@ -29,6 +29,7 @@ const Permisos = () => {
 
     useEffect(() => {
         if (session?.user?.id && status === 'authenticated') {
+            console.log('Cargando datos de permisos para el usuario:', session.user);
             cargarDatos();
         }
     }, [session, status]);
@@ -273,16 +274,19 @@ const Permisos = () => {
                                                 </div>
                                             </div>
 
-                                            <Button
-                                                color="primary"
-                                                endContent={<FiPlus className="w-4 h-4" />}
-                                                className="hover:from-blue-600 hover:to-purple-600 text-white font-semibold px-6 py-2 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-                                                onPress={() => handleOpenModal()}
-                                                size="md"
-                                            >
-                                                <span className="hidden sm:inline">Nuevo Permiso</span>
-                                                <span className="sm:hidden">Agregar</span>
-                                            </Button>
+                                            {/* Solo mostrar botón si el usuario NO es Director (rol 1) */}
+                                            {parseInt(session?.user?.role) !== 1 && (
+                                                <Button
+                                                    color="primary"
+                                                    endContent={<FiPlus className="w-4 h-4" />}
+                                                    className="hover:from-blue-600 hover:to-purple-600 text-white font-semibold px-6 py-2 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                                                    onPress={() => handleOpenModal()}
+                                                    size="md"
+                                                >
+                                                    <span className="hidden sm:inline">Nuevo Permiso</span>
+                                                    <span className="sm:hidden">Agregar</span>
+                                                </Button>
+                                            )}
                                         </div>
                                     </div>
 
@@ -292,6 +296,7 @@ const Permisos = () => {
                                                 <EmptyStatePermisos 
                                                     tabActivo={tabActivo}
                                                     onNuevoPermiso={() => handleOpenModal()}
+                                                    userRole={parseInt(session?.user?.role)}
                                                 />
                                             </div>
                                         ) : (

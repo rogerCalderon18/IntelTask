@@ -2,18 +2,20 @@ import React from "react";
 import { Button } from "@heroui/react";
 import { FiPlus, FiCalendar, FiClock } from "react-icons/fi";
 
-const EmptyStatePermisos = ({ tabActivo, onNuevoPermiso }) => {
+const EmptyStatePermisos = ({ tabActivo, onNuevoPermiso, userRole }) => {
   const getEmptyStateContent = () => {
     switch (tabActivo) {
       case "misSolicitudes":
         return {
           emoji: "",
-          title: "¡Tu lista de permisos está vacía!",
-          description: "Parece que aún no has solicitado ningún permiso.",
+          title: userRole === 1 ? "¡No tienes permisos registrados!" : "¡Tu lista de permisos está vacía!",
+          description: userRole === 1 
+            ? "Como Director, puedes revisar y aprobar las solicitudes de permiso de tu equipo." 
+            : "Parece que aún no has solicitado ningún permiso.",
           action: {
             label: "Solicitar mi Primer Permiso",
             icon: <FiPlus className="w-4 h-4" />,
-            show: true
+            show: userRole !== 1
           }
         };
       case "solicitudes":

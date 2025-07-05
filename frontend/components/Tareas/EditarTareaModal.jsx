@@ -23,6 +23,7 @@ import HistorialRechazos from "./HistorialRechazos";
 import { useSession } from "next-auth/react";
 import { I18nProvider } from "@react-aria/i18n";
 import { datePickerUtils } from "../../utils/datePickerUtils";
+import { getLocalTimeZone, now, parseZonedDateTime } from "@internationalized/date";
 
 const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tareaPadre = null, restricciones = {}, restriccionesAcciones = {} }) => {
     const { data: session, status } = useSession();
@@ -32,6 +33,7 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
     const [mostrarJustificacionRechazo, setMostrarJustificacionRechazo] = useState(false);
     const [justificacionRechazo, setJustificacionRechazo] = useState("");
     const [tareaLocal, setTareaLocal] = useState(tarea || {});
+    const [timeValidationErrors, setTimeValidationErrors] = useState({});
     const [catalogos, setCatalogos] = useState({
         estados: [],
         prioridades: [],
@@ -68,6 +70,92 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
         } finally {
             setLoadingCatalogos(false);
         }
+    };
+
+    const handleInputChange = (fieldName, value) => {
+        setTareaLocal(prev => ({
+            ...prev,
+            [fieldName]: value
+        }));
+    };
+
+    const handleDateValidation = (date) => {
+        // Limpiar errores previos
+        setTimeValidationErrors(prev => ({
+            ...prev,
+            fechaLimite: null
+        }));
+
+        if (date) {
+            // Solo validar fines de semana inmediatamente
+            const dayOfWeek = date.toDate().getDay();
+            if (dayOfWeek === 0 || dayOfWeek === 6) {
+                setTimeValidationErrors(prev => ({
+                    ...prev,
+                    fechaLimite: "No se pueden seleccionar fines de semana"
+                }));
+                return;
+            }
+
+            // Convertir a ISO string y guardar (sin validar horarios aún)
+            const isoString = date.toDate().toISOString();
+            handleInputChange('cF_Fecha_limite', isoString);
+
+            // Validar horarios después de guardar (con timeout para permitir cambios)
+            setTimeout(() => {
+                validateTimeRange(date);
+            }, 100);
+        } else {
+            handleInputChange('cF_Fecha_limite', "");
+        }
+    };
+
+    // Función separada para validar horarios (menos estricta)
+    const validateTimeRange = (date) => {
+        const hour = date.hour;
+        const minute = date.minute;
+
+        // Validar horas de trabajo (7:00 AM - 4:30 PM) solo si la hora está completamente fuera del rango
+        if (hour < 7 || hour > 16 || (hour === 16 && minute > 30)) {
+            setTimeValidationErrors(prev => ({
+                ...prev,
+                fechaLimite: "Horario permitido: 7:00 AM - 4:30 PM"
+            }));
+            return;
+        }
+
+        // Si llegamos aquí, no hay errores
+        setTimeValidationErrors(prev => ({
+            ...prev,
+            fechaLimite: null
+        }));
+    };
+
+    // Función para convertir ISO string a ZonedDateTime
+    const parseToZonedDateTime = (isoString) => {
+        if (!isoString) return null;
+        try {
+            const date = new Date(isoString);
+            const localTimeZone = getLocalTimeZone();
+
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+
+            const zonedDateTimeString = `${year}-${month}-${day}T${hours}:${minutes}[${localTimeZone}]`;
+            return parseZonedDateTime(zonedDateTimeString);
+        } catch (error) {
+            console.error('Error parsing date:', error);
+            return null;
+        }
+    };
+
+    const isDateUnavailable = (date) => {
+        // Deshabilitar fines de semana
+        const dayOfWeek = date.toDate(getLocalTimeZone()).getDay();
+        return dayOfWeek === 0 || dayOfWeek === 6;
     };
 
     const handleSubmit = async (e) => {
@@ -254,31 +342,24 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
                                     </div>
 
                                     <div>
-                                        <I18nProvider locale="es">
-                                            <DatePicker
-                                                isRequired
-                                                label="Fecha y hora límite:"
-                                                name="fechaLimite"
-                                                labelPlacement="outside"
-                                                showMonthAndYearPickers
-                                                hideTimeZone
-                                                variant="bordered"
-                                                granularity="minute"
-                                                hourCycle={12}
-                                                readOnly={restricciones.fechaLimite}
-                                                {...datePickerUtils.getDatePickerProps({
-                                                    currentValue: tareaLocal.cF_Fecha_limite || tarea?.cF_Fecha_limite,
-                                                    onChange: (date) => {
-                                                        if (!restricciones.fechaLimite) {
-                                                            return datePickerUtils.handleDateChange(date, setTareaLocal, 'cF_Fecha_limite');
-                                                        }
-                                                    },
-                                                    maxDateISO: tareaPadre?.cF_Fecha_limite,
-                                                    fieldName: 'cF_Fecha_limite'
-                                                })}
-                                                isDisabled={isSubmitting || restricciones.fechaLimite}
-                                            />
-                                        </I18nProvider>
+                                        <DatePicker
+                                            isRequired
+                                            label="Fecha y hora límite:"
+                                            labelPlacement="outside"
+                                            showMonthAndYearPickers
+                                            variant="bordered"
+                                            granularity="minute"
+                                            hideTimeZone
+                                            value={parseToZonedDateTime(tareaLocal.cF_Fecha_limite || tarea?.cF_Fecha_limite)}
+                                            onChange={restricciones.fechaLimite ? undefined : handleDateValidation}
+                                            isDateUnavailable={isDateUnavailable}
+                                            minValue={now(getLocalTimeZone())}
+                                            maxValue={tareaPadre?.cF_Fecha_limite ? parseToZonedDateTime(tareaPadre.cF_Fecha_limite) : undefined}
+                                            errorMessage={timeValidationErrors.fechaLimite || "La fecha y hora límite son requeridas (Lunes a Viernes, 7:00 AM - 4:30 PM)"}
+                                            isInvalid={!!timeValidationErrors.fechaLimite}
+                                            isDisabled={isSubmitting || restricciones.fechaLimite}
+                                            readOnly={restricciones.fechaLimite}
+                                        />
                                     </div>
 
                                     <div>
