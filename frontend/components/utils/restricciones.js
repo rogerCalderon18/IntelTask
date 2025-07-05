@@ -81,7 +81,7 @@ export const RESTRICCIONES_CONFIG = {
     [ESTADOS.INCUMPLIDO]: {
         creador: {
             titulo: true, descripcion: true, adjuntos: false, complejidad: true,
-            prioridad: true, usuarioAsignado: false, descripcionEspera: false,
+            prioridad: true, usuarioAsignado: true, descripcionEspera: false,
             estado: false, numeroGIS: true, fechaLimite: false
         },
         asignado: {
