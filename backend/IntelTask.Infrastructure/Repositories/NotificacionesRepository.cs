@@ -72,12 +72,18 @@ namespace IntelTask.Infrastructure.Repositories
         {
             var fechaLimite = DateTime.Now.AddHours(-horasAtras);
             
-            // Buscar notificaciones que contengan el ID de la tarea específica
+            // Buscar notificaciones que contengan el texto específico en el título
+            // Para identificar el tipo, usamos palabras clave en el título
             var existe = await _context.T_Notificaciones
                 .Include(n => n.NotificacionesXUsuarios)
                 .Where(n => n.NotificacionesXUsuarios.Any(nu => nu.CN_Id_usuario == usuarioId) &&
                            n.CF_Fecha_registro >= fechaLimite &&
-                           n.CT_Titulo_notificacion.Contains(tituloContiene))
+                           n.CT_Titulo_notificacion.Contains(tituloContiene) &&
+                           (tipoNotificacion == "Recordatorio" ? 
+                               n.CT_Titulo_notificacion.Contains("Recordatorio") :
+                               tipoNotificacion == "Incumplimiento" ?
+                               (n.CT_Titulo_notificacion.Contains("vencido") || n.CT_Titulo_notificacion.Contains("Vencida") || n.CT_Titulo_notificacion.Contains("excedido")) :
+                               true))
                 .AnyAsync();
                 
             return existe;

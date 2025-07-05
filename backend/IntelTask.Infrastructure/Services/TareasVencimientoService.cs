@@ -173,11 +173,26 @@ namespace IntelTask.Infrastructure.Services
             var usuario = await _usuariosRepository.F_PUB_ObtenerUsuarioPorId(tarea.CN_Usuario_asignado!.Value);
             if (usuario != null)
             {
+                // Verificar si ya se envió notificación de incumplimiento para esta tarea específica
+                var yaNotificado = await _notificacionesService.F_PUB_ExisteNotificacionRecienteParaTarea(
+                    usuario.CN_Id_usuario, 
+                    tarea.CN_Id_tarea, 
+                    "Incumplimiento",
+                    24 // Últimas 24 horas
+                );
+                
+                if (yaNotificado)
+                {
+                    _logger.LogInformation("Ya se envió notificación de tarea vencida para tarea {TareaId} al usuario {UsuarioId} en las últimas 24 horas", 
+                        tarea.CN_Id_tarea, usuario.CN_Id_usuario);
+                    return; // No enviar notificación duplicada
+                }
+
                 var notificacion = new NotificacionEmailRequest
                 {
                     CT_Email_destino = usuario.CT_Correo_usuario,
                     CT_Asunto = "⚠️ Tarea Vencida - IntelTask",
-                    CT_Titulo = $"La tarea '{tarea.CT_Titulo_tarea}' ha excedido su fecha límite",
+                    CT_Titulo = $"La tarea '{tarea.CT_Titulo_tarea}' ha excedido su fecha límite - Tarea ID: {tarea.CN_Id_tarea}",
                     CT_Tipo_notificacion = "Incumplimiento",
                     CT_Mensaje_adicional = $"Fecha límite: {tarea.CF_Fecha_limite:dd/MM/yyyy HH:mm}. " +
                                          $"Esta tarea ya venció y requiere su atención inmediata. Por favor, complete la tarea lo antes posible."
@@ -194,11 +209,26 @@ namespace IntelTask.Infrastructure.Services
             var creador = await _usuariosRepository.F_PUB_ObtenerUsuarioPorId(tarea.CN_Usuario_creador);
             if (creador != null)
             {
+                // Verificar si ya se envió notificación de incumplimiento al creador para esta tarea específica
+                var yaNotificado = await _notificacionesService.F_PUB_ExisteNotificacionRecienteParaTarea(
+                    creador.CN_Id_usuario, 
+                    tarea.CN_Id_tarea, 
+                    "Incumplimiento",
+                    24 // Últimas 24 horas
+                );
+                
+                if (yaNotificado)
+                {
+                    _logger.LogInformation("Ya se envió notificación de tarea vencida para tarea {TareaId} al creador {UsuarioId} en las últimas 24 horas", 
+                        tarea.CN_Id_tarea, creador.CN_Id_usuario);
+                    return; // No enviar notificación duplicada
+                }
+
                 var notificacion = new NotificacionEmailRequest
                 {
                     CT_Email_destino = creador.CT_Correo_usuario,
                     CT_Asunto = "⚠️ Tarea Creada por Usted - Vencida",
-                    CT_Titulo = $"La tarea '{tarea.CT_Titulo_tarea}' que usted creó ha excedido su fecha límite",
+                    CT_Titulo = $"La tarea '{tarea.CT_Titulo_tarea}' que usted creó ha excedido su fecha límite - Tarea ID: {tarea.CN_Id_tarea}",
                     CT_Tipo_notificacion = "Incumplimiento",
                     CT_Mensaje_adicional = $"Usuario asignado: {tarea.UsuarioAsignado?.CT_Nombre_usuario}. " +
                                          $"Fecha límite: {tarea.CF_Fecha_limite:dd/MM/yyyy HH:mm}. " +
