@@ -12,8 +12,8 @@ const GestorAdjuntos = ({ idTarea, adjuntos: adjuntosIniciales = [], onAdjuntosC
     const [subiendo, setSubiendo] = useState(false);
     const { showConfirmation } = useConfirmation();
 
-    // Estados permitidos para eliminar adjuntos: registrado, asignado, en proceso, en espera
-    const estadosPermitidosEliminar = [1, 2, 3, 4];
+    // Estados permitidos para eliminar adjuntos: solo registrado
+    const estadosPermitidosEliminar = [1];
     
     // Estados permitidos para subir adjuntos: registrado, asignado, en proceso, en espera
     const estadosPermitidosSubir = [1, 2, 3, 4];
@@ -156,7 +156,7 @@ const GestorAdjuntos = ({ idTarea, adjuntos: adjuntosIniciales = [], onAdjuntosC
                     15: "Rechazado",
                     17: "En Revisión"
                 };
-                mensaje = `Solo se pueden eliminar adjuntos cuando la tarea está en estado: Registrado, Asignado, En Proceso o En Espera.\n\nEstado actual: ${nombresEstados[estadoTarea] || `Estado ${estadoTarea}`}`;
+                mensaje = `Solo se pueden eliminar adjuntos cuando la tarea está en estado: Registrado.\n\nEstado actual: ${nombresEstados[estadoTarea] || `Estado ${estadoTarea}`}`;
             } else if (adjunto.usuarioId && adjunto.usuarioId !== usuarioActual) {
                 mensaje = "Solo puedes eliminar adjuntos que tú hayas subido.";
             } else {

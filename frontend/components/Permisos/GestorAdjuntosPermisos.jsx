@@ -13,7 +13,7 @@ import {
   Spinner,
   Progress
 } from "@heroui/react";
-import { FiUpload, FiDownload, FiFile, FiX } from "react-icons/fi";
+import { FiUpload, FiDownload, FiFile, FiX, FiTrash } from "react-icons/fi";
 import { toast } from "react-toastify";
 import { adjuntosService } from "../../services/adjuntosService";
 import { useSession } from 'next-auth/react';
@@ -33,6 +33,21 @@ const GestorAdjuntosPermisos = ({
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [dragActive, setDragActive] = useState(false);
+
+  // Verificar si el usuario puede eliminar adjuntos
+  const puedeEliminarAdjuntos = (adjunto) => {
+    // El usuario debe ser el creador del permiso
+    const esCreador = currentUserId && usuarioCreadorId && 
+                     parseInt(currentUserId) === parseInt(usuarioCreadorId);
+    
+    // El estado debe ser "Registrado" (ID 1)
+    const estaRegistrado = estadoPermiso === 1;
+    
+    // El usuario debe ser quien subió el archivo (si aplica)
+    const esPropioArchivo = !adjunto.usuarioId || adjunto.usuarioId === parseInt(currentUserId);
+    
+    return esCreador && estaRegistrado && esPropioArchivo;
+  };
 
   // Verificar si el usuario puede agregar adjuntos
   const puedeAgregarAdjuntos = () => {
@@ -147,9 +162,37 @@ const GestorAdjuntosPermisos = ({
   };
 
   const handleDelete = async (adjunto) => {
-    // Los adjuntos no se pueden eliminar una vez subidos
-    toast.error('Los adjuntos no se pueden eliminar una vez subidos.');
-    return;
+    // Verificar si puede eliminar el adjunto
+    if (!puedeEliminarAdjuntos(adjunto)) {
+      const esCreador = currentUserId && usuarioCreadorId && 
+                       parseInt(currentUserId) === parseInt(usuarioCreadorId);
+      const estaRegistrado = estadoPermiso === 1;
+      
+      let mensaje = "No puedes eliminar este adjunto.";
+      
+      if (!esCreador) {
+        mensaje = "Solo el creador del permiso puede eliminar adjuntos.";
+      } else if (!estaRegistrado) {
+        mensaje = "Solo se pueden eliminar adjuntos cuando el permiso está en estado Registrado.";
+      } else {
+        mensaje = "Solo puedes eliminar adjuntos que tú hayas subido.";
+      }
+      
+      toast.error(mensaje);
+      return;
+    }
+
+    // Mostrar confirmación
+    if (window.confirm('¿Estás seguro de que deseas eliminar este archivo? Esta acción no se puede deshacer.')) {
+      try {
+        await adjuntosService.eliminarArchivo(adjunto.id);
+        await cargarAdjuntos();
+        toast.success('Archivo eliminado exitosamente');
+      } catch (error) {
+        console.error('Error al eliminar archivo:', error);
+        toast.error('Error al eliminar el archivo');
+      }
+    }
   };
 
   const handleDrag = (e) => {
@@ -364,6 +407,19 @@ const GestorAdjuntosPermisos = ({
                                 >
                                   Descargar
                                 </Button>
+                                
+                                {puedeEliminarAdjuntos(adjunto) && (
+                                  <Button
+                                    size="sm"
+                                    variant="light"
+                                    color="danger"
+                                    startContent={<FiTrash className="w-4 h-4" />}
+                                    onPress={() => handleDelete(adjunto)}
+                                    title="Eliminar adjunto"
+                                  >
+                                    Eliminar
+                                  </Button>
+                                )}
                               </div>
                             </div>
                           </CardBody>
