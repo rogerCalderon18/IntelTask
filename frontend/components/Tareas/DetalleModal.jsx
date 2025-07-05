@@ -247,6 +247,16 @@ const DetalleModal = ({ isOpen, onOpenChange, tarea, onEdit, onClose, esSubtarea
                                 </p>
                             </div>
 
+                            {/* Mostrar descripción de espera si existe */}
+                            {tarea.cT_Descripcion_espera && (
+                                <div>
+                                    <h3 className="text-sm font-medium text-orange-800 mb-3">Descripción de espera:</h3>
+                                    <p className="text-sm text-orange-700 bg-orange-50 p-3 rounded-lg border border-orange-200">
+                                        {tarea.cT_Descripcion_espera}
+                                    </p>
+                                </div>
+                            )}
+
                             <Divider />
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-3">
@@ -392,7 +402,7 @@ const DetalleModal = ({ isOpen, onOpenChange, tarea, onEdit, onClose, esSubtarea
                                     </div>
                                 </>
                             )}
-                            <div className="px-6 pb-2">
+                            <div className="col-span-2">
                                 <Seguimientos tarea={tarea} />
                             </div>
                             <div className="col-span-2">

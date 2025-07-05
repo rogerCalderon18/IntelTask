@@ -53,6 +53,7 @@ public class TareasController : ControllerBase
         {
             CT_Titulo_tarea = tareaRequest.CT_Titulo_tarea,
             CT_Descripcion_tarea = tareaRequest.CT_Descripcion_tarea,
+            CT_Descripcion_espera = tareaRequest.CT_Descripcion_espera,
             CN_Id_complejidad = tareaRequest.CN_Id_complejidad,
             CN_Id_prioridad = tareaRequest.CN_Id_prioridad,
             CN_Id_estado = tareaRequest.CN_Usuario_asignado.HasValue ? (byte) 2: (byte) 1,

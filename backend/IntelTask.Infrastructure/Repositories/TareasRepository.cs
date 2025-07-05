@@ -169,6 +169,7 @@ namespace IntelTask.Infrastructure.Repositories
                 // Actualizar solo los campos permitidos
                 tareaExistente.CT_Titulo_tarea = request.CT_Titulo_tarea;
                 tareaExistente.CT_Descripcion_tarea = request.CT_Descripcion_tarea;
+                tareaExistente.CT_Descripcion_espera = request.CT_Descripcion_espera;
                 tareaExistente.CN_Id_complejidad = request.CN_Id_complejidad;
                 tareaExistente.CN_Id_prioridad = request.CN_Id_prioridad;
                 tareaExistente.CN_Id_estado = request.CN_Id_estado;

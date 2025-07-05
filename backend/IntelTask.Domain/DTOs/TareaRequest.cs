@@ -7,6 +7,7 @@ namespace IntelTask.Domain.DTOs
         // Campos requeridos
         public string CT_Titulo_tarea { get; set; } = string.Empty;
         public string CT_Descripcion_tarea { get; set; } = string.Empty;
+        public string? CT_Descripcion_espera { get; set; }
         public byte CN_Id_complejidad { get; set; }
         public byte CN_Id_prioridad { get; set; }
         public byte CN_Id_estado { get; set; }

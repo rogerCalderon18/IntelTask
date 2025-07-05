@@ -35,6 +35,8 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
     const [selectedEstado, setSelectedEstado] = useState(null);
     const [mostrarJustificacionRechazo, setMostrarJustificacionRechazo] = useState(false);
     const [justificacionRechazo, setJustificacionRechazo] = useState("");
+    const [mostrarDescripcionEspera, setMostrarDescripcionEspera] = useState(false);
+    const [descripcionEspera, setDescripcionEspera] = useState("");
     const [tareaLocal, setTareaLocal] = useState(tarea || {});
     const [timeValidationErrors, setTimeValidationErrors] = useState({});
     const [catalogos, setCatalogos] = useState({
@@ -67,6 +69,15 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
         // Verificar justificaciones cuando cambie la tarea
         if (tarea?.cN_Id_estado === 14) {
             verificarJustificaciones();
+        }
+        
+        // Inicializar descripción de espera si la tarea ya está en ese estado
+        if (tarea?.cN_Id_estado === 4) {
+            setMostrarDescripcionEspera(true);
+            setDescripcionEspera(tarea?.cT_Descripcion_espera || "");
+        } else {
+            setMostrarDescripcionEspera(false);
+            setDescripcionEspera("");
         }
     }, [tarea]);
 
@@ -253,7 +264,14 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
                 cN_Usuario_asignado: restricciones.usuarioAsignado ? tarea?.cN_Usuario_asignado : (responsableValue ? parseInt(responsableValue) : null),
                 cN_Tarea_origen: tareaPadre ? (tareaPadre.cN_Id_tarea || tareaPadre.id) : null,
                 cN_Usuario_editor: session?.user?.id,
+                // Incluir descripción de espera si está presente
+                cT_Descripcion_espera: estadoSeleccionado === 4 ? descripcionEspera : (tarea?.cT_Descripcion_espera || null),
             };
+
+            // Debug: Log para verificar datos
+            console.log('Estado seleccionado:', estadoSeleccionado);
+            console.log('Descripción de espera:', descripcionEspera);
+            console.log('Datos a enviar:', tareaData);
 
             // LÓGICA ESPECIAL: Si está editando fecha límite en tarea incumplida, automáticamente asignar de nuevo
             if (tarea?.cN_Id_estado === 14 && !restricciones.fechaLimite && tareaLocal.cF_Fecha_limite &&
@@ -267,6 +285,8 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
             // Resetear estado del modal después de enviar exitosamente
             setMostrarJustificacionRechazo(false);
             setJustificacionRechazo("");
+            setMostrarDescripcionEspera(false);
+            setDescripcionEspera("");
             setSelectedEstado(null);
 
         } catch (error) {
@@ -551,6 +571,14 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
                                                     setMostrarJustificacionRechazo(false);
                                                     setJustificacionRechazo("");
                                                 }
+                                                
+                                                // Si selecciona "En espera" (estado 4)
+                                                if (selectedValue === "4") {
+                                                    setMostrarDescripcionEspera(true);
+                                                } else {
+                                                    setMostrarDescripcionEspera(false);
+                                                    setDescripcionEspera("");
+                                                }
                                             }}                                        >
                                             {obtenerEstadosFiltrados().map((estado) => (
                                                 <SelectItem
@@ -590,6 +618,28 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
                                                 classNames={{
                                                     input: "bg-red-50",
                                                     inputWrapper: "border-red-200 focus-within:border-red-500"
+                                                }}
+                                            />
+                                        </div>
+                                    )}
+
+                                    {/* Campo de descripción de espera */}
+                                    {mostrarDescripcionEspera && (
+                                        <div className="col-span-2">
+                                            <Textarea
+                                                label="Descripción de espera"
+                                                labelPlacement="outside"
+                                                value={descripcionEspera}
+                                                onChange={(e) => setDescripcionEspera(e.target.value)}
+                                                placeholder="Explica por qué la tarea está en espera..."
+                                                variant="bordered"
+                                                minRows={3}
+                                                maxRows={5}
+                                                isRequired
+                                                className="w-full"
+                                                classNames={{
+                                                    input: "bg-orange-50",
+                                                    inputWrapper: "border-orange-200 focus-within:border-orange-500"
                                                 }}
                                             />
                                         </div>
@@ -661,6 +711,7 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
                                         isDisabled={
                                             (restriccionesAcciones && restriccionesAcciones.editar !== true) ||
                                             (mostrarJustificacionRechazo && !justificacionRechazo.trim()) ||
+                                            (mostrarDescripcionEspera && !descripcionEspera.trim()) ||
                                             (tarea?.cN_Id_estado === 14 && !restricciones.fechaLimite &&
                                                 tareaLocal.cF_Fecha_limite !== tarea?.cF_Fecha_limite &&
                                                 !tieneJustificacionesIncumplimiento)
