@@ -277,16 +277,19 @@ const SubtareasManager = ({ tareaId, tareaPadre, tipoSeccion, onSubtareasChange 
                     </Button>
                 </div>
                 
-                <Button
-                    size="sm"
-                    color="primary"
-                    variant="flat"
-                    startContent={<FiPlus className="w-4 h-4" />}
-                    onClick={onCreateOpen}
-                    className="text-blue-600 hover:bg-blue-50"
-                >
-                    Agregar
-                </Button>
+                {/* Solo mostrar botón si el usuario NO es Profesional 2, 1 o Técnico (roles 6, 7, 8) */}
+                {![6, 7, 8].includes(parseInt(session?.user?.role)) && (
+                    <Button
+                        size="sm"
+                        color="primary"
+                        variant="flat"
+                        startContent={<FiPlus className="w-4 h-4" />}
+                        onClick={onCreateOpen}
+                        className="text-blue-600 hover:bg-blue-50"
+                    >
+                        Agregar
+                    </Button>
+                )}
             </div>            {/* Lista de subtareas */}
             {mostrarSubtareas && (
                 <ListaSubtareas

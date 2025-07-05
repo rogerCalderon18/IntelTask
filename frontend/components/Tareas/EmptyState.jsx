@@ -2,7 +2,7 @@ import React from "react";
 import { Card, CardBody, Button } from "@heroui/react";
 import { FiPlus, FiInbox, FiCheckCircle, FiClock, FiAlertTriangle, FiEye } from "react-icons/fi";
 
-const EmptyState = ({ tabId, onAddTask }) => {
+const EmptyState = ({ tabId, onAddTask, session }) => {
     const getEmptyContent = () => {
         switch (tabId) {
             case "misTareas":
@@ -64,6 +64,9 @@ const EmptyState = ({ tabId, onAddTask }) => {
     };
 
     const content = getEmptyContent();
+    
+    // Verificar si el usuario tiene permisos para crear tareas
+    const puedeCrearTareas = ![6, 7, 8].includes(parseInt(session?.user?.role));
 
     return (
         <div className="flex justify-center items-center py-12">
@@ -85,7 +88,7 @@ const EmptyState = ({ tabId, onAddTask }) => {
                         {content.description}
                     </p>
                     
-                    {content.showButton && (
+                    {content.showButton && puedeCrearTareas && (
                         <Button
                             color="primary"
                             variant="solid"

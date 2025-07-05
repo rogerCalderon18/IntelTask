@@ -440,16 +440,19 @@ const Tareas = () => {
                                                 </div>
                                             </div>
 
-                                            <Button
-                                                color="primary"
-                                                endContent={<FiPlus className="w-4 h-4" />}
-                                                className="hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-                                                onPress={() => handleOpenModal()}
-                                                size="md"
-                                            >
-                                                <span className="hidden sm:inline">Nueva Tarea</span>
-                                                <span className="sm:hidden">Agregar</span>
-                                            </Button>
+                                            {/* Solo mostrar botón si el usuario NO es Profesional 2, 1 o Técnico (roles 6, 7, 8) */}
+                                            {![6, 7, 8].includes(parseInt(session?.user?.role)) && (
+                                                <Button
+                                                    color="primary"
+                                                    endContent={<FiPlus className="w-4 h-4" />}
+                                                    className="hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                                                    onPress={() => handleOpenModal()}
+                                                    size="md"
+                                                >
+                                                    <span className="hidden sm:inline">Nueva Tarea</span>
+                                                    <span className="sm:hidden">Agregar</span>
+                                                </Button>
+                                            )}
                                         </div>
                                     </div>
 
@@ -459,6 +462,7 @@ const Tareas = () => {
                                                 <EmptyState
                                                     tabId={tab.id}
                                                     onAddTask={() => handleOpenModal()}
+                                                    session={session}
                                                 />
                                             </div>
                                         ) : (

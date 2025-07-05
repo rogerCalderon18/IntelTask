@@ -61,6 +61,13 @@ const TareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tareaPadre
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        // Verificar si el usuario tiene permisos para crear tareas
+        if ([6, 7, 8].includes(parseInt(session?.user?.role))) {
+            console.error('Usuario sin permisos para crear tareas');
+            return;
+        }
+        
         setIsSubmitting(true);
 
         try {
@@ -167,6 +174,11 @@ const TareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tareaPadre
         return dayOfWeek === 0 || dayOfWeek === 6;
     };
 
+
+    // Verificar si el usuario tiene permisos para crear tareas
+    if ([6, 7, 8].includes(parseInt(session?.user?.role))) {
+        return null; // No renderizar el modal para usuarios sin permisos
+    }
 
     if (loadingCatalogos) {
         return (
