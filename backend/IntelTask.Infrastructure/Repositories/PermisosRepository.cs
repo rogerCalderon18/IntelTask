@@ -23,6 +23,7 @@ namespace IntelTask.Infrastructure.Repositories
                 .Include(p => p.Estado)
                 .Include(p => p.UsuarioCreador)
                     .ThenInclude(u => u!.Rol)
+                .OrderByDescending(p => p.CF_Fecha_hora_registro)
                 .ToListAsync();
         }
 
@@ -33,6 +34,7 @@ namespace IntelTask.Infrastructure.Repositories
                 .Include(p => p.UsuarioCreador)
                     .ThenInclude(u => u!.Rol)
                 .Where(p => p.CN_Usuario_creador == usuarioId)
+                .OrderByDescending(p => p.CF_Fecha_hora_registro)
                 .ToListAsync();
         }
 
@@ -255,6 +257,7 @@ namespace IntelTask.Infrastructure.Repositories
                         .Include(p => p.UsuarioCreador)
                             .ThenInclude(u => u!.Rol)
                         .Where(p => usuariosQueReviso.Contains(p.CN_Usuario_creador))
+                        .OrderByDescending(p => p.CF_Fecha_hora_registro)
                         .ToListAsync();
                 }
 

@@ -28,6 +28,7 @@ namespace IntelTask.Infrastructure.Repositories
                 .Include(t => t.UsuarioCreador)
                 .Include(t => t.UsuarioAsignado)
                 .Include(t => t.TareaOrigen)
+                .OrderByDescending(t => t.CN_Id_tarea)
                 .ToListAsync();
         }
 
@@ -41,6 +42,7 @@ namespace IntelTask.Infrastructure.Repositories
                 .Include(t => t.UsuarioAsignado)
                 .Include(t => t.TareaOrigen)
                 .Where(t => t.CN_Usuario_creador == usuarioId || t.CN_Usuario_asignado == usuarioId)
+                .OrderByDescending(t => t.CN_Id_tarea)
                 .ToListAsync();
         }
 
