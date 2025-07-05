@@ -7,6 +7,5 @@ namespace IntelTask.Domain.Interfaces
         Task VerificarYNotificarTareasVencidas();
         Task<IEnumerable<ETareas>> F_PUB_ObtenerTareasVencidas();
         Task<IEnumerable<ETareas>> F_PUB_ObtenerTareasParaRecordatorio();
-        Task M_PUB_ActualizarTareaAIncumplida(int tareaId, string justificacion);
     }
 }

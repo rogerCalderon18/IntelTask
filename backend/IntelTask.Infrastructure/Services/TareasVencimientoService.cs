@@ -30,10 +30,6 @@ namespace IntelTask.Infrastructure.Services
             {
                 _logger.LogInformation("🔍 Iniciando verificación de tareas vencidas - {FechaHora}", DateTime.Now);
 
-                // COMENTADO: MODO PRUEBA DESACTIVADO
-                // _logger.LogInformation("🧪 MODO PRUEBA ACTIVADO - Enviando notificación de prueba");
-                // await EnviarNotificacionPruebaSinValidaciones();
-
                 // Verificar tareas ya vencidas
                 var tareasVencidas = await F_PUB_ObtenerTareasVencidas();
                 _logger.LogInformation("📊 Encontradas {CantidadVencidas} tareas vencidas", tareasVencidas.Count());
@@ -62,6 +58,7 @@ namespace IntelTask.Infrastructure.Services
                 
                 // Filtrar tareas vencidas (fecha límite pasada) y que no estén en estado finalizado o incumplido
                 // Estados reales: 5=Terminado, 14=Incumplida
+                // Solo notificar, no cambiar estado
                 var tareasVencidas = todasLasTareas.Where(t => 
                     t.CF_Fecha_limite < DateTime.Now &&
                     t.CN_Id_estado != 5 && // No terminada
@@ -118,68 +115,12 @@ namespace IntelTask.Infrastructure.Services
                    ahora.Minute == 25;
         }
 
-        public async Task M_PUB_ActualizarTareaAIncumplida(int tareaId, string justificacion)
-        {
-            try
-            {
-                // Obtener la tarea completa primero
-                var tareaCompleta = await _tareasRepository.F_PUB_ObtenerTareaPorId(tareaId);
-                if (tareaCompleta == null)
-                {
-                    _logger.LogWarning("Tarea {TareaId} no encontrada para marcar como incumplida", tareaId);
-                    return;
-                }
-
-                // Crear request con todos los datos actuales, solo cambiando el estado
-                var usuarioResponsable = tareaCompleta.CN_Usuario_asignado ?? tareaCompleta.CN_Usuario_creador;
-                var updateRequest = new TareaUpdateRequest
-                {
-                    CN_Id_estado = 14, // Estado incumplida
-                    CN_Id_complejidad = tareaCompleta.CN_Id_complejidad,
-                    CN_Id_prioridad = tareaCompleta.CN_Id_prioridad,
-                    CN_Usuario_asignado = tareaCompleta.CN_Usuario_asignado,
-                    CT_Titulo_tarea = tareaCompleta.CT_Titulo_tarea,
-                    CT_Descripcion_tarea = tareaCompleta.CT_Descripcion_tarea,
-                    CF_Fecha_limite = tareaCompleta.CF_Fecha_limite,
-                    CN_Numero_GIS = tareaCompleta.CN_Numero_GIS,
-                    // Para proceso automático, usar el usuario asignado o el creador como responsable del cambio
-                    CN_Usuario_editor = usuarioResponsable
-                };
-
-                _logger.LogInformation("🔄 Actualizando tarea {TareaId} a incumplida. Usuario responsable del cambio: {UsuarioId}", 
-                    tareaId, usuarioResponsable);
-
-                await _tareasRepository.M_PUB_ActualizarTarea(tareaId, updateRequest);
-
-                // Registrar el incumplimiento
-                var incumplimiento = new ETareasIncumplimiento
-                {
-                    CN_Id_tarea = tareaId,
-                    CT_Justificacion_incumplimiento = justificacion,
-                    CF_Fecha_incumplimiento = DateTime.Now
-                };
-
-                await _tareasRepository.M_PUB_AgregarIncumplimiento(incumplimiento);
-
-                _logger.LogInformation("✅ Tarea {TareaId} marcada como incumplida exitosamente", tareaId);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ Error al actualizar tarea {TareaId} a incumplida", tareaId);
-                throw;
-            }
-        }
-
         private async Task ProcesarTareasVencidas(IEnumerable<ETareas> tareasVencidas)
         {
             foreach (var tarea in tareasVencidas)
             {
                 try
                 {
-                    // Actualizar tarea a incumplida
-                    await M_PUB_ActualizarTareaAIncumplida(tarea.CN_Id_tarea, 
-                        "Tarea marcada automáticamente como incumplida por vencimiento de fecha límite");
-
                     // Enviar notificación al usuario asignado
                     if (tarea.CN_Usuario_asignado.HasValue)
                     {
@@ -194,7 +135,7 @@ namespace IntelTask.Infrastructure.Services
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error al procesar tarea vencida {TareaId}", tarea.CN_Id_tarea);
+                    _logger.LogError(ex, "Error al notificar tarea vencida {TareaId}", tarea.CN_Id_tarea);
                 }
             }
         }
@@ -235,16 +176,16 @@ namespace IntelTask.Infrastructure.Services
                 var notificacion = new NotificacionEmailRequest
                 {
                     CT_Email_destino = usuario.CT_Correo_usuario,
-                    CT_Asunto = "⚠️ Tarea Incumplida - IntelTask",
-                    CT_Titulo = $"La tarea '{tarea.CT_Titulo_tarea}' ha sido marcada como INCUMPLIDA",
+                    CT_Asunto = "⚠️ Tarea Vencida - IntelTask",
+                    CT_Titulo = $"La tarea '{tarea.CT_Titulo_tarea}' ha excedido su fecha límite",
                     CT_Tipo_notificacion = "Incumplimiento",
                     CT_Mensaje_adicional = $"Fecha límite: {tarea.CF_Fecha_limite:dd/MM/yyyy HH:mm}. " +
-                                         $"La tarea fue automáticamente marcada como incumplida debido al vencimiento de la fecha límite."
+                                         $"Esta tarea ya venció y requiere su atención inmediata. Por favor, complete la tarea lo antes posible."
                 };
 
                 // ENVIAR CORREO Y GUARDAR EN BD
                 await _notificacionesService.M_PUB_GuardarYEnviarNotificacion(notificacion, usuario.CN_Id_usuario);
-                _logger.LogInformation("📧 Notificación de incumplimiento enviada por correo y guardada para usuario {UsuarioId}", usuario.CN_Id_usuario);
+                _logger.LogInformation("📧 Notificación de tarea vencida enviada por correo y guardada para usuario {UsuarioId}", usuario.CN_Id_usuario);
             }
         }
 
@@ -256,16 +197,17 @@ namespace IntelTask.Infrastructure.Services
                 var notificacion = new NotificacionEmailRequest
                 {
                     CT_Email_destino = creador.CT_Correo_usuario,
-                    CT_Asunto = "⚠️ Tarea Creada por Usted - Incumplida",
-                    CT_Titulo = $"La tarea '{tarea.CT_Titulo_tarea}' que usted creó ha sido marcada como INCUMPLIDA",
+                    CT_Asunto = "⚠️ Tarea Creada por Usted - Vencida",
+                    CT_Titulo = $"La tarea '{tarea.CT_Titulo_tarea}' que usted creó ha excedido su fecha límite",
                     CT_Tipo_notificacion = "Incumplimiento",
                     CT_Mensaje_adicional = $"Usuario asignado: {tarea.UsuarioAsignado?.CT_Nombre_usuario}. " +
-                                         $"Fecha límite: {tarea.CF_Fecha_limite:dd/MM/yyyy HH:mm}"
+                                         $"Fecha límite: {tarea.CF_Fecha_limite:dd/MM/yyyy HH:mm}. " +
+                                         $"Esta tarea requiere seguimiento para determinar las acciones a tomar."
                 };
 
                 // ENVIAR CORREO Y GUARDAR EN BD
                 await _notificacionesService.M_PUB_GuardarYEnviarNotificacion(notificacion, creador.CN_Id_usuario);
-                _logger.LogInformation("📧 Notificación de incumplimiento para creador enviada por correo y guardada - Usuario {UsuarioId}", creador.CN_Id_usuario);
+                _logger.LogInformation("📧 Notificación de tarea vencida para creador enviada por correo y guardada - Usuario {UsuarioId}", creador.CN_Id_usuario);
             }
         }
 
@@ -292,7 +234,7 @@ namespace IntelTask.Infrastructure.Services
                 var ahora = DateTime.Now;
                 var esUltimoDia = ahora.Date == tarea.CF_Fecha_limite.Date;
                 
-                var urgencia = esUltimoDia ? "🔴 URGENTE" : "🟡 RECORDATORIO";
+                var urgencia = esUltimoDia ? "URGENTE" : "RECORDATORIO";
                 var mensaje = esUltimoDia ? 
                     "La tarea vence HOY. Complete la tarea antes de las 5:00 PM." :
                     $"La tarea vence mañana ({tarea.CF_Fecha_limite:dd/MM/yyyy}). Planifique su tiempo para completarla.";
