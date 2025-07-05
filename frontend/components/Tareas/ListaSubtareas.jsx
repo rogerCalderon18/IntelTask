@@ -96,33 +96,36 @@ const ListaSubtareas = ({ subtareas, loading, onEdit, onDelete, onDetalle }) => 
                                 )}
                             </div>
                         </div>
-                          <div className="flex items-center gap-1 ml-2">
-                            <button
+                          <div className="flex items-center gap-2 ml-2">
+                            <div
                                 onClick={() => onDetalle && onDetalle(subtarea)}
-                                className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                className="flex items-center gap-1 px-2 py-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors cursor-pointer group"
                                 title="Ver detalle"
                             >
-                                <FiEye className="w-4 h-4" />
-                            </button>
+                                <FiEye className="w-3.5 h-3.5" />
+                                <span className="text-xs font-medium group-hover:text-blue-600 transition-colors">Detalle</span>
+                            </div>
                             {/* Mostrar el icono de editar solo si está permitido */}
                             {subtarea.restriccionesAcciones?.editar && (
-                                <button
+                                <div
                                     onClick={() => onEdit(subtarea)}
-                                    className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                    className="flex items-center gap-1 px-2 py-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors cursor-pointer group"
                                     title="Editar subtarea"
                                 >
-                                    <FiEdit className="w-4 h-4" />
-                                </button>
+                                    <FiEdit className="w-3.5 h-3.5" />
+                                    <span className="text-xs font-medium group-hover:text-blue-600 transition-colors">Editar</span>
+                                </div>
                             )}
                             {/* Mostrar el icono de eliminar solo si está permitido */}
                             {subtarea.restriccionesAcciones?.eliminar && (
-                                <button
+                                <div
                                     onClick={() => onDelete(subtarea)}
-                                    className="p-1 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                                    className="flex items-center gap-1 px-2 py-1 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors cursor-pointer group"
                                     title="Eliminar subtarea"
                                 >
-                                    <FiTrash2 className="w-4 h-4" />
-                                </button>
+                                    <FiTrash2 className="w-3.5 h-3.5" />
+                                    <span className="text-xs font-medium group-hover:text-red-600 transition-colors">Eliminar</span>
+                                </div>
                             )}
                         </div>
                     </div>

@@ -215,12 +215,13 @@ const GestorAdjuntos = ({ idTarea, adjuntos: adjuntosIniciales = [], onAdjuntosC
                         style={{ display: 'none' }}
                         onChange={handleFileSelect}
                         disabled={subiendo}
-                    />                    <Button
-                        type="button"
-                        variant="flat"
-                        size="sm"
-                        className="bg-sky-100 text-sky-700"
-                        onPress={() => {
+                    />                    <div
+                        className={`flex items-center gap-2 px-3 py-2 rounded transition-colors cursor-pointer ${
+                            !idTarea || subiendo || !puedeSubirArchivos() 
+                                ? "text-gray-400 bg-gray-100 cursor-not-allowed" 
+                                : "text-sky-700 bg-sky-100 hover:bg-sky-200"
+                        }`}
+                        onClick={() => {
                             if (!puedeSubirArchivos()) {
                                 const estadoTarea = tarea?.cN_Id_estado || tarea?.estado;
                                 const nombresEstados = {
@@ -237,11 +238,10 @@ const GestorAdjuntos = ({ idTarea, adjuntos: adjuntosIniciales = [], onAdjuntosC
                                 });
                                 return;
                             }
+                            
+                            if (!idTarea || subiendo) return;
                             document.getElementById('file-input').click();
                         }}
-                        isLoading={subiendo}
-                        isDisabled={!idTarea || subiendo || !puedeSubirArchivos()}
-                        spinner={<Spinner size="sm" />}
                         title={
                             !idTarea 
                                 ? "Debe guardar la tarea antes de adjuntar archivos"
@@ -250,9 +250,12 @@ const GestorAdjuntos = ({ idTarea, adjuntos: adjuntosIniciales = [], onAdjuntosC
                                     : "Adjuntar archivo"
                         }
                     >
-                        <FaPaperclip className="mr-1" />
-                        {subiendo ? 'Subiendo...' : 'Adjuntar'}
-                    </Button>
+                        <FaPaperclip className="w-4 h-4" />
+                        <span className="text-sm font-medium">
+                            {subiendo ? 'Subiendo...' : 'Adjuntar'}
+                        </span>
+                        {subiendo && <Spinner size="sm" />}
+                    </div>
                 </div>
             </div>
 
@@ -279,37 +282,25 @@ const GestorAdjuntos = ({ idTarea, adjuntos: adjuntosIniciales = [], onAdjuntosC
                                             </span>
                                         )}
                                     </div>
-                                    <div className="flex gap-1">
-                                        <Button
-                                            type="button"
-                                            variant="light"
-                                            size="sm"
-                                            className="text-blue-600 min-w-unit-8 h-unit-8"
-                                            onPress={() => handleDescargar(adjunto.id)}
+                                    <div className="flex gap-2">
+                                        <div
+                                            className="flex items-center gap-1 px-2 py-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors cursor-pointer group"
+                                            onClick={() => handleDescargar(adjunto.id)}
+                                            title="Descargar archivo"
                                         >
-                                            <FaDownload />
-                                        </Button>
-                                        <Button
-                                            type="button"
-                                            variant="light"
-                                            size="sm"
-                                            className={`min-w-unit-8 h-unit-8 ${
-                                                puedeEliminar 
-                                                    ? "text-red-600 hover:text-red-700" 
-                                                    : "text-gray-400 cursor-not-allowed"
-                                            }`}
-                                            onPress={() => handleEliminar(adjunto)}
-                                            isDisabled={!puedeEliminar}
-                                            title={
-                                                !puedeEliminar 
-                                                    ? (esPropio 
-                                                        ? "No se puede eliminar en el estado actual de la tarea" 
-                                                        : "Solo puedes eliminar adjuntos que tú hayas subido")
-                                                    : "Eliminar adjunto"
-                                            }
-                                        >
-                                            <FaTrash />
-                                        </Button>
+                                            <FaDownload className="w-3.5 h-3.5" />
+                                            <span className="text-xs font-medium group-hover:text-blue-700 transition-colors">Descargar</span>
+                                        </div>
+                                        {puedeEliminar && (
+                                            <div
+                                                className="flex items-center gap-1 px-2 py-1 text-red-600 hover:text-red-700 hover:bg-red-50 rounded transition-colors cursor-pointer group"
+                                                onClick={() => handleEliminar(adjunto)}
+                                                title="Eliminar adjunto"
+                                            >
+                                                <FaTrash className="w-3.5 h-3.5" />
+                                                <span className="text-xs font-medium group-hover:text-red-700 transition-colors">Eliminar</span>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             );

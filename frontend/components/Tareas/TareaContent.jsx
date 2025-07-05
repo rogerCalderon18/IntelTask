@@ -12,6 +12,25 @@ const TareaContent = ({ descripcion, fechaEntrega, subtareas, tarea, onEdit, onD
 
   console.log("restriccionesAcciones", restriccionesAcciones, "tipoSeccion", tipoSeccion, tarea);
 
+  // Función para formatear fecha
+  const formatearFecha = (fecha) => {
+    if (!fecha) return 'No especificada';
+    
+    try {
+      const fechaObj = new Date(fecha);
+      return fechaObj.toLocaleString('es-ES', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true // Para formato 12 horas con AM/PM
+      });
+    } catch (error) {
+      return 'Fecha inválida';
+    }
+  };
+
   const handleSubtareasChange = (nuevasSubtareas) => {
     setSubtareasActuales(nuevasSubtareas);
   };
@@ -49,30 +68,41 @@ const TareaContent = ({ descripcion, fechaEntrega, subtareas, tarea, onEdit, onD
         onSubtareasChange={handleSubtareasChange}
       />
       <div className="flex justify-between items-center pt-3 border-t border-gray-200">
-        <div className="flex items-center gap-2">
-          <FiEye 
-            className="text-gray-600 cursor-pointer hover:text-blue-500 transition-colors" 
+        <div className="flex items-center gap-3">
+          <div 
+            className="flex items-center gap-1 text-gray-600 cursor-pointer hover:text-blue-500 transition-colors group"
             onClick={handleDetalleClick}
             title="Ver detalle"
-          />
+          >
+            <FiEye className="w-4 h-4" />
+            <span className="text-xs font-medium group-hover:text-blue-500 transition-colors">Detalle</span>
+          </div>
+          
           {/* Mostrar el icono de editar solo si está permitido */}
           {restriccionesAcciones.editar && (
-            <FiEdit 
-              className="text-gray-600 cursor-pointer hover:text-blue-500 transition-colors" 
+            <div 
+              className="flex items-center gap-1 text-gray-600 cursor-pointer hover:text-blue-500 transition-colors group"
               onClick={handleEditClick}
               title="Editar tarea"
-            />
+            >
+              <FiEdit className="w-4 h-4" />
+              <span className="text-xs font-medium group-hover:text-blue-500 transition-colors">Editar</span>
+            </div>
           )}
+          
           {/* Mostrar el icono de eliminar solo si está permitido */}
           {restriccionesAcciones.eliminar && (
-            <FiTrash2 
-              className="text-gray-600 cursor-pointer hover:text-red-500 transition-colors" 
+            <div 
+              className="flex items-center gap-1 text-gray-600 cursor-pointer hover:text-red-500 transition-colors group"
               onClick={handleDeleteClick}
               title="Eliminar tarea"
-            />
+            >
+              <FiTrash2 className="w-4 h-4" />
+              <span className="text-xs font-medium group-hover:text-red-500 transition-colors">Eliminar</span>
+            </div>
           )}
         </div>
-        <span className="text-xs text-gray-500">Fecha de entrega: {fechaEntrega}</span>
+        <span className="text-xs text-gray-500">Fecha de entrega: {formatearFecha(fechaEntrega)}</span>
       </div>
 
       {/* Modal de detalle */}

@@ -398,27 +398,24 @@ const GestorAdjuntosPermisos = ({
                               </div>
                               
                               <div className="flex items-center gap-2">
-                                <Button
-                                  size="sm"
-                                  variant="light"
-                                  color="primary"
-                                  startContent={<FiDownload className="w-4 h-4" />}
-                                  onPress={() => handleDownload(adjunto)}
+                                <div
+                                  className="flex items-center gap-1 px-2 py-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors cursor-pointer group"
+                                  onClick={() => handleDownload(adjunto)}
+                                  title="Descargar archivo"
                                 >
-                                  Descargar
-                                </Button>
+                                  <FiDownload className="w-4 h-4" />
+                                  <span className="text-sm font-medium group-hover:text-blue-700 transition-colors">Descargar</span>
+                                </div>
                                 
                                 {puedeEliminarAdjuntos(adjunto) && (
-                                  <Button
-                                    size="sm"
-                                    variant="light"
-                                    color="danger"
-                                    startContent={<FiTrash className="w-4 h-4" />}
-                                    onPress={() => handleDelete(adjunto)}
+                                  <div
+                                    className="flex items-center gap-1 px-2 py-1 text-red-600 hover:text-red-700 hover:bg-red-50 rounded transition-colors cursor-pointer group"
+                                    onClick={() => handleDelete(adjunto)}
                                     title="Eliminar adjunto"
                                   >
-                                    Eliminar
-                                  </Button>
+                                    <FiTrash className="w-4 h-4" />
+                                    <span className="text-sm font-medium group-hover:text-red-700 transition-colors">Eliminar</span>
+                                  </div>
                                 )}
                               </div>
                             </div>
