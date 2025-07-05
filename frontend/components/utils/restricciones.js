@@ -80,9 +80,9 @@ export const RESTRICCIONES_CONFIG = {
     // INCUMPLIDO
     [ESTADOS.INCUMPLIDO]: {
         creador: {
-            titulo: false, descripcion: false, adjuntos: false, complejidad: false,
-            prioridad: false, usuarioAsignado: false, descripcionEspera: false,
-            estado: false, numeroGIS: false, fechaLimite: false
+            titulo: true, descripcion: true, adjuntos: false, complejidad: true,
+            prioridad: true, usuarioAsignado: false, descripcionEspera: false,
+            estado: false, numeroGIS: true, fechaLimite: false
         },
         asignado: {
             titulo: true, descripcion: true, adjuntos: true, complejidad: true,
@@ -270,7 +270,7 @@ export const obtenerRestricciones = (tarea, tipoSeccion, usuario) => {
 
     const restricciones = estadoConfig[relacion];
     if (restricciones) {
-        console.log(`Restricciones aplicadas: Estado ${estadoId} -> ${relacion}`);
+        console.log(`Restricciones aplicadas: Estado ${estadoId} -> ${relacion}`, restricciones);
         return restricciones;
     }
 
@@ -387,4 +387,29 @@ export const debugRestricciones = (tarea, tipoSeccion, usuario) => {
     console.log('Restricciones de acciones:', restriccionesAcciones);
 
     console.groupEnd();
+};
+
+// Función para obtener estados permitidos según transiciones del flujo de trabajo
+export const obtenerEstadosPermitidos = (estadoActual, esCreador = false, esTareaVencida = false) => {
+    const transiciones = {
+        [ESTADOS.REGISTRADO]: [ESTADOS.ASIGNADO], // Registrado -> Asignado
+        [ESTADOS.ASIGNADO]: [ESTADOS.EN_PROCESO, ESTADOS.EN_ESPERA], // Asignado -> En proceso, En espera
+        [ESTADOS.EN_PROCESO]: [ESTADOS.EN_ESPERA, ESTADOS.EN_REVISION], // En proceso -> En espera, En revisión
+        [ESTADOS.EN_ESPERA]: [ESTADOS.EN_PROCESO], // En espera -> En proceso
+        [ESTADOS.TERMINADO]: [], // Terminado -> ninguno (final)
+        [ESTADOS.INCUMPLIDO]: [ESTADOS.ASIGNADO], // Incumplido -> Solo Asignado
+        [ESTADOS.RECHAZADA]: [ESTADOS.ASIGNADO], // Rechazado -> Asignado
+        [ESTADOS.EN_REVISION]: [ESTADOS.TERMINADO, ESTADOS.RECHAZADA] // En revisión -> Solo Terminado o Rechazado
+    };
+
+    let estadosPermitidos = transiciones[estadoActual] || [];
+
+    // Si es creador y tarea vencida (no incumplida aún), puede marcar como incumplida
+    if (esCreador && esTareaVencida && estadoActual !== ESTADOS.INCUMPLIDO && estadoActual !== ESTADOS.TERMINADO) {
+        if (!estadosPermitidos.includes(ESTADOS.INCUMPLIDO)) {
+            estadosPermitidos = [...estadosPermitidos, ESTADOS.INCUMPLIDO];
+        }
+    }
+
+    return estadosPermitidos;
 };

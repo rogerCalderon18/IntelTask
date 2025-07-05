@@ -26,6 +26,7 @@ import { I18nProvider } from "@react-aria/i18n";
 import { datePickerUtils } from "../../utils/datePickerUtils";
 import HistorialIncumplimientos from "./HistorialIncumplimientos";
 import { getLocalTimeZone, now, parseZonedDateTime } from "@internationalized/date";
+import { obtenerEstadosPermitidos } from "../utils/restricciones";
 
 const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tareaPadre = null, restricciones = {}, restriccionesAcciones = {} }) => {
     const { data: session, status } = useSession();
@@ -297,29 +298,9 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
         return date.toISOString().split('T')[0];
     };
 
-    // Mapa de transiciones de estados permitidas
-    const obtenerEstadosPermitidos = (estadoActual, esCreador = false) => {
-        const transiciones = {
-            1: [2], // Registrado -> Asignado
-            2: [3, 4], // Asignado -> En proceso, En espera
-            3: [4, 17], // En proceso -> En espera, En revisión
-            4: [3], // En espera -> En proceso
-            5: [], // Terminado -> ninguno (final)
-            14: [2, 3, 4], // Incumplido -> Asignado, En proceso, En espera
-            15: [2], // Rechazado -> Asignado
-            17: esCreador ? [5, 15] : [] // En revisión -> Solo el creador puede Terminar o Rechazar
-        };
-
-        // Si es creador y tarea vencida (no incumplida aún), puede marcar como incumplida
-        if (esCreador && esTareaVencida() && estadoActual !== 14 && estadoActual !== 5) {
-            const estadosPermitidos = transiciones[estadoActual] || [];
-            if (!estadosPermitidos.includes(14)) {
-                estadosPermitidos.push(14);
-            }
-            return estadosPermitidos;
-        }
-
-        return transiciones[estadoActual] || [];
+    // Usar la función centralizada de restricciones
+    const getEstadosPermitidos = (estadoActual, esCreador = false) => {
+        return obtenerEstadosPermitidos(estadoActual, esCreador, esTareaVencida());
     };
     const obtenerEstadosFiltrados = () => {
         if (!tarea?.cN_Id_estado || catalogos.estados.length === 0) {
@@ -328,7 +309,7 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
 
         // Obtener estados permitidos basándose en el estado actual y si es el creador
         const esCreador = parseInt(session?.user?.id) === tarea?.cN_Usuario_creador;
-        const estadosPermitidos = obtenerEstadosPermitidos(tarea.cN_Id_estado, esCreador);
+        const estadosPermitidos = getEstadosPermitidos(tarea.cN_Id_estado, esCreador);
 
         // Filtrar los estados del catálogo para mostrar solo los permitidos
         const estadosFiltrados = catalogos.estados.filter(estado =>
@@ -585,6 +566,11 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
                                                 </SelectItem>
                                             ))}
                                         </Select>
+                                        {tarea?.cN_Id_estado === 14 && (
+                                            <p className="text-xs text-blue-600 mt-1">
+                                                ℹ️ Una tarea incumplida solo puede cambiarse al estado "Asignado" para reiniciar el proceso.
+                                            </p>
+                                        )}
                                     </div>
 
                                     {/* Campo de justificación de rechazo */}
