@@ -36,6 +36,9 @@ builder.Services.AddScoped<INotificacionesService, NotificacionesService>();
 builder.Services.AddScoped<ITareasVencimientoService, TareasVencimientoService>();
 builder.Services.AddSingleton<TareasVencimientoBackgroundService>();
 
+// Nuevo servicio para gestión de fechas de tareas
+builder.Services.AddScoped<ITareaFechaService, TareaFechaService>();
+
 // Configurar EmailSettings
 builder.Services.Configure<EmailSettings>(
     builder.Configuration.GetSection("EmailSettings"));

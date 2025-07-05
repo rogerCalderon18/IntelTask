@@ -15,6 +15,7 @@ import {
 } from "@heroui/react";
 import { catalogosService } from "../../services/catalogosService";
 import { agregarRechazo } from "../../services/rechazoService";
+import { tieneJustificaciones } from "../../services/incumplimientoService";
 import GestorAdjuntos from "./GestorAdjuntos";
 import Seguimientos from "@/components/Tareas/Seguimientos";
 import SeguimientoInput from "./SeguimientoInput";
@@ -23,6 +24,7 @@ import HistorialRechazos from "./HistorialRechazos";
 import { useSession } from "next-auth/react";
 import { I18nProvider } from "@react-aria/i18n";
 import { datePickerUtils } from "../../utils/datePickerUtils";
+import HistorialIncumplimientos from "./HistorialIncumplimientos";
 import { getLocalTimeZone, now, parseZonedDateTime } from "@internationalized/date";
 
 const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tareaPadre = null, restricciones = {}, restriccionesAcciones = {} }) => {
@@ -41,11 +43,14 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
         usuarios: []
     });
     const [loadingCatalogos, setLoadingCatalogos] = useState(true);
+    const [tieneJustificacionesIncumplimiento, setTieneJustificacionesIncumplimiento] = useState(false);
+    const [loadingJustificaciones, setLoadingJustificaciones] = useState(false);
     const seguimientosRef = useRef(null);
 
     useEffect(() => {
         if (isOpen && session?.user?.id && status === 'authenticated') {
             cargarCatalogos();
+            verificarJustificaciones();
         }
 
         // Resetear estado cuando se abre el modal
@@ -58,6 +63,10 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
 
     useEffect(() => {
         setTareaLocal(tarea || {});
+        // Verificar justificaciones cuando cambie la tarea
+        if (tarea?.cN_Id_estado === 14) {
+            verificarJustificaciones();
+        }
     }, [tarea]);
 
     const cargarCatalogos = async () => {
@@ -69,6 +78,66 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
             console.error('Error al cargar catálogos:', error);
         } finally {
             setLoadingCatalogos(false);
+        }
+    };
+
+    // Verificar si la tarea está vencida y no terminada
+    const esTareaVencida = () => {
+        if (!tarea?.cF_Fecha_limite) return false;
+        return new Date(tarea.cF_Fecha_limite) < new Date() && tarea?.cN_Id_estado !== 5;
+    };
+
+    // Verificar si puede marcar como incumplida (creador + vencida + no ya incumplida)
+    const puedeMarcarIncumplida = () => {
+        const esCreador = parseInt(session?.user?.id) === tarea?.cN_Usuario_creador;
+        return esCreador && esTareaVencida() && tarea?.cN_Id_estado !== 14 && tarea?.cN_Id_estado !== 5;
+    };
+
+    // Verificar si puede editar fecha límite en incumplimiento
+    const puedeEditarFechaIncumplida = () => {
+        const esCreador = parseInt(session?.user?.id) === tarea?.cN_Usuario_creador;
+        return esCreador && tarea?.cN_Id_estado === 14 && tieneJustificacionesIncumplimiento;
+    };
+
+    // Verificar justificaciones cuando la tarea está en incumplimiento
+    const verificarJustificaciones = async () => {
+        if (tarea?.cN_Id_estado === 14 && tarea?.cN_Id_tarea) {
+            setLoadingJustificaciones(true);
+            try {
+                const tiene = await tieneJustificaciones(tarea.cN_Id_tarea);
+                setTieneJustificacionesIncumplimiento(tiene);
+            } catch (error) {
+                console.error('Error al verificar justificaciones:', error);
+                setTieneJustificacionesIncumplimiento(false);
+            } finally {
+                setLoadingJustificaciones(false);
+            }
+        }
+    };
+
+    // Manejar marcado como incumplida
+    const marcarComoIncumplida = async () => {
+        if (!puedeMarcarIncumplida()) return;
+
+        setIsSubmitting(true);
+        try {
+            const tareaData = {
+                cT_Titulo_tarea: tarea?.cT_Titulo_tarea,
+                cT_Descripcion_tarea: tarea?.cT_Descripcion_tarea,
+                cN_Id_complejidad: tarea?.cN_Id_complejidad,
+                cN_Id_prioridad: tarea?.cN_Id_prioridad,
+                cN_Id_estado: 14, // Incumplido
+                cF_Fecha_limite: tarea?.cF_Fecha_limite,
+                cN_Numero_GIS: tarea?.cN_Numero_GIS,
+                cN_Usuario_asignado: tarea?.cN_Usuario_asignado,
+                cN_Tarea_origen: tarea?.cN_Tarea_origen,
+                cN_Usuario_editor: session?.user?.id,
+            };
+            await onSubmit(tareaData);
+        } catch (error) {
+            console.error('Error al marcar como incumplida:', error);
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -184,6 +253,14 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
                 cN_Tarea_origen: tareaPadre ? (tareaPadre.cN_Id_tarea || tareaPadre.id) : null,
                 cN_Usuario_editor: session?.user?.id,
             };
+
+            // LÓGICA ESPECIAL: Si está editando fecha límite en tarea incumplida, automáticamente asignar de nuevo
+            if (tarea?.cN_Id_estado === 14 && !restricciones.fechaLimite && tareaLocal.cF_Fecha_limite &&
+                tareaLocal.cF_Fecha_limite !== tarea?.cF_Fecha_limite && tieneJustificacionesIncumplimiento) {
+                tareaData.cN_Id_estado = 2; // Asignado
+                tareaData.cN_Usuario_asignado = tarea.cN_Usuario_asignado; // Mantener mismo usuario
+            }
+
             await onSubmit(tareaData);
 
             // Resetear estado del modal después de enviar exitosamente
@@ -233,6 +310,15 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
             17: esCreador ? [5, 15] : [] // En revisión -> Solo el creador puede Terminar o Rechazar
         };
 
+        // Si es creador y tarea vencida (no incumplida aún), puede marcar como incumplida
+        if (esCreador && esTareaVencida() && estadoActual !== 14 && estadoActual !== 5) {
+            const estadosPermitidos = transiciones[estadoActual] || [];
+            if (!estadosPermitidos.includes(14)) {
+                estadosPermitidos.push(14);
+            }
+            return estadosPermitidos;
+        }
+
         return transiciones[estadoActual] || [];
     };
     const obtenerEstadosFiltrados = () => {
@@ -277,6 +363,35 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
                                 <h2 className="text-xl font-bold mb-4">
                                     {tareaPadre ? 'Editar subtarea' : 'Editar tarea'} - {tarea?.cN_Id_tarea ? String(tarea.cN_Id_tarea).padStart(2, '0') : '00'}
                                 </h2>
+
+                                {/* Botón para marcar como incumplida */}
+                                {puedeMarcarIncumplida() && (
+                                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-red-600 text-sm">⚠️</span>
+                                                <div>
+                                                    <p className="text-sm font-medium text-red-800">
+                                                        Esta tarea ha superado su fecha límite
+                                                    </p>
+                                                    <p className="text-xs text-red-600">
+                                                        Fecha límite: {tarea?.cF_Fecha_limite ? new Date(tarea.cF_Fecha_limite).toLocaleString() : 'No definida'}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <Button
+                                                size="sm"
+                                                color="warning"
+                                                variant="solid"
+                                                onPress={marcarComoIncumplida}
+                                                isLoading={isSubmitting}
+                                                className="text-white"
+                                            >
+                                                Marcar como Incumplida
+                                            </Button>
+                                        </div>
+                                    </div>
+                                )}
 
                                 <div className="grid grid-cols-2 gap-4 w-full overflow-hidden">
                                     {tareaPadre && (
@@ -349,6 +464,7 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
                                             showMonthAndYearPickers
                                             variant="bordered"
                                             granularity="minute"
+                                            hourCycle={12}
                                             hideTimeZone
                                             value={parseToZonedDateTime(tareaLocal.cF_Fecha_limite || tarea?.cF_Fecha_limite)}
                                             onChange={restricciones.fechaLimite ? undefined : handleDateValidation}
@@ -357,9 +473,14 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
                                             maxValue={tareaPadre?.cF_Fecha_limite ? parseToZonedDateTime(tareaPadre.cF_Fecha_limite) : undefined}
                                             errorMessage={timeValidationErrors.fechaLimite || "La fecha y hora límite son requeridas (Lunes a Viernes, 7:00 AM - 4:30 PM)"}
                                             isInvalid={!!timeValidationErrors.fechaLimite}
-                                            isDisabled={isSubmitting || restricciones.fechaLimite}
-                                            readOnly={restricciones.fechaLimite}
+                                            isDisabled={isSubmitting || (restricciones.fechaLimite && !(puedeEditarFechaIncumplida()))}
+                                            readOnly={restricciones.fechaLimite && !(puedeEditarFechaIncumplida())}
                                         />
+                                        {tarea?.cN_Id_estado === 14 && !tieneJustificacionesIncumplimiento && parseInt(session?.user?.id) === tarea?.cN_Usuario_creador && (
+                                            <p className="text-xs text-orange-600 mt-1">
+                                                ⚠️ La fecha límite solo puede editarse después de que el usuario asignado agregue una justificación de incumplimiento.
+                                            </p>
+                                        )}
                                     </div>
 
                                     <div>
@@ -419,8 +540,12 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
                                                 <SelectItem
                                                     key={usuario.cN_Id_usuario}
                                                     value={usuario.cN_Id_usuario.toString()}
+                                                    textValue={usuario.cT_Nombre_usuario}
                                                 >
-                                                    {usuario.cT_Nombre_usuario}
+                                                    <div className="flex flex-col">
+                                                        <span className="text-sm font-medium">{usuario.cT_Nombre_usuario}</span>
+                                                        <span className="text-xs text-gray-500">{usuario.cT_Nombre_rol || 'Sin rol asignado'}</span>
+                                                    </div>
                                                 </SelectItem>
                                             ))}
                                         </Select>
@@ -505,6 +630,14 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
                                         />
                                     </div>
 
+
+
+                                    {tarea?.cN_Id_estado === 14 && (
+                                        <div className="col-span-2">
+                                            <HistorialIncumplimientos tareaId={tarea?.CN_Id_tarea ?? tarea?.cN_Id_tarea} />
+                                        </div>
+                                    )}
+
                                     {tarea?.cN_Id_estado === 14 && (
                                         <>
                                             <div className="col-span-2">
@@ -541,7 +674,10 @@ const EditarTareaModal = ({ isOpen, onClose, onOpenChange, onSubmit, tarea, tare
                                         spinner={<Spinner size="sm" color="current" />}
                                         isDisabled={
                                             (restriccionesAcciones && restriccionesAcciones.editar !== true) ||
-                                            (mostrarJustificacionRechazo && !justificacionRechazo.trim())
+                                            (mostrarJustificacionRechazo && !justificacionRechazo.trim()) ||
+                                            (tarea?.cN_Id_estado === 14 && !restricciones.fechaLimite &&
+                                                tareaLocal.cF_Fecha_limite !== tarea?.cF_Fecha_limite &&
+                                                !tieneJustificacionesIncumplimiento)
                                         }
                                     >
                                         {isSubmitting ? "Actualizando..." : "Editar"}

@@ -30,12 +30,16 @@ namespace IntelTask.Infrastructure.Repositories
 
         public async Task<EUsuarios?> F_PUB_ObtenerUsuarioPorId(int id)
         {
-            return await _context.T_Usuarios.FindAsync(id);
+            return await _context.T_Usuarios
+                .Include(u => u.Rol)
+                .FirstOrDefaultAsync(u => u.CN_Id_usuario == id);
         }
 
         public async Task<IEnumerable<EUsuarios>> F_PUB_ObtenerTodosLosUsuarios()
         {
-            return await _context.T_Usuarios.ToListAsync();
+            return await _context.T_Usuarios
+                .Include(u => u.Rol)
+                .ToListAsync();
         }
 
         public async Task M_PUB_ActualizarUsuario(EUsuarios usuario)

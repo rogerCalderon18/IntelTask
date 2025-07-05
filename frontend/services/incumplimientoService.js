@@ -14,3 +14,13 @@ export const agregarIncumplimiento = async (tareaId, comentario) => {
     body: JSON.stringify({ cN_Id_tarea: tareaId, cT_Justificacion_incumplimiento: comentario }),
   });
 };
+
+export const tieneJustificaciones = async (tareaId) => {
+  try {
+    const incumplimientos = await getIncumplimientos(tareaId);
+    return incumplimientos && incumplimientos.length > 0;
+  } catch (error) {
+    console.error('Error al verificar justificaciones:', error);
+    return false;
+  }
+};

@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace IntelTask.Domain.Entities
 {
@@ -20,5 +21,10 @@ namespace IntelTask.Domain.Entities
         // Relación de navegación
         [ForeignKey("CN_Id_rol")]
         public virtual required ERoles Rol { get; set; }
+
+        // Propiedad computada para el frontend
+        [NotMapped]
+        [JsonPropertyName("cT_Nombre_rol")]
+        public string CT_Nombre_rol => Rol?.CT_Nombre_rol ?? string.Empty;
     }
 }

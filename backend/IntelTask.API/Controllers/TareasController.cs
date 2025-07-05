@@ -265,4 +265,50 @@ public class TareasController : ControllerBase
             });
         }
     }
+
+    [HttpGet("{id}/subtareas")]
+    public async Task<ActionResult<IEnumerable<ETareas>>> F_PUB_ObtenerSubtareas(int id)
+    {
+        try
+        {
+            var tareaFechaService = HttpContext.RequestServices.GetRequiredService<ITareaFechaService>();
+            var subtareas = await tareaFechaService.F_PUB_ObtenerSubtareasAsync(id);
+            return Ok(subtareas);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Error al obtener subtareas: {ex.Message}");
+        }
+    }
+
+    [HttpPost("{id}/validar-fecha-principal")]
+    public async Task<ActionResult> M_PUB_ValidarYActualizarFechaPrincipal(int id, [FromBody] ValidarFechaRequest request)
+    {
+        try
+        {
+            var tareaFechaService = HttpContext.RequestServices.GetRequiredService<ITareaFechaService>();
+            var seActualizo = await tareaFechaService.M_PUB_ActualizarFechaPrincipalSiEsNecesarioAsync(
+                id, 
+                request.NuevaFechaLimite, 
+                request.UsuarioEditor
+            );
+
+            return Ok(new { 
+                seActualizoPrincipal = seActualizo,
+                mensaje = seActualizo ? "Fecha principal actualizada automáticamente" : "No fue necesario actualizar la fecha principal",
+                fecha = DateTime.Now
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Error al validar fecha principal: {ex.Message}");
+        }
+    }
+}
+
+// DTO para el endpoint de validación de fecha
+public class ValidarFechaRequest
+{
+    public DateTime NuevaFechaLimite { get; set; }
+    public int UsuarioEditor { get; set; }
 }

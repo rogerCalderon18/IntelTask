@@ -10,11 +10,13 @@ namespace IntelTask.Infrastructure.Repositories
     {
         private readonly IntelTaskDbContext _context;
         private readonly IBitacoraCambioEstadoService _bitacoraCambioEstadoService;
+        private readonly ITareaFechaService _tareaFechaService;
 
-        public TareasRepository(IntelTaskDbContext context, IBitacoraCambioEstadoService bitacoraCambioEstadoService)
+        public TareasRepository(IntelTaskDbContext context, IBitacoraCambioEstadoService bitacoraCambioEstadoService, ITareaFechaService tareaFechaService)
         {
             _context = context;
             _bitacoraCambioEstadoService = bitacoraCambioEstadoService;
+            _tareaFechaService = tareaFechaService;
         }
 
         public async Task<IEnumerable<ETareas>> F_PUB_ObtenerTodasLasTareas()
@@ -162,6 +164,7 @@ namespace IntelTask.Infrastructure.Repositories
 
                 var estadoAnterior = tareaExistente.CN_Id_estado;
                 var usuarioAsignadoAnterior = tareaExistente.CN_Usuario_asignado;
+                var fechaLimiteAnterior = tareaExistente.CF_Fecha_limite;
 
                 // Actualizar solo los campos permitidos
                 tareaExistente.CT_Titulo_tarea = request.CT_Titulo_tarea;
@@ -190,6 +193,30 @@ namespace IntelTask.Infrastructure.Repositories
 
                 _context.Entry(tareaExistente).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
+
+                // NUEVA LÓGICA: Verificar extensión automática de fecha límite en tarea principal
+                // Solo si la fecha límite cambió
+                if (fechaLimiteAnterior != request.CF_Fecha_limite)
+                {
+                    try
+                    {
+                        var seActualizoPrincipal = await _tareaFechaService.M_PUB_ActualizarFechaPrincipalSiEsNecesarioAsync(
+                            id, 
+                            request.CF_Fecha_limite, 
+                            request.CN_Usuario_editor
+                        );
+                        
+                        if (seActualizoPrincipal)
+                        {
+                            Console.WriteLine($"Se actualizó automáticamente la fecha de la tarea principal debido a cambio en subtarea #{id}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // Loggear el error pero no fallar la actualización principal
+                        Console.WriteLine($"Advertencia: No se pudo actualizar la fecha de la tarea principal: {ex.Message}");
+                    }
+                }
 
                 // Si la tarea cambia a "En Proceso" (estado 3), poner otras tareas del mismo usuario en espera
                 if (request.CN_Id_estado == 3 && estadoAnterior != 3)
